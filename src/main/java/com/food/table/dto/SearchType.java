@@ -15,6 +15,8 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.food.table.model.SearchTagModel;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,8 +27,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name= "diets")
-public class Diets {
+@Table(name= "search_type")
+public class SearchType {
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -36,7 +38,7 @@ public class Diets {
 	
 	private String description;	
 	
-	@ManyToMany(mappedBy = "diets")
+	@ManyToMany(mappedBy = "searchType")
 	private List<Restaurant> restaurant;
 	
 	@CreationTimestamp
@@ -45,6 +47,13 @@ public class Diets {
 	
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
-	private Date updatedAt;	
+	private Date updatedAt;
 	
+	public static SearchType convertModelToDto(SearchTagModel searchTagModel){
+		SearchType searchTag = new SearchType();
+        searchTag.setId(searchTagModel.getId());
+        searchTag.setName(searchTagModel.getName());
+        searchTag.setDescription(searchTagModel.getDescription());
+        return searchTag;
+    }
 }

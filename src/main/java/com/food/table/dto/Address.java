@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -20,24 +20,38 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name="address_detail")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name= "diets")
-public class Diets {
-	
+public class Address {
+
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
-	private int id;
+	private int id;	
 	
-	private String name;
+	private String line1;
 	
-	private String description;	
+	private String line2;
 	
-	@ManyToMany(mappedBy = "diets")
-	private List<Restaurant> restaurant;
+	private String district;
+	
+	private String city;
+	
+	private String state;
+	
+	private String country;
+	
+	private String pincode;
+	
+	private String lattitude;
+	
+	private String longitude;
+	
+	@OneToOne(mappedBy = "address")
+	private Restaurant restaurant;
 	
 	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
@@ -46,5 +60,4 @@ public class Diets {
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updatedAt;	
-	
 }

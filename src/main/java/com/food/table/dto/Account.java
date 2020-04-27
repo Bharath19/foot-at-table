@@ -1,13 +1,16 @@
 package com.food.table.dto;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -15,29 +18,18 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name= "diets")
-public class Diets {
+@Table(name="account_detail")
+@Data
+public class Account {
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private int id;
 	
-	private String name;
-	
-	private String description;	
-	
-	@ManyToMany(mappedBy = "diets")
-	private List<Restaurant> restaurant;
+	private String name;		
 	
 	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
@@ -46,5 +38,4 @@ public class Diets {
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updatedAt;	
-	
 }

@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Set;
 
 @Entity
 @Table(name="tiers")
@@ -14,7 +15,7 @@ import java.sql.Timestamp;
 public class Tiers {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
 
@@ -22,7 +23,7 @@ public class Tiers {
     private String name;
 
     @Column(name = "description")
-    private String description;
+    private String description;    
 
     @Column(name = "created_at")
     @CreationTimestamp

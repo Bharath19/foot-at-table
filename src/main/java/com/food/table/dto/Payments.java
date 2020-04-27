@@ -25,18 +25,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name= "diets")
-public class Diets {
+@Table(name= "payments")
+public class Payments {
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private int id;
 	
-	private String name;
+	private String name;	
 	
-	private String description;	
-	
-	@ManyToMany(mappedBy = "diets")
+	@ManyToMany(mappedBy = "payments")
 	private List<Restaurant> restaurant;
 	
 	@CreationTimestamp

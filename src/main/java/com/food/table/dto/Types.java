@@ -15,6 +15,8 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.food.table.dto.Diets.DietsBuilder;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,18 +27,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name= "diets")
-public class Diets {
+@Table(name= "types")
+public class Types {
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private int id;
 	
-	private String name;
+	private String name;	
 	
-	private String description;	
-	
-	@ManyToMany(mappedBy = "diets")
+	@ManyToMany(mappedBy = "types")
 	private List<Restaurant> restaurant;
 	
 	@CreationTimestamp

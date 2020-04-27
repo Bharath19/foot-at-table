@@ -15,6 +15,8 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.food.table.model.CuisinesModel;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,8 +27,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name= "diets")
-public class Diets {
+@Table(name= "cuisines")
+public class Cuisines {
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -36,7 +38,7 @@ public class Diets {
 	
 	private String description;	
 	
-	@ManyToMany(mappedBy = "diets")
+	@ManyToMany(mappedBy = "cuisines")
 	private List<Restaurant> restaurant;
 	
 	@CreationTimestamp
@@ -47,4 +49,11 @@ public class Diets {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updatedAt;	
 	
+	public static Cuisines convertModelToDto(CuisinesModel cuisinesModel){
+        Cuisines cuisines = new Cuisines();
+        cuisines.setId(cuisinesModel.getId());
+        cuisines.setName(cuisinesModel.getName());
+        cuisines.setDescription(cuisinesModel.getDescription());
+        return cuisines;
+    }
 }

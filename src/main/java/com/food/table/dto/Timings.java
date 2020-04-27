@@ -3,11 +3,11 @@ package com.food.table.dto;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -20,24 +20,28 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @Builder
+@Entity
+@Table(name="timings")
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name= "diets")
-public class Diets {
+public class Timings {
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private int id;
 	
-	private String name;
+	private String day;
 	
-	private String description;	
+	private String openingTime;
 	
-	@ManyToMany(mappedBy = "diets")
-	private List<Restaurant> restaurant;
+	private String ClosingTime;
+	
+	@Column(name = "restaurant_id")
+	private Integer restaurantId;
+	
 	
 	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
@@ -46,5 +50,4 @@ public class Diets {
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updatedAt;	
-	
 }
