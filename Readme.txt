@@ -78,3 +78,46 @@ Query need to run before calling restaurantapi :
 		INSERT INTO `skipthequeue`.`diets` (`created_at`, `name`, `updated_at`) VALUES (now(), 'veg', now());
 		INSERT INTO `skipthequeue`.`diets` (`created_at`, `name`, `updated_at`) VALUES (now(), 'non-veg', now());
 		INSERT INTO `skipthequeue`.`diets` (`created_at`, `name`, `updated_at`) VALUES (now(), 'veg,non-veg', now());
+		
+Food Api Json
+{       "name": "Veg Pizza",
+		"description": "Pizza",
+		"tags":[1,2],
+		"restaurantId":1,
+		"imageUrl": "www.images.com",
+		"dietId": 1,
+		"cuisineId":1,
+		"startTime":"9:00",
+		"endTime":"12:00",
+		"sortNo":1,
+		"price":400,
+		"status":"active",
+		"foodCategoryId":1,
+		"extras":[
+			{                   "name": "Cheese Topping",
+    							"type": "multiple",
+    							"description": "Cheese",
+    							"sortNo": 1,
+    							"status": "active",
+    							"foodOptionsModels": [
+            						{
+            						"name": "Cheese Burst",
+            						"description": "Cheese Burst",
+            						"price": 25,
+           							"imageUrl": "url",
+        							"status": 1,
+        							"sortNo": 1
+            						},
+            						{
+            						"name": "Double Cheese",
+            						"description": "Double Cheese",
+            						"price": 25,
+           							"imageUrl": "url",
+        							"status": 1,
+        							"sortNo": 2
+            						}
+                                ]			
+			
+		           }
+			     ]
+}
