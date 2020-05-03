@@ -7,4 +7,5 @@ RUN mvn package
 FROM openjdk:11
 WORKDIR /app
 COPY --from=MAVEN_BUILD /build/target/food-table-0.0.1-SNAPSHOT.jar /app/
-ENTRYPOINT ["java", "-jar", "food-table-0.0.1-SNAPSHOT.jar"]
+COPY ./entrypoint.sh /
+ENTRYPOINT [ "sh", "/entrypoint.sh" ]
