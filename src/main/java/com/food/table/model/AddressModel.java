@@ -21,8 +21,10 @@ public class AddressModel {
 	
 	private String pincode;
 	
-	private String lattitude;
+	private Double distance;
 	
-	private String longitude;
+	private double lattitude;
+	
+	private double longitude;
 
 }

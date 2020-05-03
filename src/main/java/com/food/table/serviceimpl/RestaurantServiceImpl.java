@@ -2,11 +2,17 @@ package com.food.table.serviceimpl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.lucene.util.SloppyMath;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.food.table.dto.Account;
@@ -81,6 +87,131 @@ public class RestaurantServiceImpl implements RestaurantService {
 		restaurantepository.save(restaurant);
 		}
 	
+	@Override
+	public boolean deleteRestaurant(int id) {
+		Optional<Restaurant> restaurant = restaurantepository.findById(id);
+		restaurant.get().setState(ApplicationConstants.deleteState);
+		Restaurant restaurantResponse = restaurantepository.save(restaurant.get());
+		if (restaurantResponse.getState().equalsIgnoreCase(ApplicationConstants.deleteState))
+			return true;
+		else
+			return false;
+	}
+
+	@Override
+	public List<RestaurantGetModel> getAllRestaurant(int from,int limit,String latitude,String longitude) {
+		Pageable pageable=PageRequest.of(from, limit);
+		Page<Restaurant> restaurants=null;
+		if(latitude!=null && longitude!=null) {
+			restaurants = restaurantepository.findByStateWithDistance(ApplicationConstants.confirmedState, latitude, longitude, pageable);
+		}
+		else {
+		 restaurants = restaurantepository.findByState(ApplicationConstants.confirmedState,pageable);
+		}
+		return parseGetAllRestaurant(restaurants.getContent(),latitude,longitude);
+	}
+	
+	@Override
+	public void updateRestaurant(RestaurantModel restaurantModel) {
+		int id=restaurantModel.getId();
+		Optional<Restaurant> restaurant=restaurantepository.findById(id);
+		if(restaurant.get()!=null) {
+			parseUpdateRestaurantObject(restaurant.get(), restaurantModel);
+		}
+		restaurantepository.save(restaurant.get());		
+	}
+
+	@Override
+	public List<RestaurantGetModel> getRestaurantByDietType(List<String> dietType,int from,int limit,String latitude,String longitude) {
+		Page<Restaurant> restaurants=null;
+		if(latitude!=null && longitude!=null) {
+			restaurants=restaurantepository.findByDietsWithDistance(ApplicationConstants.confirmedState, latitude, longitude, dietType, PageRequest.of(from, limit));	
+		}
+		else {
+		restaurants=restaurantepository.findByDiets(ApplicationConstants.confirmedState, dietType,PageRequest.of(from, limit));
+		}
+		List<RestaurantGetModel> restauGetModels=parseGetAllRestaurant(restaurants.getContent(),latitude,longitude);
+		return restauGetModels;
+	}
+	
+	@Override
+	public List<RestaurantGetModel> getRestaurantByRestaurantType(List<String> restaurantType,int from,int limit,String latitude,String longitude) {
+		Page<Restaurant> restaurants=null;
+		if(latitude!=null && longitude!=null) {
+			restaurants=restaurantepository.findByRestauratTypesWithDistance(ApplicationConstants.confirmedState, latitude, longitude, restaurantType, PageRequest.of(from, limit));
+		}
+		else {
+		restaurants=restaurantepository.findByRestauratTypes(ApplicationConstants.confirmedState, restaurantType,PageRequest.of(from, limit));
+		}
+		List<RestaurantGetModel> restauGetModels=parseGetAllRestaurant(restaurants.getContent(),latitude,longitude);
+		return restauGetModels;
+	}
+
+	@Override
+	public List<RestaurantGetModel> getRestaurantByRestaurantName(String restaurantName, int from, int limit,
+			String latitude, String longitude) {
+		Page<Restaurant> restaurants = null;
+		if (latitude != null && longitude != null) {
+			restaurants = restaurantepository.findByStateWithDistance(ApplicationConstants.confirmedState, latitude,
+					longitude, PageRequest.of(from, limit));
+		} else {
+			restaurants = restaurantepository.findByName(ApplicationConstants.confirmedState, restaurantName,
+					PageRequest.of(from, limit));
+		}
+		List<RestaurantGetModel> restauGetModels = parseGetAllRestaurant(restaurants.getContent(), latitude, longitude);
+		return restauGetModels;
+	}
+
+	@Override
+	public List<RestaurantGetModel> getRestaurantByRestaurantSeating(List<String> restaurantSeating, int from,
+			int limit, String latitude, String longitude) {
+		Page<Restaurant> restaurants = null;
+		if (latitude != null && longitude != null) {
+			restaurants = restaurantepository.findByRestauratSeatingsWithDistance(ApplicationConstants.confirmedState,
+					latitude, longitude, restaurantSeating, PageRequest.of(from, limit));
+		} else {
+			restaurants = restaurantepository.findByRestauratSeatings(ApplicationConstants.confirmedState,
+					restaurantSeating, PageRequest.of(from, limit));
+		}
+		List<RestaurantGetModel> restauGetModels = parseGetAllRestaurant(restaurants.getContent(), latitude, longitude);
+		return restauGetModels;
+	}
+
+	@Override
+	public List<RestaurantGetModel> getRestaurantByRestaurantService(List<String> restaurantService,int from,int limit,String latitude,String longitude) {
+		Page<Restaurant> restaurants=null;
+		if(latitude!=null && longitude!=null) {
+			restaurants=restaurantepository.findByRestauratServicesWithDistance(ApplicationConstants.confirmedState, latitude, longitude, restaurantService, PageRequest.of(from, limit));
+		}
+		else {
+		 restaurants=restaurantepository.findByRestauratServices(ApplicationConstants.confirmedState, restaurantService,PageRequest.of(from, limit));
+		}
+		List<RestaurantGetModel> restauGetModels=parseGetAllRestaurant(restaurants.getContent(),latitude,longitude);
+		return restauGetModels;
+	}
+
+	@Override
+	public List<RestaurantGetModel> getRestaurantByRestaurantCuisine(List<String> restaurantCuisine, int from,
+			int limit, String latitude, String longitude) {
+		Page<Restaurant> restaurants = null;
+		if (latitude != null && longitude != null) {
+			restaurants = restaurantepository.findByRestauratCuisinesWithDistance(ApplicationConstants.confirmedState,
+					latitude, longitude, restaurantCuisine, PageRequest.of(from, limit));
+		} else {
+			restaurants = restaurantepository.findByRestauratCuisines(ApplicationConstants.confirmedState,
+					restaurantCuisine, PageRequest.of(from, limit));
+		}
+		List<RestaurantGetModel> restauGetModels = parseGetAllRestaurant(restaurants.getContent(), latitude, longitude);
+		return restauGetModels;
+	}
+	
+	@Override
+	public List<RestaurantGetModel> getRestaurantByDistance(String latitude, String longitude, String km) {
+		List<Restaurant> restaurants=restaurantepository.findByDistance(ApplicationConstants.confirmedState,latitude, longitude, km);
+		List<RestaurantGetModel> restauGetModels=parseGetAllRestaurant(restaurants,latitude,longitude);
+		return restauGetModels;
+	}
+	
 	private Restaurant parseRestaurantValue(RestaurantModel restaurantModel) {
 		AddressModel addressModel = restaurantModel.getAddress();
 		Address address = Address.builder().line1(addressModel.getLine1()).line2(addressModel.getLine2())
@@ -121,50 +252,41 @@ public class RestaurantServiceImpl implements RestaurantService {
 		return timings;
 	}
 
-	@Override
-	public boolean deleteRestaurant(int id) {
-		Optional<Restaurant> restaurant = restaurantepository.findById(id);
-		restaurant.get().setState(ApplicationConstants.deleteState);
-		Restaurant restaurantResponse = restaurantepository.save(restaurant.get());
-		if (restaurantResponse.getState().equalsIgnoreCase(ApplicationConstants.deleteState))
-			return true;
-		else
-			return false;
-	}
-
-	@Override
-	public List<RestaurantGetModel> getAllRestaurant() {
-		List<Restaurant> restaurants = restaurantepository.findByState(ApplicationConstants.confirmedState);
-		return parseGetAllRestaurant(restaurants);
-	}
 	
-	private List<RestaurantGetModel> parseGetAllRestaurant(List<Restaurant> restaurants) {
+	
+	private List<RestaurantGetModel> parseGetAllRestaurant(List<Restaurant> restaurants,String latitude,String longitude) {
 		List<RestaurantGetModel> restaurantGetModels = new ArrayList<RestaurantGetModel>();
 		restaurants.forEach(res -> {
+			String currentDay=LocalDate.now().getDayOfWeek().toString();
+			List<Timings> timings=res.getTimings();
+			List<Timings> timeForCurrentDay=timings.stream().filter(timefilter->timefilter.getDay().toUpperCase().matches(currentDay)).collect(Collectors.toList());
+			if(!timeForCurrentDay.isEmpty() || timeForCurrentDay.size()!=0) {
 			RestaurantGetModel restaurantGetModel = new RestaurantGetModel();
+			restaurantGetModel.setTimingModel(TimingModel.builder().day(timeForCurrentDay.get(0).getDay()).from(timeForCurrentDay.get(0).getOpeningTime()).to(timeForCurrentDay.get(0).getClosingTime()).build());
 			restaurantGetModel.setId(res.getId());
 			restaurantGetModel.setName(res.getRestaurantName());
 			restaurantGetModel.setDescription(res.getDescription());
 			restaurantGetModel.setImageUrl(res.getImageUrl());
 			Address address = res.getAddress();
+			if(latitude==null&&longitude==null) {
 			restaurantGetModel.setAddress(AddressModel.builder().line1(address.getLine1()).line2(address.getLine2())
 					.district(address.getDistrict()).city(address.getCity()).state(address.getState())
 					.country(address.getCountry()).pincode(address.getPincode()).build());
+			}
+			else {
+				restaurantGetModel.setAddress(AddressModel.builder().line1(address.getLine1()).line2(address.getLine2())
+						.district(address.getDistrict()).city(address.getCity()).state(address.getState())
+						.country(address.getCountry()).pincode(address.getPincode()).distance(calculateDistance(latitude, longitude, address.getLattitude(), address.getLongitude())).build());
+			}
 			List<Cuisines> cuisines = res.getCuisines();
 			List<String> cuisinesName = cuisines.stream().map(m -> m.getName()).collect(Collectors.toList());
 			restaurantGetModel.setCuisines(cuisinesName);
-			restaurantGetModel.setAvgPricePerPerson(res.getAvgPricePerPerson());
-			String currentDay=LocalDate.now().getDayOfWeek().toString();
-			System.out.println("Current Day = "+currentDay);
-			List<Timings> timings=res.getTimings();
-			List<Timings> timeForCurrentDay=timings.stream().filter(timefilter->!timefilter.getDay().matches(currentDay)).collect(Collectors.toList());
-			if(!timeForCurrentDay.isEmpty() || timeForCurrentDay.size()!=0) {
-			restaurantGetModel.setTimingModel(TimingModel.builder().day(timeForCurrentDay.get(0).getDay()).from(timeForCurrentDay.get(0).getOpeningTime()).to(timeForCurrentDay.get(0).getClosingTime()).build());
-			}
+			restaurantGetModel.setAvgPricePerPerson(res.getAvgPricePerPerson());			
 			List<Types> types=res.getTypes();
 			List<String> typesName = types.stream().map(m -> m.getName()).collect(Collectors.toList());
 			restaurantGetModel.setTypes(typesName);
 			restaurantGetModels.add(restaurantGetModel);
+			}			
 		});
 		return restaurantGetModels;
 	}
@@ -223,10 +345,10 @@ public class RestaurantServiceImpl implements RestaurantService {
 				address.setCountry(addressModel.getCountry());
 			if (addressModel.getPincode() != null)
 				address.setPincode(addressModel.getPincode());
-			if (addressModel.getLattitude() != null)
-				address.setLattitude(addressModel.getLattitude());
-			if (addressModel.getLongitude() != null)
-				address.setLongitude(addressModel.getLongitude());
+			if (addressModel.getLattitude() !=0.0)
+			    address.setLattitude(addressModel.getLattitude()); 
+			if (addressModel.getLongitude() != 0.0)
+				address.setLongitude(addressModel.getLongitude());			 
 
 			restaurant.setAddress(address);
 		}
@@ -288,17 +410,12 @@ public class RestaurantServiceImpl implements RestaurantService {
 		    restaurant.setTimings(timings);
 		}		 		
 		return restaurant;
-	}
-
-	@Override
-	public void updateRestaurant(RestaurantModel restaurantModel) {
-		int id=restaurantModel.getId();
-		Optional<Restaurant> restaurant=restaurantepository.findById(id);
-		if(restaurant.get()!=null) {
-			parseUpdateRestaurantObject(restaurant.get(), restaurantModel);
-		}
-		restaurantepository.save(restaurant.get());		
-	}
-
+	}	
 	
+	private double calculateDistance(String latitude, String longitude, Double aLatitude, Double alongitude) {
+		double dist = SloppyMath.haversinMeters(Double.valueOf(latitude),
+				Double.valueOf(longitude), aLatitude, alongitude);
+		return dist/1000;
+	}
+		
 }

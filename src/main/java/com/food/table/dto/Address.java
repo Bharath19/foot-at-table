@@ -1,8 +1,8 @@
 package com.food.table.dto;
 
 import java.util.Date;
-import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -44,11 +44,13 @@ public class Address {
 	
 	private String country;
 	
-	private String pincode;
+	private String pincode;	
 	
-	private String lattitude;
+	@Column(precision = 8,scale = 6)
+	private double lattitude;
 	
-	private String longitude;
+	@Column(precision = 9,scale = 6)
+	private double longitude;
 	
 	@OneToOne(mappedBy = "address")
 	private Restaurant restaurant;
