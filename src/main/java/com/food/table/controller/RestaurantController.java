@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
+import com.food.table.model.SearchModel;
 import com.food.table.service.RestaurantService;
 
 import io.swagger.annotations.Api;
@@ -36,8 +38,16 @@ public class RestaurantController {
 	@GetMapping("/getAllConfirmed")
 	public @ResponseBody List<RestaurantGetModel> getAllRestaurant(@RequestParam(value = "latitude", required = false) String latitude,
 			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue = "100") int limit) {
-		return restaurantService.getAllRestaurant(from,limit,latitude,longitude);
+			@RequestParam(value = "limit", required = false,defaultValue = "25") int limit,
+			@RequestParam(value = "km", required = false) String km) {
+		return restaurantService.getAllRestaurant(from,limit,latitude,longitude,km);
+	}
+	
+	@ApiOperation(value="View a list of Drafted restaurants")
+	@GetMapping("/getAllDrafted")
+	public @ResponseBody List<RestaurantGetModel> getAllDraftedRestaurant(@RequestParam(value = "from", required = false,defaultValue = "0") int from,
+			@RequestParam(value = "limit", required = false,defaultValue = "25") int limit) {
+		return restaurantService.getAllDraftedRestaurant(from,limit);
 	}
 	
 	@ApiOperation(value="Add a new restaurant")
@@ -57,61 +67,33 @@ public class RestaurantController {
 	public Boolean deleteRestaurant(@ApiParam(value = "Restaurant Id from which restaurant object will delete from database table", required = false) @PathVariable("id") int id) {
 		return restaurantService.deleteRestaurant(id);
 	}
-	
-	@ApiOperation(value="View a list of available restaurants by filtering with diet type")
-	@GetMapping("/search/dietType/")
-	public @ResponseBody List<RestaurantGetModel> getRestaurantByDietType(@RequestParam(value = "latitude", required = false) String latitude,
-			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue ="100") int limit,@RequestParam("dietType") List<String> dietType) {
-		return restaurantService.getRestaurantByDietType(dietType, from, limit, latitude, longitude);
-	}
-	
-	@ApiOperation(value="View a list of available restaurants by filtering with restaurant type")
-	@GetMapping("/search/restaurantType/")
-	public @ResponseBody List<RestaurantGetModel> getRestaurantByRestaurantType(@RequestParam(value = "latitude", required = false) String latitude,
-			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue ="100") int limit,@RequestParam(value="restaurantType") List<String> restaurantType) {
-		return restaurantService.getRestaurantByRestaurantType(restaurantType, from, limit, latitude, longitude);
-	}
-	
-	@ApiOperation(value="View a list of available restaurants by filtering with seating type")
-	@GetMapping("/search/restaurantSeating/")
-	public @ResponseBody List<RestaurantGetModel> getRestaurantByRestaurantSeating(@RequestParam(value = "latitude", required = false) String latitude,
-			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue ="100") int limit,@RequestParam(value="restaurantSeating") List<String> restaurantSeating) {
-		return restaurantService.getRestaurantByRestaurantSeating(restaurantSeating, from, limit, latitude, longitude);
-	}
-	
-	@ApiOperation(value="View a list of available restaurants by filtering with service type")
-	@GetMapping("/search/restaurantService/")
-	public @ResponseBody List<RestaurantGetModel> getRestaurantByRestaurantService(@RequestParam(value = "latitude", required = false) String latitude,
-			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue ="100") int limit,@RequestParam(value="restaurantService") List<String> restaurantServ) {
-		return restaurantService.getRestaurantByRestaurantService(restaurantServ, from, limit, latitude, longitude);
-	}
-	
-	@ApiOperation(value="View a list of available restaurants by filtering with cuisine type")
-	@GetMapping("/search/restaurantCuisine/")
-	public @ResponseBody List<RestaurantGetModel> getRestaurantByRestaurantCuisine(@RequestParam(value = "latitude", required = false) String latitude,
-			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue ="100") int limit,@RequestParam(value="restaurantCuisine") List<String> restaurantCuisine) {
-		return restaurantService.getRestaurantByRestaurantCuisine(restaurantCuisine, from, limit, latitude, longitude);
-	}
-	
+
 	@ApiOperation(value="View a list of available restaurants by filtering with restaurant name")
 	@GetMapping("/search/restaurantName/{restaurantName}")
 	public @ResponseBody List<RestaurantGetModel> getRestaurantByRestaurantName(@RequestParam(value = "latitude", required = false) String latitude,
 			@RequestParam(value = "longitude", required = false) String longitude,@RequestParam(value = "from", required = false,defaultValue = "0") int from,
-			@RequestParam(value = "limit", required = false,defaultValue ="100") int limit,@PathVariable("restaurantName") String restaurantName) {
+			@RequestParam(value = "limit", required = false,defaultValue ="25") int limit,@PathVariable("restaurantName") String restaurantName) {
 		return restaurantService.getRestaurantByRestaurantName(restaurantName, from, limit, latitude, longitude);
 	}
 	
-	@ApiOperation(value = "View a list of available restaurants by filtering with restaurant name")
-	@GetMapping("/search/distance/")
-	public @ResponseBody List<RestaurantGetModel> getRestaurantByDistance(
+	@ApiOperation(value = "View a list of available restaurants by filtering")
+	@GetMapping("/search/")
+	public @ResponseBody List<RestaurantGetModel> getRestaurantByFilter(
 			@RequestParam(value = "latitude", required = false) String latitude,
 			@RequestParam(value = "longitude", required = false) String longitude,
-			@RequestParam(value = "km", required = false, defaultValue = "1") String km) {
-		return restaurantService.getRestaurantByDistance(latitude,longitude,km);
+			@RequestParam(value = "from", required = false, defaultValue = "0") int from,
+			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit,
+			@RequestParam(value = "restaurantService", required = false) List<String> restaurantSer,
+			@RequestParam(value = "restaurantSeating", required = false) List<String> restaurantSeating,
+			@RequestParam(value = "restaurantCuisine", required = false) List<String> restaurantCuisine,
+			@RequestParam(value = "restaurantType", required = false) List<String> restaurantType,
+			@RequestParam(value = "restaurantDiet", required = false) List<String> restaurantDiet,
+			@RequestParam(value = "km", required = false) String km) {
+		return restaurantService.getRestaurantByFilter(latitude, longitude,from,limit, km, restaurantSer,restaurantSeating,restaurantCuisine,restaurantType,restaurantDiet);
+	}
+	
+	@GetMapping("/getStaticValues/")
+	public @ResponseBody DefaultValuesResponse getDefaultTableValues() {
+		return restaurantService.getDefaultTableValues();
 	}
 }

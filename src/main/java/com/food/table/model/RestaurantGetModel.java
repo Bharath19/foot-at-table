@@ -23,7 +23,7 @@ public class RestaurantGetModel {
 	
 	private float avgPricePerPerson;
 	
-	private TimingModel timingModel;
+	private List<TimingModel> timingModel;
 
 }
  
