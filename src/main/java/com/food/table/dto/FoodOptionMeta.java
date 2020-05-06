@@ -3,18 +3,22 @@ package com.food.table.dto;
 import com.food.table.dto.constant.FoodOptionType;
 import com.food.table.dto.constant.FoodStatusEnum;
 import com.food.table.model.FoodOptionMetaModel;
-import lombok.Data;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
 @Entity
 @Table(name = "food_option_meta")
-@Data
-public class FoodOptionMeta {
+@Getter
+@Setter
+public class FoodOptionMeta implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

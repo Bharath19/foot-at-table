@@ -2,18 +2,22 @@ package com.food.table.dto;
 
 import com.food.table.dto.constant.FoodStatusEnum;
 import com.food.table.model.FoodsModel;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
 @Entity
 @Table(name = "foods")
-@Data
-public class Foods {
+@Getter
+@Setter
+public class Foods implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -41,20 +45,26 @@ public class Foods {
     private String startTime;
     private int sortNo;
     private int status;
+    private int deleteFlag;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "foods_id", referencedColumnName = "id")
     private List<FoodOptionMeta> extras;
-
     @CreationTimestamp
+    @Column(updatable = false)
     private Timestamp createdAt;
     @UpdateTimestamp
     private Timestamp updatedAt;
+    private Timestamp deletionDate;
+    private String deletedBy;
 
     public static Foods convertModelToDto(FoodsModel foodsModel, Diets diets,
                                           Cuisines cuisines, FoodCategory foodCategory, List<FoodOptionMeta> foodOptionMetaList,
                                           Restaurant restaurant, List<FoodTag> foodTags) {
         Foods foods = new Foods();
+        if (foodsModel.getId() != 0) {
+            foods.setId(foodsModel.getId());
+        }
         foods.setName(foodsModel.getName());
         foods.setImageUrl(foodsModel.getImageUrl());
         foods.setPrice(foodsModel.getPrice());

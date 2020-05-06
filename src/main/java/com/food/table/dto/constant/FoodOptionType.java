@@ -3,9 +3,11 @@ package com.food.table.dto.constant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @AllArgsConstructor
 public enum FoodOptionType {
@@ -27,5 +29,16 @@ public enum FoodOptionType {
             id = foodOptionType.get().getId();
         }
         return id;
+    }
+
+    public static String getName(int id) {
+        String name = StringUtils.EMPTY;
+        AtomicInteger atomicId = new AtomicInteger();
+        atomicId.set(id);
+        Optional<FoodOptionType> foodOptionType = Arrays.stream(FoodOptionType.values()).filter(optionType -> optionType.getId() == atomicId.get()).findFirst();
+        if (foodOptionType.isPresent()) {
+            name = foodOptionType.get().getName();
+        }
+        return name;
     }
 }

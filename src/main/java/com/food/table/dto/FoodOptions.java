@@ -3,12 +3,15 @@ package com.food.table.dto;
 import com.food.table.dto.constant.FoodStatusEnum;
 import com.food.table.model.FoodOptionsModel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -16,8 +19,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "food_options")
-@Data
-public class FoodOptions {
+@Getter
+@Setter
+public class FoodOptions implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,8 +1,12 @@
 package com.food.table.model;
 
+import com.food.table.dto.FoodOptionMeta;
+import com.food.table.dto.constant.FoodOptionType;
+import com.food.table.dto.constant.FoodStatusEnum;
 import lombok.Data;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class FoodOptionMetaModel {
@@ -12,4 +16,15 @@ public class FoodOptionMetaModel {
     public String description;
     public String status;
     public List<FoodOptionsModel> foodOptionsModels;
+
+    public static FoodOptionMetaModel convertDtoToModel(FoodOptionMeta foodOptionMeta) {
+        FoodOptionMetaModel foodOptionMetaModel = new FoodOptionMetaModel();
+        foodOptionMetaModel.setType(FoodOptionType.getName(foodOptionMeta.getOptionType()));
+        foodOptionMetaModel.setId(foodOptionMeta.getId());
+        foodOptionMetaModel.setName(foodOptionMeta.getOptionName());
+        foodOptionMetaModel.setDescription(foodOptionMeta.getOptionDescription());
+        foodOptionMetaModel.setStatus(FoodStatusEnum.getName(foodOptionMeta.getStatus()));
+        foodOptionMetaModel.setFoodOptionsModels(foodOptionMeta.getFoodOptions().stream().map(FoodOptionsModel::convertDtoToModel).collect(Collectors.toList()));
+        return foodOptionMetaModel;
+    }
 }
