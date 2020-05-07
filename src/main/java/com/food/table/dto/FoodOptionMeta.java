@@ -3,7 +3,6 @@ package com.food.table.dto;
 import com.food.table.dto.constant.FoodOptionType;
 import com.food.table.dto.constant.FoodStatusEnum;
 import com.food.table.model.FoodOptionMetaModel;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,6 +12,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "food_option_meta")
@@ -46,11 +46,11 @@ public class FoodOptionMeta implements Serializable {
             , inverseJoinColumns = {@JoinColumn(name = "food_options_id", referencedColumnName = "id")})
     List<FoodOptions> foodOptions;
 
-    public static FoodOptionMeta convertModelToDto(FoodOptionMetaModel foodOptionMetaModel, List<FoodOptions> foodOptionsList) {
+    public static FoodOptionMeta convertModelToDto(FoodOptionMetaModel foodOptionMetaModel) {
         FoodOptionMeta foodOptionMeta = new FoodOptionMeta();
         foodOptionMeta.setOptionType(FoodOptionType.getValue(foodOptionMetaModel.getType()));
         foodOptionMeta.setOptionName(foodOptionMetaModel.getName());
-        foodOptionMeta.setFoodOptions(foodOptionsList);
+        foodOptionMeta.setFoodOptions(foodOptionMetaModel.getFoodOptionsModels().stream().map(FoodOptions::convertModelToDto).collect(Collectors.toList()));
         foodOptionMeta.setOptionDescription(foodOptionMetaModel.getDescription());
         foodOptionMeta.setStatus(FoodStatusEnum.getValue(foodOptionMetaModel.getStatus()));
         return foodOptionMeta;

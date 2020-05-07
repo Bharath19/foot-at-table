@@ -12,7 +12,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -100,14 +99,8 @@ public class FoodApiServiceImpl implements FoodApiService {
         List<FoodTag> foodTags = foodTagRepository.findAllById(foodsModel.getTags());
         if (CollectionUtils.isEmpty(foodTags))
             throw new RecordNotFoundException("No Records Found in FoodTag Table");
-        List<FoodOptions> foodOptionsList = new ArrayList<>();
-        foodsModel.getExtras().forEach(foodOptionMetaModel -> {
-            foodOptionMetaModel.getFoodOptionsModels().stream().forEach(foodOptionsModel -> {
-                foodOptionsList.add(FoodOptions.convertModelToDto(foodOptionsModel));
-            });
-        });
         List<FoodOptionMeta> foodOptionMetaList = foodsModel.getExtras().stream()
-                .map(foodOptionMeta -> FoodOptionMeta.convertModelToDto(foodOptionMeta, foodOptionsList))
+                .map(foodOptionMeta -> FoodOptionMeta.convertModelToDto(foodOptionMeta))
                 .collect(Collectors.toList());
         return FoodsModel.convertDtoToModel(foodRepository.save(
                 Foods.convertModelToDto(foodsModel, diets.get(), cuisines.get(), foodCategory.get(),
