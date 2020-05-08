@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.food.table.dto.Restaurant;
 
 @Repository
-public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>,JpaSpecificationExecutor<Restaurant>{
+public interface RestaurantRepository extends JpaRepository<Restaurant, Integer> {
 	
 	Page<Restaurant> findByState(String state,Pageable pageable);
 	
