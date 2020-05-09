@@ -3,7 +3,7 @@ package com.food.table.serviceimpl;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.RestaurantTable;
 import com.food.table.exceptions.RecordNotFoundException;
-import com.food.table.model.FoodsModel;
+import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
 import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.RestaurantTableRepository;
@@ -111,11 +111,14 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     }
 
     @Override
-    public List<FoodsModel> getFoodsByQRCode(String qrCode) {
+    public RestaurantTableDetailsModel getTableDetailsByQRCode(String qrCode) {
         RestaurantTable restaurantTable = restaurantTableRepository.findTableByQRCode(qrCode);
         if (Objects.isNull(restaurantTable))
             throw new RecordNotFoundException("No Record found in RestaurantTable for qrCode: " + qrCode);
-        return foodApiService.getFoodsByRestaurantId(restaurantTable.getRestaurant().getId());
+        return RestaurantTableDetailsModel.builder()
+                .restaurantId(restaurantTable.getRestaurant().getId())
+                .tableId(restaurantTable.getId())
+                .build();
     }
 
     private RestaurantTable createQRCode(RestaurantTable restaurantTable, Restaurant restaurant) {

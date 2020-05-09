@@ -1,6 +1,6 @@
 package com.food.table.controller;
 
-import com.food.table.model.FoodsModel;
+import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
 import com.food.table.service.RestaurantTableService;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +53,9 @@ public class RestaurantTableController {
         return ResponseEntity.ok().body(restaurantTableService.generateQRCode(id));
     }
 
-    @RequestMapping(value = "/table/qrcode/foods/{qrCode}", method = RequestMethod.GET)
-    public ResponseEntity<List<FoodsModel>> getFoodsByQRCode(@NotNull @PathVariable String qrCode) {
-        return ResponseEntity.ok().body(restaurantTableService.getFoodsByQRCode(qrCode));
+    @RequestMapping(value = "/table/qrcode/details/{qrCode}", method = RequestMethod.GET)
+    public ResponseEntity<RestaurantTableDetailsModel> getFoodsByQRCode(@NotNull @PathVariable String qrCode) {
+        return ResponseEntity.ok().body(restaurantTableService.getTableDetailsByQRCode(qrCode));
     }
 
 

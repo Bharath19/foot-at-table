@@ -1,6 +1,6 @@
 package com.food.table.service;
 
-import com.food.table.model.FoodsModel;
+import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public interface RestaurantTableService {
 
     byte[] generateQRCode(int id);
 
-    List<FoodsModel> getFoodsByQRCode(String qrCode);
+    RestaurantTableDetailsModel getTableDetailsByQRCode(String qrCode);
 
 
 }
