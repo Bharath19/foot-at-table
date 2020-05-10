@@ -34,6 +34,8 @@ import com.food.table.dto.Tiers;
 import com.food.table.dto.Timings;
 import com.food.table.dto.Types;
 import com.food.table.dto.constant.ApplicationConstants;
+import com.food.table.email.EmailModel;
+import com.food.table.email.EmailService;
 import com.food.table.model.AddressModel;
 import com.food.table.model.BaseModel;
 import com.food.table.model.DefaultValuesResponse;
@@ -89,6 +91,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 	
 	@Autowired
 	TypesRepository typesRepository;
+	
+	@Autowired
+  	private EmailService emailService;
 
 	@Override
 	public void addRestaurant(RestaurantModel restaurantModel) {
@@ -419,6 +424,17 @@ public class RestaurantServiceImpl implements RestaurantService {
 		double dist = SloppyMath.haversinMeters(Double.valueOf(latitude),
 				Double.valueOf(longitude), aLatitude, alongitude);
 		return dist/1000;
+	}
+
+	@Override
+	public void updateState(int id, String state) {
+		Optional<Restaurant> restaurant=restaurantepository.findById(id);
+		if(restaurant.get()!=null) {
+			Restaurant res = restaurant.get();
+			res.setState(state);
+			emailService.triggerEmail(restaurantepository.save(res), EmailModel.confirmRestaurant);
+		}
+		
 	}
 
 	

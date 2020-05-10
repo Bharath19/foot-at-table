@@ -29,4 +29,6 @@ public interface RestaurantService {
 	public List<RestaurantGetModel> getAllDraftedRestaurant(int from, int limit);
 	
 	public DefaultValuesResponse getDefaultTableValues() ;
+
+	public void updateState(int id, String state);
 }
