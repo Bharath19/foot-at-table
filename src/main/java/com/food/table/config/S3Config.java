@@ -10,6 +10,8 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 
 @Configuration
 public class S3Config {
@@ -28,6 +30,14 @@ public class S3Config {
 		final BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(accessKey, accessSecret);
 		return AmazonS3ClientBuilder.standard().withRegion(Regions.fromName(region))
 				.withCredentials(new AWSStaticCredentialsProvider(basicAWSCredentials)).withPathStyleAccessEnabled(true)
+				.build();
+	}
+	
+	@Bean
+	public AmazonSNS getAmazonSNSClient() {
+		final BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(accessKey, accessSecret);
+		return AmazonSNSClientBuilder.standard().withRegion(Regions.fromName(region))
+				.withCredentials(new AWSStaticCredentialsProvider(basicAWSCredentials))
 				.build();
 	}
 }
