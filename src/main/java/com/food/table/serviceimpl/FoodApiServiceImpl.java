@@ -1,11 +1,14 @@
 package com.food.table.serviceimpl;
 
 import com.food.table.dto.*;
+import com.food.table.dto.constant.FoodStatusEnum;
 import com.food.table.exceptions.RecordNotFoundException;
 import com.food.table.model.FoodsModel;
 import com.food.table.repo.*;
 import com.food.table.service.FoodApiService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -17,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class FoodApiServiceImpl implements FoodApiService {
@@ -83,6 +87,20 @@ public class FoodApiServiceImpl implements FoodApiService {
         return foodsList.stream().map(FoodsModel::convertDtoToModel).collect(Collectors.toList());
     }
 
+	@Override
+	public boolean updateStatus(int id, String status) {
+		try {
+	        Foods food = foodRepository.findFoodById(id);
+	        checkRecordNotFoundException(food, id, FOOD_SINGLE_RECORD_ERROR_MESSAGE);
+	        food.setStatus(FoodStatusEnum.getValue(status));
+	        foodRepository.save(food);
+	        return true;
+		}catch (Exception e) {
+			log.error("unable to update food status "+ e);
+		}
+		return false;
+	}
+	
     private FoodsModel performSaveOrUpdate(FoodsModel foodsModel) {
         Optional<Diets> diets = dietRepository.findById(foodsModel.getDietId());
         if (!diets.isPresent())
@@ -116,4 +134,5 @@ public class FoodApiServiceImpl implements FoodApiService {
             }
         }
     }
+
 }

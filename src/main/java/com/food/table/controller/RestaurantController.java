@@ -99,7 +99,13 @@ public class RestaurantController {
 	}
 	
 	@PutMapping("/restaurants/updateState/{id}")
-	public void updateState(@RequestParam(required = true) int id, @RequestParam(value = "state", required = false, defaultValue = ApplicationConstants.confirmedState) String state) {
+	public void updateState(@RequestParam(required = true) int id, @RequestParam(value = "state", required = true, defaultValue = ApplicationConstants.confirmedState) String state) {
 		restaurantService.updateState(id, state);
+	}
+	
+	@ApiOperation(value = "Update the restaurants status. it should be Active/Inactive")
+	@PutMapping("/restaurants/updateStatus/{id}")
+	public boolean updateStatus(@RequestParam(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "Inactive") String status) {
+		return restaurantService.updateStatus(id, status);
 	}
 }

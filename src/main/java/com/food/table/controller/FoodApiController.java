@@ -2,6 +2,8 @@ package com.food.table.controller;
 
 import com.food.table.model.FoodsModel;
 import com.food.table.service.FoodApiService;
+
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -46,6 +48,12 @@ public class FoodApiController {
     public ResponseEntity<List<FoodsModel>> getFoodByRestaurantId(@NotNull @PathVariable("id") int id) {
         return ResponseEntity.ok(foodApiService.getFoodsByRestaurantId(id));
     }
+    
+	@ApiOperation(value = "Update the food status. it should be active/inactive")
+	@PutMapping("/foods/updateStatus/{id}")
+	public boolean updateStatus(@RequestParam(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "inactive") String status) {
+		return foodApiService.updateStatus(id, status);
+	}
 
 }
 

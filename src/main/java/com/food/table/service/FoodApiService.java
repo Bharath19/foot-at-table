@@ -18,4 +18,6 @@ public interface FoodApiService {
 
     List<FoodsModel> getFoodsByRestaurantId(int restaurantId);
 
+    boolean updateStatus(int id, String status);
+
 }

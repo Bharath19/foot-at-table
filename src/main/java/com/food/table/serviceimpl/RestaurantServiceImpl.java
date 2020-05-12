@@ -56,6 +56,9 @@ import com.food.table.repo.TiersRepository;
 import com.food.table.repo.TypesRepository;
 import com.food.table.service.RestaurantService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class RestaurantServiceImpl implements RestaurantService {
 	
@@ -429,14 +432,27 @@ public class RestaurantServiceImpl implements RestaurantService {
 	@Override
 	public void updateState(int id, String state) {
 		Optional<Restaurant> restaurant=restaurantepository.findById(id);
-		if(restaurant.get()!=null) {
+		try {
 			Restaurant res = restaurant.get();
 			res.setState(state);
 			emailService.triggerEmail(restaurantepository.save(res), EmailModel.confirmRestaurant);
+		}catch(Exception e) {
+			log.error("unable to update the restaurant state "+ e);
 		}
 		
 	}
 
-	
+	@Override
+	public boolean updateStatus(int id, String status) {
+		try {
+			Restaurant restaurant=restaurantepository.getOne(id);
+			restaurant.setStatus(status);
+			restaurantepository.save(restaurant);
+			return true;
+		}catch(Exception e) {
+			log.error("unable to update the restaurant status "+ e);
+		}
+		return false;
+	}
 	
 }

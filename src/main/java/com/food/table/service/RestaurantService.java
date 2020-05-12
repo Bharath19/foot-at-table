@@ -31,4 +31,6 @@ public interface RestaurantService {
 	public DefaultValuesResponse getDefaultTableValues() ;
 
 	public void updateState(int id, String state);
+
+	public boolean updateStatus(int id, String status);
 }
