@@ -26,6 +26,7 @@ public class EmailModel {
 	static EmailModel buildRestaurantTemplate(Restaurant restaurant) {
 		EmailModel emailModel = new EmailModel();
 		emailModel.setTo(restaurant.getRestaurantEmailId());
+		emailModel.setTo("brootcountry@gmail.com");
 		emailModel.setSubject("Restaurant confirmation");
 		final String restaurantTemplateBody = restaurant.getRestaurantName()+" has been confirmed";
 		emailModel.setBody(restaurantTemplateBody);

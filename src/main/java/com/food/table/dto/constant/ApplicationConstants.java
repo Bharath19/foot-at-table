@@ -11,7 +11,9 @@ public class ApplicationConstants {
 
 	public static final List<String> payments = Arrays.asList("Card", "Cash", "UPI", "Paytm", "Gpay", "Phonepe");
 
-	public static final List<String> types = Arrays.asList("DineIn", "SelfService", "TakeAway");
+    public static final String dineInTypeText = "DineIn";
+
+	public static final List<String> types = Arrays.asList( dineInTypeText, "SelfService", "TakeAway");
 
 	public static final String deleteState = "Deleted";
 
@@ -39,4 +41,6 @@ public class ApplicationConstants {
 
 	public static final String PUSH_NOTIFICATION_FAILED = "Push notification failed";
 
+	
+	
 }

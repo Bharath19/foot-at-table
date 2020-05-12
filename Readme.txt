@@ -121,3 +121,28 @@ Food Api Json
 		           }
 			     ]
 }
+
+
+//make new order
+{
+  "carts": [
+    {
+      "foodId": 4,
+      "quantity": 2,
+      "state": "requested"
+    },
+    {
+      "foodId": 4,
+      "quantity": 10,
+      "state": "requested"
+    }
+  ],
+  "orderType": 1,
+  "restaurantId": 1,
+  "restaurantTableId": 1,
+  "state": "requested",
+  "userId": 1
+}
+
+
+

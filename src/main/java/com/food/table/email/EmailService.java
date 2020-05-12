@@ -21,11 +21,16 @@ public class EmailService {
 	
 	public void sendMail(EmailModel emailModel) {
 		if(emailModel != null && emailModel.getTo() != null) {
-			SimpleMailMessage message = new SimpleMailMessage();
-	        message.setTo(emailModel.getTo());
-	        message.setSubject(emailModel.getSubject());
-	        message.setText(emailModel.getBody());
-	        mailSender.send(message);
+			try {
+				SimpleMailMessage message = new SimpleMailMessage();
+		        message.setTo(emailModel.getTo());
+		        message.setSubject(emailModel.getSubject());
+		        message.setText(emailModel.getBody());
+		        mailSender.send(message);
+			}catch(Exception e) {
+				log.error("Unable to send email "+ e);
+			}
+
 		}else {
 			log.error("Invalid Email Template object " + emailModel);
 		}
