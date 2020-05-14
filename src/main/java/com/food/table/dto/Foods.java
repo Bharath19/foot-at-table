@@ -1,6 +1,6 @@
 package com.food.table.dto;
 
-import com.food.table.dto.constant.FoodStatusEnum;
+import com.food.table.constant.FoodStatusEnum;
 import com.food.table.model.FoodsModel;
 import lombok.Getter;
 import lombok.Setter;

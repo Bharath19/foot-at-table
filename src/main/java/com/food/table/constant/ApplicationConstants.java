@@ -1,4 +1,4 @@
-package com.food.table.dto.constant;
+package com.food.table.constant;
 
 import java.util.Arrays;
 import java.util.List;

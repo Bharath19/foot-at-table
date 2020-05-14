@@ -12,7 +12,7 @@ import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.food.table.dto.constant.ApplicationConstants;
+import com.food.table.constant.ApplicationConstants;
 import com.food.table.exception.ApplicationException;
 import com.food.table.model.NotificationModel;
 import com.food.table.service.NotificationService;

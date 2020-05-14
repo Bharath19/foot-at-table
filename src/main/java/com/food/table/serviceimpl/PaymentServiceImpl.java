@@ -5,8 +5,8 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.food.table.constant.PaymentStatus;
 import com.food.table.dto.Payment;
-import com.food.table.dto.constant.PaymentStatus;
 import com.food.table.model.PaymentCallback;
 import com.food.table.model.PaymentDetail;
 import com.food.table.repo.PaymentRepository;

@@ -16,7 +16,7 @@ import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
 import com.amazonaws.services.sns.model.InvalidParameterException;
 import com.amazonaws.services.sns.model.PublishRequest;
-import com.food.table.dto.constant.ApplicationConstants;
+import com.food.table.constant.ApplicationConstants;
 import com.food.table.exception.ApplicationException;
 import com.food.table.service.PushNotificationService;
 

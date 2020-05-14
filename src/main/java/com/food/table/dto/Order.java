@@ -7,6 +7,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -18,7 +19,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.food.table.dto.constant.OrderStateEnum;
+import com.food.table.constant.OrderStateEnum;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -33,18 +34,18 @@ public class Order {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "restaurant_id", referencedColumnName = "id")
 	private Restaurant restaurant;
 
 	@Column(name = "user_id")
 	private int userId;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "restaurant_table_id", referencedColumnName = "id")
 	private RestaurantTable restaurantTable;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private Types type;
 
 	@Column(name = "total_price", nullable = false)

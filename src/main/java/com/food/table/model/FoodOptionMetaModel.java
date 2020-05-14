@@ -1,8 +1,9 @@
 package com.food.table.model;
 
+import com.food.table.constant.FoodOptionType;
+import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodOptionMeta;
-import com.food.table.dto.constant.FoodOptionType;
-import com.food.table.dto.constant.FoodStatusEnum;
+
 import lombok.Data;
 
 import java.util.List;

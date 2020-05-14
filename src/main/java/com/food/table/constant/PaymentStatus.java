@@ -1,4 +1,4 @@
-package com.food.table.dto.constant;
+package com.food.table.constant;
 
 public enum PaymentStatus {
 

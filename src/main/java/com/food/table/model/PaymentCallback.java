@@ -1,6 +1,6 @@
 package com.food.table.model;
 
-import com.food.table.dto.constant.PaymentMode;
+import com.food.table.constant.PaymentMode;
 
 import lombok.Data;
 

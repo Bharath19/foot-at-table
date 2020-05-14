@@ -1,7 +1,7 @@
 package com.food.table.serviceimpl;
 
+import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.*;
-import com.food.table.dto.constant.FoodStatusEnum;
 import com.food.table.exceptions.RecordNotFoundException;
 import com.food.table.model.FoodsModel;
 import com.food.table.repo.*;

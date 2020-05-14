@@ -2,8 +2,8 @@ package com.food.table.email;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.food.table.constant.ApplicationConstants;
 import com.food.table.dto.Restaurant;
-import com.food.table.dto.constant.ApplicationConstants;
 
 import lombok.Getter;
 import lombok.Setter;

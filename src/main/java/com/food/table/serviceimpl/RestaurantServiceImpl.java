@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.food.table.constant.ApplicationConstants;
 import com.food.table.dto.Account;
 import com.food.table.dto.Address;
 import com.food.table.dto.Cuisines;
@@ -33,7 +34,6 @@ import com.food.table.dto.Services;
 import com.food.table.dto.Tiers;
 import com.food.table.dto.Timings;
 import com.food.table.dto.Types;
-import com.food.table.dto.constant.ApplicationConstants;
 import com.food.table.email.EmailModel;
 import com.food.table.email.EmailService;
 import com.food.table.model.AddressModel;

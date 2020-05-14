@@ -11,8 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import com.food.table.dto.constant.PaymentMode;
-import com.food.table.dto.constant.PaymentStatus;
+import com.food.table.constant.PaymentMode;
+import com.food.table.constant.PaymentStatus;
 
 import lombok.Data;
 

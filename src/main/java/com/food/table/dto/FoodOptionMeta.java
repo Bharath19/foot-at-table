@@ -1,7 +1,7 @@
 package com.food.table.dto;
 
-import com.food.table.dto.constant.FoodOptionType;
-import com.food.table.dto.constant.FoodStatusEnum;
+import com.food.table.constant.FoodOptionType;
+import com.food.table.constant.FoodStatusEnum;
 import com.food.table.model.FoodOptionMetaModel;
 import lombok.Getter;
 import lombok.Setter;

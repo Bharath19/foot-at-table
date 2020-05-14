@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.food.table.dto.constant.PaymentMode;
+import com.food.table.constant.PaymentMode;
 import com.food.table.model.PaymentCallback;
 import com.food.table.model.PaymentDetail;
 import com.food.table.service.PaymentService;

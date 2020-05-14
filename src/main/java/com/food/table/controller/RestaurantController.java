@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.food.table.dto.constant.ApplicationConstants;
+import com.food.table.constant.ApplicationConstants;
 import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;

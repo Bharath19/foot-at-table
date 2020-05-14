@@ -11,13 +11,13 @@ import javax.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.food.table.constant.ApplicationConstants;
+import com.food.table.constant.CartStateEnum;
+import com.food.table.constant.OrderStateEnum;
 import com.food.table.dto.Cart;
 import com.food.table.dto.Foods;
 import com.food.table.dto.Order;
 import com.food.table.dto.RestaurantTable;
-import com.food.table.dto.constant.ApplicationConstants;
-import com.food.table.dto.constant.CartStateEnum;
-import com.food.table.dto.constant.OrderStateEnum;
 import com.food.table.exceptions.RecordNotFoundException;
 import com.food.table.model.CartModel;
 import com.food.table.model.OrderModel;

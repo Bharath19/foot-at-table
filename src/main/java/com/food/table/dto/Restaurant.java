@@ -70,6 +70,10 @@ public class Restaurant {
 	
 	private int avgPricePerPerson;
 	
+	private double rating;
+	
+	private int ratingCount;
+	
 	private String imageUrl;
 	
 	private String description;

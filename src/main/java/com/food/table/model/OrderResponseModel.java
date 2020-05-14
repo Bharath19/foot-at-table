@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.food.table.constant.CartStateEnum;
+import com.food.table.constant.OrderStateEnum;
 import com.food.table.dto.Foods;
 import com.food.table.dto.Order;
-import com.food.table.dto.constant.CartStateEnum;
-import com.food.table.dto.constant.OrderStateEnum;
 
 import lombok.Data;
 

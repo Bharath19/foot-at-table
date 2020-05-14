@@ -1,4 +1,4 @@
-package com.food.table.dto.constant;
+package com.food.table.constant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,9 +10,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @AllArgsConstructor
-public enum FoodOptionType {
-    SINGLE(1, "single"),
-    MULTIPLE(2, "multiple");
+public enum FoodStatusEnum {
+    ACTIVE(1, "active"),
+    IN_ACTIVE(2, "inactive");
 
     @Getter
     @Setter
@@ -24,9 +24,9 @@ public enum FoodOptionType {
 
     public static int getValue(String name) {
         int id = 0;
-        Optional<FoodOptionType> foodOptionType = Arrays.stream(FoodOptionType.values()).filter(optionType -> optionType.getName().equalsIgnoreCase(name)).findFirst();
-        if (foodOptionType.isPresent()) {
-            id = foodOptionType.get().getId();
+        Optional<FoodStatusEnum> foodStatusEnum = Arrays.stream(FoodStatusEnum.values()).filter(foodStatus -> foodStatus.getName().equalsIgnoreCase(name)).findFirst();
+        if (foodStatusEnum.isPresent()) {
+            id = foodStatusEnum.get().getId();
         }
         return id;
     }
@@ -35,9 +35,9 @@ public enum FoodOptionType {
         String name = StringUtils.EMPTY;
         AtomicInteger atomicId = new AtomicInteger();
         atomicId.set(id);
-        Optional<FoodOptionType> foodOptionType = Arrays.stream(FoodOptionType.values()).filter(optionType -> optionType.getId() == atomicId.get()).findFirst();
-        if (foodOptionType.isPresent()) {
-            name = foodOptionType.get().getName();
+        Optional<FoodStatusEnum> foodStatusEnum = Arrays.stream(FoodStatusEnum.values()).filter(optionType -> optionType.getId() == atomicId.get()).findFirst();
+        if (foodStatusEnum.isPresent()) {
+            name = foodStatusEnum.get().getName();
         }
         return name;
     }

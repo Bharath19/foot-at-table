@@ -15,7 +15,7 @@ import javax.validation.constraints.Min;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.food.table.dto.constant.CartStateEnum;
+import com.food.table.constant.CartStateEnum;
 
 import lombok.Getter;
 import lombok.Setter;
