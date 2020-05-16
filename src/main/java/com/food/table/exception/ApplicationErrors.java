@@ -14,4 +14,8 @@ public class ApplicationErrors {
 	
 	public static final String ADD_FEEDBACK_FAILED = "Add feedback for restaurant is failed";
 	
+	public static final String INVALID_FOOD_ID = "Invalid food Id";
+
+	public static final String INVALID_EXTRAS_ID = "Invalid extras Id";
+	
 }

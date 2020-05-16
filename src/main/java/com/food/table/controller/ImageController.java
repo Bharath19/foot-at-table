@@ -26,11 +26,11 @@ public class ImageController {
 
 	@ApiOperation(value = "Upload a image file to s3 for respective restaurants")
 	@PostMapping("/upload")
-	public ResponseEntity<Void> uploadImagefile(@RequestParam("restaurantId") int restaurantId,
-			@RequestParam("foodId") int foodId, @RequestParam("file") MultipartFile file) {
+	public ResponseEntity<Void> uploadImagefile(@RequestParam("restaurantId") Integer restaurantId,
+			@RequestParam(value="foodId",required = false) Integer foodId,@RequestParam(value="extrasId",required = false) Integer extrasId,@RequestParam("file") MultipartFile file) {
 		log.info("Upload image file to s3 for restaurant : " + restaurantId);
-		imageService.uploadFile(file, restaurantId, foodId);
+		imageService.uploadFile(file, restaurantId, foodId,extrasId);
 		log.info("Upload image file to s3 is success for restaurant : " + restaurantId);
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 }

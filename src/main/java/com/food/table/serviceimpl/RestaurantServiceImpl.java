@@ -237,7 +237,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 				.emailId(restaurantModel.getEmailId()).restaurantIsOpened(restaurantModel.getRestaurantIsOpened())
 				.restaurantOpenDate(restaurantModel.getRestaurantOpenDate()).account(account.get())
 				.status(restaurantModel.getStatus()).state(restaurantModel.getState()).tier(tiers.get())
-				.avgPricePerPerson(restaurantModel.getAvgPricePerPerson()).imageUrl(restaurantModel.getImageUrl())
+				.avgPricePerPerson(restaurantModel.getAvgPricePerPerson())
 				.description(restaurantModel.getDescription()).alcoholServed(restaurantModel.getAlcoholServed())
 				.address(address).services(service).seatings(seating).payments(payment).types(type)
 				.diets(dietList).timings(timings).cuisines(cuisines).searchType(searchType).build();
@@ -280,8 +280,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 		restaurantGetModel.setId(res.getId());
 		restaurantGetModel.setName(res.getRestaurantName());
 		restaurantGetModel.setDescription(res.getDescription());
-		restaurantGetModel.setImageUrl(res.getImageUrl());
-		Address address = res.getAddress();
+   		Address address = res.getAddress();
 		if(latitude==null&&longitude==null) {
 		restaurantGetModel.setAddress(AddressModel.builder().line1(address.getLine1()).line2(address.getLine2())
 				.district(address.getDistrict()).city(address.getCity()).state(address.getState())
@@ -334,11 +333,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 			restaurant.setTier(tiers.get());
 		}
 		if(restaurantModel.getAvgPricePerPerson()!=0)
-			restaurant.setAvgPricePerPerson(restaurantModel.getAvgPricePerPerson());
-		if(restaurantModel.getImageUrl()!=null)
-			restaurant.setAvgPricePerPerson(restaurantModel.getAvgPricePerPerson());
+			restaurant.setAvgPricePerPerson(restaurantModel.getAvgPricePerPerson());		
 		if(restaurantModel.getDescription()!=null)
-			restaurant.setAvgPricePerPerson(restaurantModel.getAvgPricePerPerson());
+			restaurant.setDescription(restaurantModel.getDescription());
 		if (restaurantModel.getAddress() != null) {
 			AddressModel addressModel = restaurantModel.getAddress();
 			Address address = restaurant.getAddress();
