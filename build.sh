@@ -1,2 +1,2 @@
 #docker-compose up -d
-docker image build -t countrybroot/backend:latest .
+docker image build -t countrybroot/backend .
