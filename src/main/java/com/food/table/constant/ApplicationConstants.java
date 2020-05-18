@@ -41,6 +41,6 @@ public class ApplicationConstants {
 
 	public static final String PUSH_NOTIFICATION_FAILED = "Push notification failed";
 
-	
+	public static final String SMS_NOTIFICATION_FAILED = "Sms notification failed";
 	
 }
