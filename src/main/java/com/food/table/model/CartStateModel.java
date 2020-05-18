@@ -7,17 +7,12 @@ import com.food.table.constant.CartStateEnum;
 
 import lombok.Data;
 
-
 @Data
-public class CartResponseModel{
+public class CartStateModel {
 
 	private int id;
-	private FoodResponseModel food;
-	private int quantity;
-	
+
 	@Enumerated(EnumType.STRING)
 	private CartStateEnum state;
-	
-	private double price;
 
 }

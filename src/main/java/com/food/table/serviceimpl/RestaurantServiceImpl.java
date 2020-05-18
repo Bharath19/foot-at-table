@@ -2,23 +2,15 @@ package com.food.table.serviceimpl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import org.apache.lucene.util.SloppyMath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.food.table.constant.ApplicationConstants;
@@ -41,7 +33,6 @@ import com.food.table.model.BaseModel;
 import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
-import com.food.table.model.SearchModel;
 import com.food.table.model.TimingModel;
 import com.food.table.repo.AccountRepository;
 import com.food.table.repo.AddressRepository;

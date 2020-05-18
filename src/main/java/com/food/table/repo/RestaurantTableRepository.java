@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RestaurantTableRepository extends JpaRepository<RestaurantTable, Integer> {
@@ -22,4 +23,6 @@ public interface RestaurantTableRepository extends JpaRepository<RestaurantTable
 
     @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.qr_code=:qrCode", nativeQuery = true)
     RestaurantTable findTableByQRCode(@Param("qrCode") String qrCode);
+
+	Optional<RestaurantTable> findByIdAndRestaurantId(int restaurantTableId, int restaurantId);
 }

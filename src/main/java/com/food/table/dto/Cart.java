@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -11,13 +13,16 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.food.table.constant.CartOrderStatus;
 import com.food.table.constant.CartStateEnum;
 
 import lombok.Getter;
+
 import lombok.Setter;
 
 @Setter
@@ -39,9 +44,10 @@ public class Cart {
 	@ManyToOne
 	private Restaurant restaurant;
 	
-	@Column(length = 8)
-	private int state;
+	@Enumerated(EnumType.STRING)
+	private CartStateEnum state;
 	
+	@PositiveOrZero
 	private double price;
 	
     @CreationTimestamp
@@ -55,12 +61,7 @@ public class Cart {
     @Column(name = "order_id")
     private Integer orderId;
 
-    /**
-     * check whether can calculate the order price
-     * @return boolean
-     */
-	public boolean canCalculateTotalPrice() {
-		return this.getState() != CartStateEnum.CANCELLED.getId();  
-	}
-  
+    @Column(name = "order_status", length = 25)
+    @Enumerated(EnumType.STRING)
+    private CartOrderStatus  OrderStatus = CartOrderStatus.WORK_IN_PROCESS;
 }

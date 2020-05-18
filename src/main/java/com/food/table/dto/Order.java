@@ -8,6 +8,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -20,7 +22,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.food.table.constant.OrderStateEnum;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -54,8 +55,8 @@ public class Order {
 	@Column(name = "paid_price")
 	private double paidPrice;
 
-	@Column(length = 8)
-	private int state;
+	@Enumerated(EnumType.STRING)
+	private OrderStateEnum state;
 
 	@CreationTimestamp
 	@Column(name = "created_at")
@@ -67,9 +68,5 @@ public class Order {
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "order_id", referencedColumnName = "id")
 	private List<Cart> carts = new ArrayList<Cart>();
-
-	public boolean isRequestedState() {
-		return this.getState() == OrderStateEnum.REQUESTED.getId();
-	}
 
 }
