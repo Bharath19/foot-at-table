@@ -2,7 +2,6 @@ package com.food.table.controller;
 
 import java.util.ArrayList;
 import java.util.Date;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.FoodResponseModel;
 import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
@@ -68,10 +68,17 @@ public class OrdersController {
 	}
 
 	@ApiOperation(value = "Get all food history by RestaurantId and order date. Order date should be yyyy-MM-dd format")
-	@GetMapping("/orders/foodHistory/{RestaurantId}")
-	public ArrayList<FoodResponseModel> getFoodHistoryByRestaurantId(@RequestParam(required = true) int RestaurantId,
+	@GetMapping("/orders/foodHistory/{restaurantId}")
+	public ArrayList<FoodResponseModel> getFoodHistoryByRestaurantId(@RequestParam(required = true) int restaurantId,
 			@RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
-		return cartService.getFoodHistoryByRestaurantId(RestaurantId, orderDate);
+		return cartService.getFoodHistoryByRestaurantId(restaurantId, orderDate);
+	}
+
+	@ApiOperation(value = "Get Revenue details by order type. Order date should be yyyy-MM-dd format")
+	@GetMapping("/orders/revenueDetails/{restaurantId}")
+	public BasicRevenueModel getBasicRevenue(@RequestParam(required = true) int restaurantId,
+			@RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
+		return orderService.getBasicRevenue(restaurantId, orderDate);
 	}
 
 }

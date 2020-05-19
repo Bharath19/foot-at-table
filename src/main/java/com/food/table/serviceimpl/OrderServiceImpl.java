@@ -2,6 +2,7 @@
 package com.food.table.serviceimpl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,8 @@ import java.util.Optional;
 import javax.persistence.EntityNotFoundException;
 
 import static java.util.Map.entry;
+
+import java.text.SimpleDateFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ import com.food.table.dto.RestaurantTable;
 import com.food.table.dto.Types;
 import com.food.table.exceptions.RecordNotFoundException;
 import com.food.table.model.AddressModel;
+import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.CartModel;
 import com.food.table.model.CartResponseModel;
 import com.food.table.model.FoodResponseModel;
@@ -34,6 +38,7 @@ import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
 import com.food.table.model.RestaurantBasicGetModel;
+import com.food.table.model.RevenueDetailsModel;
 import com.food.table.repo.CartRepository;
 import com.food.table.repo.FoodRepository;
 import com.food.table.repo.OrderRepository;
@@ -120,6 +125,13 @@ public class OrderServiceImpl implements OrderService {
 			triggerExceptionIfRecordNotExist(null, "Order Table", orderId);
 		}
 		return null;
+	}
+
+	@Override
+	public BasicRevenueModel getBasicRevenue(int restaurantId, Date orderDate) {
+		List<RevenueDetailsModel> revenueDetails = orderRepository.findRevenueDetais(restaurantId,
+				new SimpleDateFormat("yyyy-MM-dd").format(orderDate).toString(), OrderStateEnum.COMPLETED.toString());
+		return new BasicRevenueModel(revenueDetails, 100);
 	}
 
 	/**
