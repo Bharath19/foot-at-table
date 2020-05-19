@@ -1,20 +1,14 @@
 package com.food.table.controller;
 
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.food.table.model.DietsModel;
 import com.food.table.service.DietsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 public class DietsController {
@@ -29,6 +23,7 @@ public class DietsController {
 	}
 	
 	@PostMapping("/diets")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public ResponseEntity<DietsModel> addNewDiets(@RequestBody DietsModel dietPutRequest) {
 		DietsModel dietsResponse=dietsService.addNewDiets(dietPutRequest);
 		return ResponseEntity.ok(dietsResponse);
@@ -41,6 +36,7 @@ public class DietsController {
 	}
 	
 	@PutMapping("/diets/{dietId}")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public ResponseEntity<DietsModel> updateDietById(@NotNull @PathVariable("dietId") int dietId,
 			@RequestBody DietsModel dietPutRequest) {
 		DietsModel dietsResponse = dietsService.updateDietById(dietId, dietPutRequest);

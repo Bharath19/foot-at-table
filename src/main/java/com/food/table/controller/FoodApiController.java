@@ -2,12 +2,12 @@ package com.food.table.controller;
 
 import com.food.table.model.FoodsModel;
 import com.food.table.service.FoodApiService;
-
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
@@ -20,6 +20,7 @@ public class FoodApiController {
     final FoodApiService foodApiService;
 
     @RequestMapping(value = "/foods", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<FoodsModel> insertFood(@RequestBody FoodsModel foodsModel) {
         return ResponseEntity.ok(foodApiService.insertFood(foodsModel));
     }
@@ -35,11 +36,13 @@ public class FoodApiController {
     }
 
     @RequestMapping(value = "/foods/{id}", method = RequestMethod.DELETE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public void deleteFoodById(@NotNull @PathVariable("id") int id) {
         foodApiService.deleteById(id);
     }
 
     @RequestMapping(value = "/foods/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<FoodsModel> updateFoodById(@NotNull @PathVariable("id") int id, @RequestBody FoodsModel foodsModel) {
         return ResponseEntity.ok(foodApiService.updateById(id, foodsModel));
     }
@@ -51,6 +54,7 @@ public class FoodApiController {
     
 	@ApiOperation(value = "Update the food status. it should be active/inactive")
 	@PutMapping("/foods/updateStatus/{id}")
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public boolean updateStatus(@RequestParam(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "inactive") String status) {
 		return foodApiService.updateStatus(id, status);
 	}

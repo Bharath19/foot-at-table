@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
@@ -28,11 +29,13 @@ public class CuisinesApiController {
     }
 
     @RequestMapping(value="/cuisines",method=RequestMethod.POST,consumes=MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<CuisinesModel> insertTier(@RequestBody CuisinesModel cuisinesModel){
         return ResponseEntity.ok(cuisinesApiService.insertCuisine(cuisinesModel));
     }
 
     @RequestMapping(value="/cuisines/{id}",method=RequestMethod.PUT,consumes=MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<CuisinesModel> updateTierById(@NotNull @PathVariable("id") int id, @RequestBody CuisinesModel cusinesModel){
         return ResponseEntity.ok(cuisinesApiService.updateCuisineById(id,cusinesModel));
     }

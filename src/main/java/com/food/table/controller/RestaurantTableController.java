@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
@@ -18,7 +21,9 @@ public class RestaurantTableController {
 
     final RestaurantTableService restaurantTableService;
 
+
     @RequestMapping(value = "/table", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<RestaurantTableModel> insertRestaurantTable(@RequestBody RestaurantTableModel restaurantTableModel) {
         return ResponseEntity.ok(restaurantTableService.insertTable(restaurantTableModel));
     }
@@ -29,7 +34,9 @@ public class RestaurantTableController {
     }
 
     @RequestMapping(value = "/table/restaurant/{id}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<List<RestaurantTableModel>> getAllTableByRestaurantId(@NotNull @PathVariable int id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(restaurantTableService.getAllByRestaurantId(id));
     }
 
@@ -39,16 +46,19 @@ public class RestaurantTableController {
     }
 
     @RequestMapping(value = "/table/{id}", method = RequestMethod.DELETE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public void deleteTableById(@NotNull @PathVariable int id) {
         restaurantTableService.deleteById(id);
     }
 
     @RequestMapping(value = "/table/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<RestaurantTableModel> updateTableById(@NotNull @PathVariable int id, @RequestBody RestaurantTableModel restaurantTableModel) {
         return ResponseEntity.ok(restaurantTableService.updateById(id, restaurantTableModel));
     }
 
     @RequestMapping(value = "/table/qrcode/{id}", method = RequestMethod.GET, produces = MediaType.IMAGE_PNG_VALUE)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<byte[]> getTableQrCode(@NotNull @PathVariable int id) {
         return ResponseEntity.ok().body(restaurantTableService.generateQRCode(id));
     }

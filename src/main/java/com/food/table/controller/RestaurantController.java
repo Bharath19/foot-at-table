@@ -1,31 +1,19 @@
 package com.food.table.controller;
 
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.food.table.constant.ApplicationConstants;
 import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
-import com.food.table.model.SearchModel;
 import com.food.table.service.RestaurantService;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/restaurant")
@@ -53,18 +41,21 @@ public class RestaurantController {
 	
 	@ApiOperation(value="Add a new restaurant")
 	@PostMapping("/add")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public void addRestaurant(@ApiParam(value = "Restaurant object store in database table without id", required = false)@Valid@RequestBody RestaurantModel restaurantModel) {
 		restaurantService.addRestaurant(restaurantModel);
 	}
 	
 	@ApiOperation(value="Update a restaurant for the selected values which is required to update in restaurant object")
 	@PutMapping("/update")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public void updateRestaurantDetail(@ApiParam(value = "Restaurant Object with id  to update restaurant details", required = false)@Valid @RequestBody RestaurantModel restaurantModel) {
 		restaurantService.updateRestaurant(restaurantModel);
 	}
 	
 	@ApiOperation(value="Delete a restaurant")
 	@DeleteMapping("/delete/{id}")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public Boolean deleteRestaurant(@ApiParam(value = "Restaurant Id from which restaurant object will delete from database table", required = false) @PathVariable("id") int id) {
 		return restaurantService.deleteRestaurant(id);
 	}
@@ -99,12 +90,14 @@ public class RestaurantController {
 	}
 	
 	@PutMapping("/restaurants/updateState/{id}")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public void updateState(@RequestParam(required = true) int id, @RequestParam(value = "state", required = true, defaultValue = ApplicationConstants.confirmedState) String state) {
 		restaurantService.updateState(id, state);
 	}
 	
 	@ApiOperation(value = "Update the restaurants status. it should be Active/Inactive")
 	@PutMapping("/restaurants/updateStatus/{id}")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public boolean updateStatus(@RequestParam(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "Inactive") String status) {
 		return restaurantService.updateStatus(id, status);
 	}

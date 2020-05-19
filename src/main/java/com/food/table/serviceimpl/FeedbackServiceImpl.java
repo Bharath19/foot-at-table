@@ -1,15 +1,9 @@
 package com.food.table.serviceimpl;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
 import com.food.table.dto.Order;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.RestaurantFeedback;
-import com.food.table.dto.User;
+import com.food.table.dto.UserAccount;
 import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 import com.food.table.model.FeedbackModel;
@@ -18,6 +12,11 @@ import com.food.table.repo.OrderRepository;
 import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.FeedbackService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class FeedbackServiceImpl implements FeedbackService {
@@ -62,7 +61,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 		} else {
 			throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_ORDER_ID);
 		}
-		Optional<User> user = userRepository.findById((long) feedbackModel.getOrderId());
+		Optional<UserAccount> user = userRepository.findById(feedbackModel.getOrderId());
 		if (restaurant.isPresent()) {
 			restaurantFeedback.setUser(user.get());
 		} else {

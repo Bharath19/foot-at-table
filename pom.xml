@@ -19,7 +19,6 @@
 	<properties>
 		<java.version>11</java.version>
 	</properties>
-
 	<dependencies>
 
 
@@ -34,6 +33,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+            		<artifactId>spring-boot-starter-security</artifactId>
+        	</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -93,16 +97,28 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.google.zxing</groupId>
-			<artifactId>core</artifactId>
-			<version>3.3.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.zxing</groupId>
-			<artifactId>javase</artifactId>
-			<version>3.3.0</version>
-		</dependency>
-
+            		<groupId>com.google.zxing</groupId>
+            		<artifactId>core</artifactId>
+           		<version>3.3.0</version>
+        	</dependency>
+		
+        	<dependency>
+           		<groupId>org.springframework.security</groupId>
+            		<artifactId>spring-security-oauth2-client</artifactId>
+        	</dependency>
+		
+        	<dependency>
+            		<groupId>io.jsonwebtoken</groupId>
+            		<artifactId>jjwt</artifactId>
+            		<version>0.5.1</version>
+        	</dependency>
+		
+        	<dependency>
+            		<groupId>com.google.zxing</groupId>
+            		<artifactId>javase</artifactId>
+            		<version>3.3.0</version>
+        	</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j2</artifactId>
