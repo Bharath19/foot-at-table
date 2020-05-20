@@ -61,7 +61,13 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                         "/auth/restaurant/login",
                         "/auth/restaurant/signup",
                         "/auth/customer/verifyotp",
-                        "/auth/customer/refreshtoken")
+                        "/auth/customer/refreshtoken",
+                        "/swagger-ui.html/**",
+                        "/configuration/**",
+                        "/swagger-resources/**",
+                        "/v2/api-docs",
+                        "/webjars/**")
+
                 .permitAll()
                 .anyRequest().authenticated();
         httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

@@ -4,6 +4,7 @@ import com.food.table.model.NotificationModel;
 import com.food.table.service.NotificationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +19,8 @@ public class NotificationController {
 
 	@Autowired
 	private NotificationService notificationService;
-	
-	@ApiOperation(value = "Send a push notification to any device")
+
+	@ApiOperation(value = "Send a push notification to any device", authorizations = {@Authorization(value = "accessToken")})
 	@PreAuthorize("hasAuthority('ADMIN')")
 	@PostMapping("/publish")
 	public void publishNotification(@RequestBody NotificationModel notification) throws Exception {
