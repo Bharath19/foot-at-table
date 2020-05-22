@@ -35,10 +35,7 @@ public class ApplicationException extends RuntimeException {
 	 public ApplicationException(Throwable cause,HttpStatus status,String message) {
 		 super(cause);
 		 this.status=status;
-		 this.message=message;
-		 if (args != null)
-			{
-				this.args.put("exception", cause.toString());
-			}
+		 this.message=message;		 
+		 this.args.put("exception", cause.toString());
 	 }
 }

@@ -246,7 +246,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	
 	
-	private List<RestaurantGetModel> parseGetAllRestaurant(List<Restaurant> restaurants,String latitude,String longitude,boolean timing) {
+	public List<RestaurantGetModel> parseGetAllRestaurant(List<Restaurant> restaurants,String latitude,String longitude,boolean timing) {
 		List<RestaurantGetModel> restaurantGetModels = new ArrayList<RestaurantGetModel>();
 		restaurants.forEach(res -> {
 			List<Timings> timings=res.getTimings();
@@ -264,7 +264,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 		return restaurantGetModels;
 	}
 
-	private void parseInternalValueOfRestaurant(String latitude, String longitude,
+	public void parseInternalValueOfRestaurant(String latitude, String longitude,
 			List<RestaurantGetModel> restaurantGetModels, Restaurant res, List<Timings> timeForCurrentDay) {
 		RestaurantGetModel restaurantGetModel = new RestaurantGetModel();
 		restaurantGetModel.setTimingModel(timeForCurrentDay.parallelStream().map(data-> new TimingModel(data.getDay(),data.getOpeningTime(),data.getClosingTime())).collect(Collectors.toList()));

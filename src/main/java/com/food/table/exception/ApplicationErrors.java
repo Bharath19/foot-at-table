@@ -18,4 +18,12 @@ public class ApplicationErrors {
 
 	public static final String INVALID_EXTRAS_ID = "Invalid extras Id";
 	
+	public static final String ADD_RESTAURANT_PROMOTION_FAILED = "Add restaurant promotion failed";
+	
+	public static final String GET_RESTAURANT_PROMOTION_FAILED = "Get restaurant for promotion failed";
+	
+	public static final String FOOD_PROMOTION_SIZE_INVALID = "Food promotion size is empty or invalid";
+	
+	public static final String EMPTY_FOOD_PROMOTION = "Empty Food promotion for given restaurantId";
+	
 }
