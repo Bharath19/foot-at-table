@@ -14,4 +14,10 @@ public class DefaultValuesResponse {
 	private List<BaseModel> services;
 	
 	private List<BaseModel> types;
+	
+	private List<BaseModel> diets;
+	
+	private List<BaseModel> cuisines;
+	
+	private List<BaseModel> searchTags;
 }

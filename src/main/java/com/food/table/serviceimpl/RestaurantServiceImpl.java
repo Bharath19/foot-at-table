@@ -197,12 +197,18 @@ public class RestaurantServiceImpl implements RestaurantService {
 		List<Seatings> seating=seatingsRepository.findAll();
 		List<Services> service=serviceRepository.findAll();
 		List<Types> type=typesRepository.findAll();
+		List<Diets> diets=dietRepository.findAll();
+		List<Cuisines> cuisines=cuisinesRepository.findAll();
+		List<SearchType> searchType=searchTypeRepository.findAll();
 		defaultValuesResponse.setPayments(payment.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
 		defaultValuesResponse.setSeatings(seating.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
 		defaultValuesResponse.setServices(service.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
 		defaultValuesResponse.setTypes(type.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
+		defaultValuesResponse.setDiets(diets.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
+		defaultValuesResponse.setTypes(cuisines.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
+		defaultValuesResponse.setTypes(searchType.parallelStream().map(data->new BaseModel(data.getId(),data.getName())).collect(Collectors.toList()));
 		return defaultValuesResponse;
-	}	
+	}
 	
 	private Restaurant parseRestaurantValue(RestaurantModel restaurantModel) {
 		AddressModel addressModel = restaurantModel.getAddress();
@@ -271,16 +277,22 @@ public class RestaurantServiceImpl implements RestaurantService {
 		restaurantGetModel.setId(res.getId());
 		restaurantGetModel.setName(res.getRestaurantName());
 		restaurantGetModel.setDescription(res.getDescription());
+		restaurantGetModel.setState(res.getState());
+		restaurantGetModel.setRating(res.getRating());
    		Address address = res.getAddress();
-		if(latitude==null&&longitude==null) {
-		restaurantGetModel.setAddress(AddressModel.builder().line1(address.getLine1()).line2(address.getLine2())
-				.district(address.getDistrict()).city(address.getCity()).state(address.getState())
-				.country(address.getCountry()).pincode(address.getPincode()).build());
+		if (latitude == null && longitude == null) {
+			restaurantGetModel.setAddress(AddressModel.builder().line1(address.getLine1()).line2(address.getLine2())
+					.district(address.getDistrict()).city(address.getCity()).state(address.getState())
+					.lattitude(address.getLattitude()).longitude(address.getLongitude()).country(address.getCountry())
+					.pincode(address.getPincode()).build());
 		}
 		else {
 			restaurantGetModel.setAddress(AddressModel.builder().line1(address.getLine1()).line2(address.getLine2())
 					.district(address.getDistrict()).city(address.getCity()).state(address.getState())
-					.country(address.getCountry()).pincode(address.getPincode()).distance(calculateDistance(latitude, longitude, address.getLattitude(), address.getLongitude())).build());
+					.lattitude(address.getLattitude()).longitude(address.getLongitude()).country(address.getCountry())
+					.pincode(address.getPincode())
+					.distance(calculateDistance(latitude, longitude, address.getLattitude(), address.getLongitude()))
+					.build());
 		}
 		List<Cuisines> cuisines = res.getCuisines();
 		List<String> cuisinesName = cuisines.stream().map(m -> m.getName()).collect(Collectors.toList());

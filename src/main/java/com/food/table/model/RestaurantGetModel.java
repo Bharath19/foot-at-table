@@ -15,6 +15,10 @@ public class RestaurantGetModel {
 	
 	private String imageUrl;
 	
+	private String state;
+	
+	private double rating;
+	
 	private AddressModel address;
 	
 	private List<String> cuisines;
