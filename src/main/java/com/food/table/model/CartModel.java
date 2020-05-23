@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 public class CartModel {
 
-	@ApiModelProperty(value = "Cart Id is not required for new request")
+	@ApiModelProperty(value = "Cart Id is not required for new request. it required for update request")
 	private int id;
 
 	@Positive(message = "foodId not found")
