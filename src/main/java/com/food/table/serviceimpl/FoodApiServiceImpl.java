@@ -4,20 +4,19 @@ import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.*;
 import com.food.table.exceptions.RecordNotFoundException;
 import com.food.table.model.FoodsModel;
+import com.food.table.model.FoodsRestaurantModel;
 import com.food.table.repo.*;
 import com.food.table.service.FoodApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -80,11 +79,25 @@ public class FoodApiServiceImpl implements FoodApiService {
     }
 
     @Override
-    public List<FoodsModel> getFoodsByRestaurantId(int restaurantId) {
+    public List<FoodsRestaurantModel> getFoodsByRestaurantId(int restaurantId) {
         List<Foods> foodsList = foodRepository.findFoodsByRestaurantId(restaurantId);
         if (CollectionUtils.isEmpty(foodsList))
             throw new RecordNotFoundException("No Records found in food table for restaurant id: " + restaurantId);
-        return foodsList.stream().map(FoodsModel::convertDtoToModel).collect(Collectors.toList());
+        List<FoodsModel> foodsModelList = foodsList.stream().map(FoodsModel::convertDtoToModel).collect(Collectors.toList());
+        Map<Integer, List<FoodsModel>> foodsMap = foodsModelList.stream().collect(Collectors.groupingBy(e -> e.getFoodCategoryId()));
+        Comparator<FoodsModel> compareBySortNo = (FoodsModel foodsModel1, FoodsModel foodsModel2) -> foodsModel1.getSortNo().compareTo(foodsModel2.getSortNo());
+        List<FoodCategory> foodsCategoryList = foodCategoryRepository.findAll((Sort.by(Sort.Direction.ASC, "sortOrder")));
+        List<FoodsRestaurantModel> foodResponseModels = new ArrayList<>();
+        foodsCategoryList.stream().forEach(foodCategory -> {
+            List<FoodsModel> foodsStreamList = foodsMap.get(foodCategory.getId());
+            Collections.sort(foodsStreamList, compareBySortNo);
+            FoodsRestaurantModel foodsRestaurantModel = new FoodsRestaurantModel();
+            foodsRestaurantModel.setFoodCategoryId(foodCategory.getId());
+            foodsRestaurantModel.setFoodCategoryName(foodCategory.getName());
+            foodsRestaurantModel.setFoods(foodsStreamList);
+            foodResponseModels.add(foodsRestaurantModel);
+        });
+        return foodResponseModels;
     }
 
 	@Override

@@ -29,6 +29,10 @@ public class RestaurantTable {
 
     private String qrCode;
 
+    private Integer seats;
+
+    private int status;
+
     private int deleteFlag;
 
     private String deletedBy;

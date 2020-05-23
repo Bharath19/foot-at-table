@@ -2,7 +2,6 @@ package com.food.table.model;
 
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodOptions;
-
 import lombok.Data;
 
 @Data
@@ -12,7 +11,7 @@ public class FoodOptionsModel {
     public String description;
     public String imageUrl;
     public String status;
-    public int sortNo;
+    public Integer sortNo;
 
     public static FoodOptionsModel convertDtoToModel(FoodOptions foodOptions) {
         FoodOptionsModel foodOptionsModel = new FoodOptionsModel();

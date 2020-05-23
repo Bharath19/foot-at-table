@@ -74,7 +74,7 @@ public class AuthController {
     }
 
     @ApiOperation(value = "Validates user using refresh token")
-    @RequestMapping(value = "auth/customer/refreshtoken", method = RequestMethod.GET)
+    @RequestMapping(value = "auth/customer/refreshtoken", method = RequestMethod.POST)
     public ResponseEntity<AuthResponse> verifyRefreshToken(@RequestBody RefreshAuthRequest refreshAuthRequest) throws Exception {
         Long phoneNo = userDetailsService.getUserNameByRefreshToken(refreshAuthRequest.getToken());
         final String jwt = jwtUtil.generateToken(String.valueOf(phoneNo));

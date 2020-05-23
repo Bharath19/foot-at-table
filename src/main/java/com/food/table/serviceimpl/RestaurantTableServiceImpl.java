@@ -1,5 +1,6 @@
 package com.food.table.serviceimpl;
 
+import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.RestaurantTable;
 import com.food.table.exceptions.RecordNotFoundException;
@@ -45,6 +46,8 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
             throw new RecordNotFoundException("No Record found in Restaurant for id: " + restaurantTableModel.getRestaurantId());
         RestaurantTable restaurantTable = RestaurantTable.builder().restaurant(restaurant.get())
                 .name(restaurantTableModel.getName())
+                .seats(restaurantTableModel.getSeats())
+                .status(FoodStatusEnum.getValue(restaurantTableModel.getStatus()))
                 .build();
         RestaurantTable restaurantTableWithQR = createQRCode(restaurantTableRepository.save(restaurantTable), restaurant.get());
         return RestaurantTableModel.convertDtoToModel(restaurantTableRepository.save(restaurantTableWithQR));
@@ -88,7 +91,10 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         RestaurantTable restaurantTable = getTablebyId(tableId);
         return RestaurantTableModel.convertDtoToModel(restaurantTableRepository.save(RestaurantTable.builder()
                 .id(tableId).restaurant(restaurant.get()).name(restaurantTableModel.getName())
-                .qrCode(restaurantTable.getQrCode()).build()));
+                .qrCode(restaurantTable.getQrCode())
+                .seats(restaurantTableModel.getSeats())
+                .status(FoodStatusEnum.getValue(restaurantTableModel.getStatus()))
+                .build()));
     }
 
     @Override
@@ -129,6 +135,8 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
                 .restaurant(restaurant)
                 .name(restaurantTable.getName())
                 .qrCode(qrCodeBuilder.toString())
+                .seats(restaurantTable.getSeats())
+                .status(restaurantTable.getStatus())
                 .build();
     }
 

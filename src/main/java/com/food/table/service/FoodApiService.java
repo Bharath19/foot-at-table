@@ -1,6 +1,7 @@
 package com.food.table.service;
 
 import com.food.table.model.FoodsModel;
+import com.food.table.model.FoodsRestaurantModel;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public interface FoodApiService {
 
     FoodsModel updateById(int id, FoodsModel foodsModel);
 
-    List<FoodsModel> getFoodsByRestaurantId(int restaurantId);
+    List<FoodsRestaurantModel> getFoodsByRestaurantId(int restaurantId);
 
     boolean updateStatus(int id, String status);
 
