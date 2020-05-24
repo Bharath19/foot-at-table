@@ -6,16 +6,22 @@ on:
     - master
     - release/*
 
+  pull_request:
+    branches:
+    - master
+    - release/*
+
 jobs:
-  build:
-    runs-on: ubuntu-16.04
+  backend:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Build and deploy the Docker image
-      env: 
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        APP_NAME: country-broot-backend
-      run: |
-        bash build.sh
-        docker login --username=${{ secrets.TREESCALE_USERNAME }} --password=${{ secrets.TREESCALE_PASSWORD }} 
-        docker push countrybroot/backend
+      - uses: actions/checkout@v2
+      - uses: joschi/setup-jdk@v1
+        with:
+          java-version: "11"
+      - name: Build Docker Image
+        run: mvn package
+      - name: Publish to Docker Hub
+        run: |
+          docker login --username=${{ secrets.TREESCALE_USERNAME }} --password=${{ secrets.TREESCALE_PASSWORD }}
+          docker push countrybroot/backend:latest
