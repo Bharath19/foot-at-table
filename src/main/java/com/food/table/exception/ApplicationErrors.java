@@ -32,6 +32,14 @@ public class ApplicationErrors {
 
 	public static final String INVALID_EXTRAS_ID = "Invalid extras Id";
 	
+	public static final String INVALID_ORDER_STATE = "Invalid order state";
+	
+	public static final String INVALID_RESTAURANT_TABLE_ID = "Invalid restaurant table Id";
+	
+	public static final String INVALID_ORDER_TYPE_ID = "Invalid order type Id";
+	
+	public static final String INVALID_ORDER_STATE_OR_TYPE = "Invalid Order state or Order Type to add more food into cart";
+	
 	public static final String ADD_RESTAURANT_PROMOTION_FAILED = "Add restaurant promotion failed";
 	
 	public static final String GET_RESTAURANT_PROMOTION_FAILED = "Get restaurant for promotion failed";

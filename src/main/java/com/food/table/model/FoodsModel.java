@@ -3,7 +3,6 @@ package com.food.table.model;
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodTag;
 import com.food.table.dto.Foods;
-
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +24,7 @@ public class FoodsModel {
     private double price;
     private String endTime;
     private String startTime;
-    private int sortNo;
+    private Integer sortNo;
     private String status;
     private List<FoodOptionMetaModel> extras;
     private List<Integer> tags;

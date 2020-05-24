@@ -17,7 +17,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -39,8 +38,9 @@ public class Order {
 	@JoinColumn(name = "restaurant_id", referencedColumnName = "id")
 	private Restaurant restaurant;
 
-	@Column(name = "user_id")
-	private int userId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", referencedColumnName = "id")
+	private UserAccount userAccount;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "restaurant_table_id", referencedColumnName = "id")
@@ -61,11 +61,12 @@ public class Order {
 	@CreationTimestamp
 	@Column(name = "created_at")
 	public Timestamp createdAt;
+
 	@UpdateTimestamp
 	@Column(name = "updated_at")
 	public Timestamp updatedAt;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "order_id", referencedColumnName = "id")
 	private List<Cart> carts = new ArrayList<Cart>();
 

@@ -1,21 +1,14 @@
 package com.food.table.dto;
 
-import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
+import java.util.Date;
 
 
 @Data
@@ -33,6 +26,8 @@ public class FoodCategory {
 	private String name;
 	
 	private String description;
+
+	private Integer sortOrder;
 	
 	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)

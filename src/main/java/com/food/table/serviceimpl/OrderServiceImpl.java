@@ -1,3 +1,4 @@
+
 package com.food.table.serviceimpl;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.food.table.dto.Address;
+import com.food.table.config.SimpleDateUtil;
 import com.food.table.constant.ApplicationConstants;
 import com.food.table.constant.CartOrderStatus;
 import com.food.table.constant.CartStateEnum;
@@ -50,7 +52,6 @@ import com.food.table.repo.RestaurantTableRepository;
 import com.food.table.repo.TypesRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.OrderService;
-import com.food.table.util.SimpleDateUtil;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public ArrayList<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from,
+	public ArrayList<OrderResponseModel> getOrderByUserId(int userId, String orderState, Date orderDate, int from,
 			int limit) {
 		Pageable pageable = PageRequest.of(from, limit);
 
@@ -109,9 +110,9 @@ public class OrderServiceImpl implements OrderService {
 		} else if (orderState == null) {
 			orderlist = orderRepository.findByUserIdAndCreatedAt(userId, SimpleDateUtil.toDate(orderDate), pageable);
 		} else if (orderDate == null) {
-			orderlist = orderRepository.findByUserIdAndStateIn(userId, orderState, pageable);
+			orderlist = orderRepository.findByUserIdAndState(userId, orderState, pageable);
 		} else {
-			orderlist = orderRepository.findByUserIdAndStateInAndCreatedAt(userId, orderState,
+			orderlist = orderRepository.findByUserIdAndStateAndCreatedAt(userId, orderState,
 					SimpleDateUtil.toDate(orderDate), pageable);
 		}
 
@@ -176,7 +177,7 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public List<OrderResponseModel> getOrderByOrderTypeName(int restaurantId, List<String> orderTypes,
-			List<String> orderState, Date orderDate, int from, int limit) {
+			String orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
 
 		Pageable pageable = PageRequest.of(from, limit);
@@ -187,10 +188,9 @@ public class OrderServiceImpl implements OrderService {
 			orderlist = orderRepository.findByRestaurantAndTypeAndCreatedAt(restaurantId, orderTypes,
 					SimpleDateUtil.toDate(orderDate), pageable);
 		} else if (orderDate == null) {
-			orderlist = orderRepository.findByRestaurantAndTypeAndStateIn(restaurantId, orderTypes, orderState,
-					pageable);
+			orderlist = orderRepository.findByRestaurantAndTypeAndState(restaurantId, orderTypes, orderState, pageable);
 		} else {
-			orderlist = orderRepository.findByRestaurantAndTypeAndStateInAndCreatedAt(restaurantId, orderTypes,
+			orderlist = orderRepository.findByRestaurantAndTypeAndStateAndCreatedAt(restaurantId, orderTypes,
 					orderState, SimpleDateUtil.toDate(orderDate), pageable);
 		}
 
@@ -201,24 +201,23 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public List<OrderResponseModel> getOrderByRestaurantTableIdAndType(int restaurantId, int restaurantTableId,
-			String orderType, List<String> orderState, Date orderDate, int from, int limit) {
+	public List<OrderResponseModel> getOrderByRestaurantTableId(int restaurantId, int restaurantTableId,
+			String orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
 
 		Pageable pageable = PageRequest.of(from, limit);
 
 		if (orderState == null && orderDate == null) {
-			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndType(restaurantId, restaurantTableId,
-					orderType, pageable);
+			orderlist = orderRepository.findByRestaurantAndrestaurantTable(restaurantId, restaurantTableId, pageable);
 		} else if (orderState == null) {
-			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndCreatedAtAndType(restaurantId,
-					restaurantTableId, SimpleDateUtil.toDate(orderDate), orderType, pageable);
+			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndCreatedAt(restaurantId, restaurantTableId,
+					SimpleDateUtil.toDate(orderDate), pageable);
 		} else if (orderDate == null) {
-			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndStateInAndType(restaurantId,
-					restaurantTableId, orderState, orderType, pageable);
+			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndState(restaurantId, restaurantTableId,
+					orderState, pageable);
 		} else {
-			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndStateInAndCreatedAtAndType(restaurantId,
-					restaurantTableId, orderState, SimpleDateUtil.toDate(orderDate), orderType, pageable);
+			orderlist = orderRepository.findByRestaurantAndrestaurantTableAndStateAndCreatedAt(restaurantId,
+					restaurantTableId, orderState, SimpleDateUtil.toDate(orderDate), pageable);
 		}
 
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
@@ -228,7 +227,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, List<String> orderState, Date orderDate,
+	public List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, String orderState, Date orderDate,
 			int from, int limit) {
 		Page<Order> orderlist = null;
 
@@ -240,9 +239,9 @@ public class OrderServiceImpl implements OrderService {
 			orderlist = orderRepository.findByRestaurantAndCreatedAt(restaurantId, SimpleDateUtil.toDate(orderDate),
 					pageable);
 		} else if (orderDate == null) {
-			orderlist = orderRepository.findByRestaurantAndStateIn(restaurantId, orderState, pageable);
+			orderlist = orderRepository.findByRestaurantAndState(restaurantId, orderState, pageable);
 		} else {
-			orderlist = orderRepository.findByRestaurantAndStateInAndCreatedAt(restaurantId, orderState,
+			orderlist = orderRepository.findByRestaurantAndStateAndCreatedAt(restaurantId, orderState,
 					SimpleDateUtil.toDate(orderDate), pageable);
 		}
 
@@ -435,12 +434,12 @@ public class OrderServiceImpl implements OrderService {
 		cart.setState(cartModel.getState());
 		return cart;
 	}
-
+	
 	/**
 	 * This method update convert CartModel(POJO) to Cart(Entity) on creation action
 	 * 
-	 * @param order     user given order POJO object
-	 * @param cartModel user given cart POJO object
+	 * @param order user given order POJO object
+	 * @param cartModel  user given cart POJO object
 	 * @return cart entity object
 	 */
 	private Cart convertToDto(CartModel cartModel, Order order) {

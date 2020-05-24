@@ -1,6 +1,7 @@
 package com.food.table.controller;
 
 import com.food.table.model.FoodsModel;
+import com.food.table.model.FoodsRestaurantModel;
 import com.food.table.service.FoodApiService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -55,7 +56,7 @@ public class FoodApiController {
 
     @ApiOperation(value = "View list of foods by restaurant id", authorizations = {@Authorization(value = "accessToken")})
     @RequestMapping(value = "/foods/restaurant/{id}", method = RequestMethod.GET)
-    public ResponseEntity<List<FoodsModel>> getFoodByRestaurantId(@NotNull @PathVariable("id") int id) {
+    public ResponseEntity<List<FoodsRestaurantModel>> getFoodByRestaurantId(@NotNull @PathVariable("id") int id) {
         return ResponseEntity.ok(foodApiService.getFoodsByRestaurantId(id));
     }
 
