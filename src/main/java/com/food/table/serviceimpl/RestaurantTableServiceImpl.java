@@ -3,6 +3,7 @@ package com.food.table.serviceimpl;
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.RestaurantTable;
+import com.food.table.dto.UserAccount;
 import com.food.table.exceptions.RecordNotFoundException;
 import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
@@ -10,6 +11,7 @@ import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.RestaurantTableRepository;
 import com.food.table.service.FoodApiService;
 import com.food.table.service.RestaurantTableService;
+import com.food.table.util.AuthorityUtil;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -17,6 +19,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -39,8 +42,11 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     final FoodApiService foodApiService;
 
+    final AuthorityUtil authorityUtil;
+
     @Override
     public RestaurantTableModel insertTable(RestaurantTableModel restaurantTableModel) {
+        checkAuthority(restaurantTableModel.getRestaurantId());
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
             throw new RecordNotFoundException("No Record found in Restaurant for id: " + restaurantTableModel.getRestaurantId());
@@ -55,11 +61,13 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Override
     public RestaurantTableModel getById(int id) {
+
         return RestaurantTableModel.convertDtoToModel(getTablebyId(id));
     }
 
     @Override
     public List<RestaurantTableModel> getAllByRestaurantId(int restaurantId) {
+        checkAuthority(restaurantId);
         List<RestaurantTable> restaurantTableList = restaurantTableRepository.findTablesByRestaurantId(restaurantId);
         if (CollectionUtils.isEmpty(restaurantTableList))
             throw new RecordNotFoundException("No Records found in RestaurantTable ");
@@ -85,6 +93,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Override
     public RestaurantTableModel updateById(int tableId, RestaurantTableModel restaurantTableModel) {
+        checkAuthority(restaurantTableModel.getRestaurantId());
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
             throw new RecordNotFoundException("No Record found in Restaurant for id: " + restaurantTableModel.getRestaurantId());
@@ -144,7 +153,13 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         RestaurantTable restaurantTable = restaurantTableRepository.findTableById(tableId);
         if (Objects.isNull(restaurantTable))
             throw new RecordNotFoundException("No Record found in RestaurantTable for id: " + tableId);
+        checkAuthority(restaurantTable.getRestaurant().getId());
         return restaurantTable;
+    }
+
+    private void checkAuthority(int restaurantId) {
+        UserAccount userDetails = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        authorityUtil.checkAuthority(userDetails, restaurantId);
     }
 
 

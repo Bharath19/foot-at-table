@@ -1,10 +1,10 @@
 package com.food.table.util;
 
+import com.food.table.dto.UserAccount;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -50,8 +50,12 @@ public class JwtUtil {
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, UserAccount userDetails) {
+        Boolean tokenFlag;
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        tokenFlag = username.equals(userDetails.getEmail()) && !isTokenExpired(token);
+        if (!tokenFlag)
+            tokenFlag = username.equals(String.valueOf(userDetails.getPhoneNo())) && !isTokenExpired(token);
+        return tokenFlag;
     }
 }

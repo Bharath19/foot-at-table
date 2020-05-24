@@ -7,9 +7,11 @@ import com.food.table.model.FoodsModel;
 import com.food.table.model.FoodsRestaurantModel;
 import com.food.table.repo.*;
 import com.food.table.service.FoodApiService;
+import com.food.table.util.AuthorityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -35,6 +37,8 @@ public class FoodApiServiceImpl implements FoodApiService {
     final FoodCategoryRepository foodCategoryRepository;
 
     final FoodTagRepository foodTagRepository;
+
+    final AuthorityUtil authorityUtil;
 
     private final String FOOD_SINGLE_RECORD_ERROR_MESSAGE = "No Record Found in Foods Table for id : ";
 
@@ -64,6 +68,7 @@ public class FoodApiServiceImpl implements FoodApiService {
     public boolean deleteById(int id) {
         Foods foods = foodRepository.findFoodById(id);
         checkRecordNotFoundException(foods, id, FOOD_SINGLE_RECORD_ERROR_MESSAGE);
+        checkAuthority(foods.getRestaurant().getId());
         foods.setDeleteFlag(1);
         foods.setDeletionDate(Timestamp.valueOf(LocalDateTime.now()));
         foodRepository.save(foods);
@@ -115,6 +120,10 @@ public class FoodApiServiceImpl implements FoodApiService {
 	}
 	
     private FoodsModel performSaveOrUpdate(FoodsModel foodsModel) {
+        Optional<Restaurant> restaurant = restaurantRepository.findById(foodsModel.getRestaurantId());
+        if (!restaurant.isPresent())
+            throw new RecordNotFoundException("No Record Found in Restaurant Table for id :" + foodsModel.getRestaurantId());
+        checkAuthority(foodsModel.getRestaurantId());
         Optional<Diets> diets = dietRepository.findById(foodsModel.getDietId());
         if (!diets.isPresent())
             throw new RecordNotFoundException("No Record Found in Diets Table for id :" + foodsModel.getDietId());
@@ -124,9 +133,6 @@ public class FoodApiServiceImpl implements FoodApiService {
         Optional<FoodCategory> foodCategory = foodCategoryRepository.findById(foodsModel.getFoodCategoryId());
         if (!foodCategory.isPresent())
             throw new RecordNotFoundException("No Record Found in FoodCategory Table for id :" + foodsModel.getFoodCategoryId());
-        Optional<Restaurant> restaurant = restaurantRepository.findById(foodsModel.getRestaurantId());
-        if (!restaurant.isPresent())
-            throw new RecordNotFoundException("No Record Found in Restaurant Table for id :" + foodsModel.getRestaurantId());
         List<FoodTag> foodTags = foodTagRepository.findAllById(foodsModel.getTags());
         if (CollectionUtils.isEmpty(foodTags))
             throw new RecordNotFoundException("No Records Found in FoodTag Table");
@@ -146,6 +152,11 @@ public class FoodApiServiceImpl implements FoodApiService {
                 throw new RecordNotFoundException(message);
             }
         }
+    }
+
+    private void checkAuthority(int restaurantId) {
+        UserAccount userDetails = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        authorityUtil.checkAuthority(userDetails, restaurantId);
     }
 
 }

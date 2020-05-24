@@ -36,6 +36,4 @@ public class UserRole implements Serializable {
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
-
-
 }

@@ -33,6 +33,7 @@ public class RestaurantTableController {
 
     @ApiOperation(value = "Get restaurant table by Id", authorizations = {@Authorization(value = "accessToken")})
     @RequestMapping(value = "/table/{id}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<RestaurantTableModel> getRestaurantTableById(@NotNull @PathVariable int id) {
         return ResponseEntity.ok(restaurantTableService.getById(id));
     }
