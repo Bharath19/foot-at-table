@@ -372,7 +372,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 		restaurantGetModel.setId(res.getId());
 		restaurantGetModel.setName(res.getRestaurantName());
 		restaurantGetModel.setDescription(res.getDescription());
-		restaurantGetModel.setState(res.getState());
+		restaurantGetModel.setStatus(res.getStatus());
 		restaurantGetModel.setRating(res.getRating());
 		Address address = res.getAddress();
 		if (latitude == null && longitude == null) {
@@ -422,7 +422,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 			restaurant.setAccount(account.get());
 		}
 		if (restaurantModel.getStatus() != null)
-			restaurant.setStatus(restaurantModel.getStatus());
+			restaurant.setStatus(RestaurantStatusEnum.getValue(restaurantModel.getStatus()));
 		if (restaurantModel.getState() != null)
 			restaurant.setState(RestaurantStateEnum.getValue(restaurantModel.getState()));
 		if (restaurantModel.getTierId() != 0) {
@@ -494,13 +494,25 @@ public class RestaurantServiceImpl implements RestaurantService {
 			restaurant.setAlcoholServed(restaurantModel.getAlcoholServed());
 		}
 
-		if (restaurantModel.getTimings() != null) {
-			List<Timings> oldTimings = restaurant.getTimings();
-			if (oldTimings != null && !oldTimings.isEmpty()) {
-				timingRepository.deleteAll(oldTimings);
-			}
-			List<Timings> timings = restaurant.getTimings();
-			restaurant.setTimings(timings);
+		if (restaurantModel.getTimings() != null) { 
+			List<Timings> timings=restaurant.getTimings(); 
+		    List<TimingModel> timingModels=restaurantModel.getTimings(); 
+		    List<String> uniqueDay=timingModels.stream().map(e -> e.getDay()).collect(Collectors.toList());		    
+		    timings.removeIf(p->(!uniqueDay.contains(p.getDay())));
+		    for(TimingModel timModel:timingModels) {
+		    	boolean check=true;		    	
+		    	for(Timings tims:timings) {
+		    		 if(timModel.getDay().equalsIgnoreCase(tims.getDay())) {
+		    			tims.setOpeningTime(timModel.getFrom());
+		    			tims.setClosingTime(timModel.getTo());
+		    			check=false;
+		    		}
+		    	}
+		    	if(check) {
+		    		timings.add(Timings.builder().day(timModel.getDay()).openingTime(timModel.getFrom()).ClosingTime(timModel.getTo()).build());
+		    	}
+		    }
+		    restaurant.setTimings(timings);
 		}
 		return restaurant;
 	}
@@ -533,6 +545,20 @@ public class RestaurantServiceImpl implements RestaurantService {
 		} catch (Exception e) {
 			log.error("unable to update the restaurant status " + e);
 		}
+	}
+
+	@Override
+	public List<TimingModel> getRestaurantTimings(int restaurantId) {
+		Optional<Restaurant> restaurant = restaurantepository.findById(restaurantId);
+		List<TimingModel> timingsModel = new ArrayList<TimingModel>();
+		if (!restaurant.isPresent()) {
+			log.error("Update restaurant is requested for invalid restaurant id : "+restaurantId);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
+		} else {
+			List<Timings> timings=timingRepository.findByRestaurantId(restaurantId);
+			timingsModel=timings.parallelStream().map(data -> new TimingModel(data.getDay(), data.getOpeningTime(), data.getClosingTime())).collect(Collectors.toList());
+		}
+		return timingsModel;
 	}
 
 }

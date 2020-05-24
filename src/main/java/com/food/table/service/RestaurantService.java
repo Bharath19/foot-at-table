@@ -8,6 +8,7 @@ import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
 import com.food.table.model.SearchModel;
+import com.food.table.model.TimingModel;
 
 @Service
 public interface RestaurantService {
@@ -33,4 +34,6 @@ public interface RestaurantService {
 	public void updateState(int id, String state);
 
 	public void updateStatus(int id, String status);
+
+	public List<TimingModel> getRestaurantTimings(int restaurantId);
 }

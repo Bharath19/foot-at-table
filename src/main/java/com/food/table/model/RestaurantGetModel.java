@@ -15,7 +15,7 @@ public class RestaurantGetModel {
 	
 	private String imageUrl;
 	
-	private String state;
+	private String status;
 	
 	private double rating;
 	

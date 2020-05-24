@@ -126,7 +126,7 @@ public class Restaurant {
 								,inverseJoinColumns ={@JoinColumn(name="diet_id", referencedColumnName = "id")})
 	private List<Diets> diets;
 	
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval=true)
 	@JoinColumn(name = "restaurant_id", referencedColumnName = "id")
 	private List<Timings> timings;
 

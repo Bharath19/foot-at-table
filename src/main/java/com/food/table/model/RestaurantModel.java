@@ -38,9 +38,7 @@ public class RestaurantModel {
 	
 	private int tierId;
 	
-	private int avgPricePerPerson;
-	
-	private String imageUrl;
+	private int avgPricePerPerson;	
 	
 	private String description;
 	

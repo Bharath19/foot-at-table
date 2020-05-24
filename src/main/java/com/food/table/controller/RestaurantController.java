@@ -4,6 +4,7 @@ import com.food.table.constant.ApplicationConstants;
 import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
+import com.food.table.model.TimingModel;
 import com.food.table.service.RestaurantService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -160,4 +161,18 @@ public class RestaurantController {
 		log.info("Exiting update restaurant status is success and timetaken : "+(endTime-startTime));
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
+	
+	@ApiOperation(value = "Update the restaurants status. it should be Active/Inactive", authorizations = {@Authorization(value = "accessToken")})
+	@GetMapping("/timings")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
+	public ResponseEntity<List<TimingModel>> getRestaurantTimings(@RequestParam(value = "restaurantId") int restaurantId) {
+		long startTime=System.currentTimeMillis();
+		log.info("Entering get timings for restaurant starttime : "+startTime);
+		long endTime=System.currentTimeMillis();
+		List<TimingModel> timingmodel = restaurantService.getRestaurantTimings(restaurantId);
+		log.info("Exiting  get timings for restaurant is success and timetaken : "+(endTime-startTime));
+		return ResponseEntity.ok(timingmodel);
+	}
+	
+	
 }
