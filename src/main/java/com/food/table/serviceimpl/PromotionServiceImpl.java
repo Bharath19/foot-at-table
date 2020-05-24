@@ -99,7 +99,7 @@ public class PromotionServiceImpl implements PromotionService {
 					ApplicationErrors.GET_RESTAURANT_PROMOTION_FAILED);
 		}
 		if (restaurant != null) {
-			restaurantGetModels = restaurantServiceImpl.parseGetAllRestaurant(restaurant, latitude, longitude, true);
+			restaurantGetModels = restaurantServiceImpl.parseGetAllRestaurant(restaurant, latitude, longitude);
 		}
 		log.info("Exiting get promotion restaurant details is success");
 		return restaurantGetModels;

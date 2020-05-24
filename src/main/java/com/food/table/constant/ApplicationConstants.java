@@ -19,7 +19,7 @@ public class ApplicationConstants {
 
 	public static final String deleteState = "Deleted";
 
-	public static final String draftState = "Draft";
+	public static final String draftState = "Drafted";
 
 	public static final String confirmedState = "Confirmed";
 
