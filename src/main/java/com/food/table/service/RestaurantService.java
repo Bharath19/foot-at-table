@@ -14,7 +14,7 @@ public interface RestaurantService {
 	
 	public void addRestaurant(RestaurantModel restaurantModel);
 	
-	public boolean deleteRestaurant(int id);
+	public void deleteRestaurant(int id);
 	
 	public List<RestaurantGetModel> getAllRestaurant(int from,int limit,String latitude,String longtitude,String km);
 	
@@ -32,5 +32,5 @@ public interface RestaurantService {
 
 	public void updateState(int id, String state);
 
-	public boolean updateStatus(int id, String status);
+	public void updateStatus(int id, String status);
 }
