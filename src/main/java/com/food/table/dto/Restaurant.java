@@ -91,42 +91,42 @@ public class Restaurant {
 	@JoinColumn(name = "address_id", referencedColumnName = "id")
 	private Address address;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_payments",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="payments_id", referencedColumnName = "id")})
 	private List<Payments> payments;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_seatings",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="seatings_id", referencedColumnName = "id")})
 	private List<Seatings> seatings;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_services",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="services_id", referencedColumnName = "id")})
 	private List<Services> services;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_types",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="types_id", referencedColumnName = "id")})
 	private List<Types> types;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_cuisines",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="cuisines_id", referencedColumnName = "id")})
 	private List<Cuisines> cuisines;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_searchtype",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="searchtype_id", referencedColumnName = "id")})
 	private List<SearchType> searchType;
 	
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name="restaurant_diet",joinColumns = {@JoinColumn(name="restaurant_id", referencedColumnName = "id")}
 								,inverseJoinColumns ={@JoinColumn(name="diet_id", referencedColumnName = "id")})
 	private List<Diets> diets;
 	
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval=true)
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval=true)
 	@JoinColumn(name = "restaurant_id", referencedColumnName = "id")
 	private List<Timings> timings;
 
