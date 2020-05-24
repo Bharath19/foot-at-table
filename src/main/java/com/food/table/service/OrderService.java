@@ -24,17 +24,17 @@ public interface OrderService {
 
 	Order updateOrderState(OrderStateModel orderModel, int orderId);
 
-	List<OrderResponseModel> getOrderByUserId(int userId, String orderState, Date orderDate, int from, int limit);
+	List<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from, int limit);
 
 	BasicRevenueModel getBasicRevenue(int restaurantId, Date orderDate);
 
-	List<OrderResponseModel> getOrderByOrderTypeName(int restaurantId, List<String> orderTypes, String orderState,
+	List<OrderResponseModel> getOrderByOrderTypeName(int restaurantId, List<String> orderTypes, List<String> orderState,
 			Date orderDate, int from, int limit);
 
-	List<OrderResponseModel> getOrderByRestaurantTableId(int restaurantId, int restaurantTableId, String orderState,
-			Date orderDate, int from, int limit);
+	List<OrderResponseModel> getOrderByRestaurantTableIdAndType(int restaurantId, int restaurantTableId,
+			String orderType, List<String> orderState, Date orderDate, int from, int limit);
 
-	List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, String orderState, Date orderDate, int from,
+	List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, List<String> orderState, Date orderDate, int from,
 			int limit);
 
 	Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId);

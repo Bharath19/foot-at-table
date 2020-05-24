@@ -12,8 +12,10 @@ public class ApplicationConstants {
 	public static final List<String> payments = Arrays.asList("Card", "Cash", "UPI", "Paytm", "Gpay", "Phonepe");
 
     public static final String dineInTypeText = "DineIn";
+    
+    public static final String selfServiceTypeText = "SelfService";
 
-	public static final List<String> types = Arrays.asList( dineInTypeText, "SelfService", "TakeAway");
+	public static final List<String> types = Arrays.asList( dineInTypeText, selfServiceTypeText, "TakeAway");
 
 	public static final String deleteState = "Deleted";
 

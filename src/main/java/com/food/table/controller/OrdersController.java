@@ -14,12 +14,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.food.table.constant.ApplicationConstants;
+import com.food.table.constant.CartStateEnum;
 import com.food.table.constant.OrderStateEnum;
 import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.CartModel;
-import com.food.table.model.FoodResponseModel;
+import com.food.table.model.FoodHistoryProjectionModel;
 import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
@@ -78,13 +80,15 @@ public class OrdersController {
 	@ApiOperation(value = "Get Order details by User ID", authorizations = { @Authorization(value = "accessToken") })
 	@GetMapping("/orders/getOrderByUserId/{userId}")
 	public List<OrderResponseModel> getOrderByUserID(@RequestParam(required = true) int userId,
-			@RequestParam(value = "orderState", required = false) String orderState,
+			@RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
 			@RequestParam(value = "from", required = false, defaultValue = "0") int from,
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		try {
 			if (orderState != null) {
-				OrderStateEnum.valueOf(orderState);
+				orderState.forEach(orderEnumState -> {
+					OrderStateEnum.valueOf(orderEnumState);
+				});
 			}
 		} catch (IllegalArgumentException e) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
@@ -94,8 +98,9 @@ public class OrdersController {
 
 	@ApiOperation(value = "Get all food history by RestaurantId and order date. Order date should be yyyy-MM-dd format", authorizations = {
 			@Authorization(value = "accessToken") })
-	@GetMapping("/orders/foodHistory/{restaurantId}")
-	public ArrayList<FoodResponseModel> getFoodHistoryByRestaurantId(@RequestParam(required = true) int restaurantId,
+	@GetMapping("/orders/menuMovement/{restaurantId}")
+	public List<FoodHistoryProjectionModel> getFoodHistoryByRestaurantId(
+			@RequestParam(required = true) int restaurantId,
 			@RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
 		return cartService.getFoodHistoryByRestaurantId(restaurantId, orderDate);
 	}
@@ -112,14 +117,16 @@ public class OrdersController {
 			@Authorization(value = "accessToken") })
 	@GetMapping("/orders/getOrderByOrderTypeName/{restaurantId}")
 	public List<OrderResponseModel> getOrderByOrderTypeName(@RequestParam(required = true) int restaurantId,
-			@RequestParam(value = "orderTypeId", required = true) List<String> orderTypes,
-			@RequestParam(value = "orderState", required = false) String orderState,
+			@RequestParam(value = "orderTypes", required = true) List<String> orderTypes,
+			@RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
 			@RequestParam(value = "from", required = false, defaultValue = "0") int from,
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		try {
 			if (orderState != null) {
-				OrderStateEnum.valueOf(orderState);
+				orderState.forEach(orderEnumState -> {
+					OrderStateEnum.valueOf(orderEnumState);
+				});
 			}
 		} catch (IllegalArgumentException e) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
@@ -129,40 +136,84 @@ public class OrdersController {
 
 	@ApiOperation(value = "Get order details by restaurantId, RestaurantTableId, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {
 			@Authorization(value = "accessToken") })
-	@GetMapping("/orders/getOrderByRestaurantTableId/{restaurantId}")
-	public List<OrderResponseModel> getOrderByRestaurantTableId(@RequestParam(required = true) int restaurantId,
+	@GetMapping("/orders/getDineInOrders/{restaurantId}")
+	public List<OrderResponseModel> getDineInOrders(@RequestParam(required = true) int restaurantId,
 			@RequestParam(value = "restaurantTableId", required = true) int restaurantTableId,
-			@RequestParam(value = "orderState", required = false) String orderState,
+			@RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
 			@RequestParam(value = "from", required = false, defaultValue = "0") int from,
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		try {
 			if (orderState != null) {
-				OrderStateEnum.valueOf(orderState);
+				orderState.forEach(orderEnumState -> {
+					OrderStateEnum.valueOf(orderEnumState);
+				});
 			}
 		} catch (IllegalArgumentException e) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
 		}
-		return orderService.getOrderByRestaurantTableId(restaurantId, restaurantTableId, orderState, orderDate, from,
-				limit);
+		return orderService.getOrderByRestaurantTableIdAndType(restaurantId, restaurantTableId,
+				ApplicationConstants.dineInTypeText, orderState, orderDate, from, limit);
+	}
+
+	@ApiOperation(value = "Get order details by restaurantId, RestaurantTableId, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {
+			@Authorization(value = "accessToken") })
+	@GetMapping("/orders/getSelfServiceOrders/{restaurantId}")
+	public List<OrderResponseModel> getSelfServiceOrders(@RequestParam(required = true) int restaurantId,
+			@RequestParam(value = "restaurantTableId", required = true) int restaurantTableId,
+			@RequestParam(value = "orderState", required = false) List<String> orderState,
+			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
+			@RequestParam(value = "from", required = false, defaultValue = "0") int from,
+			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
+		try {
+			if (orderState != null) {
+				orderState.forEach(orderEnumState -> {
+					OrderStateEnum.valueOf(orderEnumState);
+				});
+			}
+		} catch (IllegalArgumentException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
+		}
+		return orderService.getOrderByRestaurantTableIdAndType(restaurantId, restaurantTableId,
+				ApplicationConstants.selfServiceTypeText, orderState, orderDate, from, limit);
 	}
 
 	@ApiOperation(value = "Get order details by restaurantId, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {
 			@Authorization(value = "accessToken") })
 	@GetMapping("/orders/getOrderByRestaurantId/{restaurantId}")
 	public List<OrderResponseModel> getOrderByRestaurantId(@RequestParam(required = true) int restaurantId,
-			@RequestParam(value = "orderState", required = false) String orderState,
+			@RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
 			@RequestParam(value = "from", required = false, defaultValue = "0") int from,
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		try {
 			if (orderState != null) {
-				OrderStateEnum.valueOf(orderState);
+				orderState.forEach(orderEnumState -> {
+					OrderStateEnum.valueOf(orderEnumState);
+				});
 			}
 		} catch (IllegalArgumentException e) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
 		}
 		return orderService.getOrderByRestaurantId(restaurantId, orderState, orderDate, from, limit);
+	}
+
+	@ApiOperation(value = "Get order states", authorizations = { @Authorization(value = "accessToken") })
+	@GetMapping("/orders/getOrderState")
+	public OrderStateEnum[] getOrderState() {
+		return OrderStateEnum.values();
+	}
+
+	@ApiOperation(value = "Get cart states", authorizations = { @Authorization(value = "accessToken") })
+	@GetMapping("/orders/getCartState")
+	public CartStateEnum[] getCartState() {
+		return CartStateEnum.values();
+	}
+
+	@ApiOperation(value = "Get order types", authorizations = { @Authorization(value = "accessToken") })
+	@GetMapping("/orders/getOrderTypes")
+	public List<String> getOrderTypes() {
+		return ApplicationConstants.types;
 	}
 
 }

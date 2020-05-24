@@ -1,14 +1,15 @@
 package com.food.table.service;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import com.food.table.model.FoodResponseModel;
+import com.food.table.model.FoodHistoryProjectionModel;
 
 @Service
 public interface CartService {
 
-	ArrayList<FoodResponseModel> getFoodHistoryByRestaurantId(int restaurantId, Date date);
+	List<FoodHistoryProjectionModel> getFoodHistoryByRestaurantId(int restaurantId, Date date);
 
 }
