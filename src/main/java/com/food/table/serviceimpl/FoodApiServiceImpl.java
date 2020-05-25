@@ -11,8 +11,8 @@ import com.food.table.util.AuthorityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -93,7 +93,10 @@ public class FoodApiServiceImpl implements FoodApiService {
         Comparator<FoodsModel> compareBySortNo = (FoodsModel foodsModel1, FoodsModel foodsModel2) -> foodsModel1.getSortNo().compareTo(foodsModel2.getSortNo());
         List<FoodCategory> foodsCategoryList = foodCategoryRepository.findAll((Sort.by(Sort.Direction.ASC, "sortOrder")));
         List<FoodsRestaurantModel> foodResponseModels = new ArrayList<>();
-        foodsCategoryList.stream().forEach(foodCategory -> {
+        foodsCategoryList.stream()
+                .filter(foodCategory ->
+                        foodsMap.containsKey(foodCategory.getId()))
+                .forEach(foodCategory -> {
             List<FoodsModel> foodsStreamList = foodsMap.get(foodCategory.getId());
             Collections.sort(foodsStreamList, compareBySortNo);
             FoodsRestaurantModel foodsRestaurantModel = new FoodsRestaurantModel();
