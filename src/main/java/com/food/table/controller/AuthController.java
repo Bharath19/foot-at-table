@@ -1,10 +1,14 @@
 package com.food.table.controller;
 
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
 import com.food.table.model.*;
 import com.food.table.service.CustomUserDetailsService;
 import com.food.table.util.JwtUtil;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 public class AuthController {
 
     @Autowired
@@ -30,6 +35,7 @@ public class AuthController {
     @RequestMapping(value = "auth/customer/login", method = RequestMethod.POST)
     public ResponseEntity<String> customerLogin(@RequestBody CustomerAuthRequest authenticationRequest) throws Exception {
         userDetailsService.checkAndCreateCustomerUser(authenticationRequest);
+        log.info("User verified successfully and otp sent to phone no " + authenticationRequest.getPhoneNo());
         return ResponseEntity.ok("User Verified.Otp sent sucessfully");
 
     }
@@ -40,11 +46,10 @@ public class AuthController {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getPhoneNo(), authenticationRequest.getOtp()));
         } catch (BadCredentialsException b) {
-            throw new Exception("Incorrect Username and password", b);
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_OTP);
         }
         final String jwt = jwtUtil.generateToken(String.valueOf(authenticationRequest.getPhoneNo()));
         userDetailsService.invalidateOtp(authenticationRequest.getPhoneNo());
-
         return ResponseEntity.ok(new AuthResponse(jwt, userDetailsService.createRefreshToken(authenticationRequest.getPhoneNo())));
 
     }
@@ -55,7 +60,7 @@ public class AuthController {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getUserName(), authenticationRequest.getPassword()));
         } catch (BadCredentialsException b) {
-            throw new Exception("Incorrect Username and password", b);
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_LOGIN);
         }
         final String jwt = jwtUtil.generateToken(authenticationRequest.getUserName());
         return ResponseEntity.ok(new AuthResponse(jwt));
@@ -66,7 +71,8 @@ public class AuthController {
     @RequestMapping(value = "auth/restaurant/signup", method = RequestMethod.POST)
     public ResponseEntity<String> restaurantSignUp(@RequestBody AuthRequest authenticationRequest) {
         if (userDetailsService.createRestaurantUser(authenticationRequest)) {
-            return ResponseEntity.ok("sucess");
+            log.info("User created Successfully for Email Id " + authenticationRequest.getUserName());
+            return ResponseEntity.ok("User Created Successfully");
         } else {
             throw new BadCredentialsException("EmailId Already Taken");
         }

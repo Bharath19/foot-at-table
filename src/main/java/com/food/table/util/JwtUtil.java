@@ -1,10 +1,13 @@
 package com.food.table.util;
 
 import com.food.table.dto.UserAccount;
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -51,11 +54,16 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, UserAccount userDetails) {
+        if (isTokenExpired(token)) {
+            throw new ApplicationException(HttpStatus.UNAUTHORIZED, ApplicationErrors.EXPIRED_TOKEN);
+        }
         Boolean tokenFlag;
         final String username = extractUsername(token);
         tokenFlag = username.equals(userDetails.getEmail()) && !isTokenExpired(token);
         if (!tokenFlag)
             tokenFlag = username.equals(String.valueOf(userDetails.getPhoneNo())) && !isTokenExpired(token);
+        if (!tokenFlag)
+            throw new ApplicationException(HttpStatus.UNAUTHORIZED, ApplicationErrors.INVALID_TOKEN);
         return tokenFlag;
     }
 }

@@ -3,7 +3,9 @@ package com.food.table.util;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.UserAccount;
 import com.food.table.dto.UserRole;
-import com.food.table.exceptions.ForbiddenException;
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ public class AuthorityUtil {
                         .collect(Collectors.toList());
             }
             if (!restaurantIdList.contains(restaurantId)) {
-                throw new ForbiddenException("Not Allowed for this user.");
+                throw new ApplicationException(HttpStatus.FORBIDDEN, ApplicationErrors.OPERATION_FORBIDDEN_FOR_USER);
             }
         }
     }

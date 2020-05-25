@@ -4,7 +4,8 @@ import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.RestaurantTable;
 import com.food.table.dto.UserAccount;
-import com.food.table.exceptions.RecordNotFoundException;
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
 import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
 import com.food.table.repo.RestaurantRepository;
@@ -19,6 +20,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -49,14 +51,20 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         checkAuthority(restaurantTableModel.getRestaurantId());
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
-            throw new RecordNotFoundException("No Record found in Restaurant for id: " + restaurantTableModel.getRestaurantId());
+            throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
         RestaurantTable restaurantTable = RestaurantTable.builder().restaurant(restaurant.get())
                 .name(restaurantTableModel.getName())
                 .seats(restaurantTableModel.getSeats())
                 .status(FoodStatusEnum.getValue(restaurantTableModel.getStatus()))
                 .build();
-        RestaurantTable restaurantTableWithQR = createQRCode(restaurantTableRepository.save(restaurantTable), restaurant.get());
-        return RestaurantTableModel.convertDtoToModel(restaurantTableRepository.save(restaurantTableWithQR));
+        RestaurantTable savedRestaurant = restaurantTableRepository.save(restaurantTable);
+        if (Objects.isNull(savedRestaurant))
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.ADD_TABLE_FAILED);
+        RestaurantTable restaurantTableWithQR = createQRCode(savedRestaurant, restaurant.get());
+        RestaurantTable savedRestaurantTableWithQR = restaurantTableRepository.save(restaurantTableWithQR);
+        if (Objects.isNull(savedRestaurantTableWithQR))
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.QR_CODE_FAILED);
+        return RestaurantTableModel.convertDtoToModel(savedRestaurantTableWithQR);
     }
 
     @Override
@@ -70,7 +78,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         checkAuthority(restaurantId);
         List<RestaurantTable> restaurantTableList = restaurantTableRepository.findTablesByRestaurantId(restaurantId);
         if (CollectionUtils.isEmpty(restaurantTableList))
-            throw new RecordNotFoundException("No Records found in RestaurantTable ");
+            throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
         return restaurantTableList.stream().map(RestaurantTableModel::convertDtoToModel).collect(Collectors.toList());
     }
 
@@ -96,14 +104,17 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         checkAuthority(restaurantTableModel.getRestaurantId());
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
-            throw new RecordNotFoundException("No Record found in Restaurant for id: " + restaurantTableModel.getRestaurantId());
+            throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
         RestaurantTable restaurantTable = getTablebyId(tableId);
-        return RestaurantTableModel.convertDtoToModel(restaurantTableRepository.save(RestaurantTable.builder()
+        RestaurantTable savedRestaurantTable = restaurantTableRepository.save(RestaurantTable.builder()
                 .id(tableId).restaurant(restaurant.get()).name(restaurantTableModel.getName())
                 .qrCode(restaurantTable.getQrCode())
                 .seats(restaurantTableModel.getSeats())
                 .status(FoodStatusEnum.getValue(restaurantTableModel.getStatus()))
-                .build()));
+                .build());
+        if (Objects.isNull(savedRestaurantTable))
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.UPDATE_TABLE_FAILED);
+        return RestaurantTableModel.convertDtoToModel(savedRestaurantTable);
     }
 
     @Override
@@ -129,7 +140,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     public RestaurantTableDetailsModel getTableDetailsByQRCode(String qrCode) {
         RestaurantTable restaurantTable = restaurantTableRepository.findTableByQRCode(qrCode);
         if (Objects.isNull(restaurantTable))
-            throw new RecordNotFoundException("No Record found in RestaurantTable for qrCode: " + qrCode);
+            throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_QR_CODE);
         return RestaurantTableDetailsModel.builder()
                 .restaurantId(restaurantTable.getRestaurant().getId())
                 .tableId(restaurantTable.getId())
@@ -152,7 +163,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     private RestaurantTable getTablebyId(int tableId) {
         RestaurantTable restaurantTable = restaurantTableRepository.findTableById(tableId);
         if (Objects.isNull(restaurantTable))
-            throw new RecordNotFoundException("No Record found in RestaurantTable for id: " + tableId);
+            throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_TABLE_ID);
         checkAuthority(restaurantTable.getRestaurant().getId());
         return restaurantTable;
     }

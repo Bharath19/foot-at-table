@@ -2,7 +2,8 @@ package com.food.table.serviceimpl;
 
 import com.food.table.dto.UserAccount;
 import com.food.table.dto.UserRole;
-import com.food.table.exceptions.RecordNotFoundException;
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
 import com.food.table.model.AuthRequest;
 import com.food.table.model.CustomerAuthRequest;
 import com.food.table.model.NotificationModel;
@@ -16,7 +17,9 @@ import com.google.common.cache.LoadingCache;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,18 +53,25 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         if (Objects.isNull(userAccount)) {
             return loadUserByPhoneNo(user, authentication);
         }
+        validateUser(userAccount);
         return userAccount;
     }
 
     private UserAccount loadUserByPhoneNo(String user, Authentication authentication) {
+        if (!NumberUtils.isParsable(user))
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.NO_USER_EMAIL_ID);
         UserAccount customerUserAccount = userRepository.findUserByPhoneNo(Long.parseLong(user));
         if (Objects.nonNull(authentication)) {
             int otp = getOtpFromCache(customerUserAccount.getPhoneNo());
             if (otp == 0)
                 throw new BadCredentialsException("OTP is invalid");
-            return buildUserAccount(customerUserAccount, String.valueOf(otp));
+            UserAccount userAccount = buildUserAccount(customerUserAccount, String.valueOf(otp));
+            validateUser(userAccount);
+            return userAccount;
         }
-        return buildUserAccount(customerUserAccount, StringUtils.EMPTY);
+        UserAccount userAccount = buildUserAccount(customerUserAccount, StringUtils.EMPTY);
+        validateUser(userAccount);
+        return userAccount;
     }
 
     UserAccount buildUserAccount(UserAccount userAccount, String password) {
@@ -75,6 +85,17 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                 .isEnabled(userAccount.isEnabled())
                 .build();
 
+    }
+
+    private void validateUser(UserAccount userAccount) {
+        if (!userAccount.isEnabled())
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.USER_DISABLED);
+        if (!userAccount.isAccountNonExpired())
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.USER_EXPIRED);
+        if (!userAccount.isAccountNonLocked())
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.USER_LOCKED);
+        if (!userAccount.isCredentialsNonExpired())
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.USER_CREDENTIALS_EXPIRED);
     }
 
     @Override
@@ -94,7 +115,10 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                     .roles(userRoleList)
                     .build());
             savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
-            userRepository.save(savedUserAccount);
+            UserAccount userAccountresponse = userRepository.save(savedUserAccount);
+            if (Objects.isNull(userAccountresponse))
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
+
         }
         generateOtp(authenticationRequest.getPhoneNo());
     }
@@ -103,8 +127,9 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     public boolean createRestaurantUser(AuthRequest authRequest) {
         UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
         if (Objects.nonNull(userAccount)) {
-            throw new BadCredentialsException("Email Id already Taken");
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
         }
+        verifyEmailIdFormat(authRequest.getUserName());
         UserRole userRole = userRoleRepository.findRoleByName("RESTAURANT_OWNER");
         List userRoleList = new LinkedList<>();
         userRoleList.add(userRole);
@@ -134,7 +159,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     public long getUserNameByRefreshToken(String refreshToken) {
         UserAccount userAccount = userRepository.findUserByRefreshToken(refreshToken);
         if (Objects.isNull(userAccount))
-            throw new RecordNotFoundException("No User Account found");
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_REFRESH_TOKEN);
         return userAccount.getPhoneNo();
     }
 
@@ -158,10 +183,18 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     private int getOtpFromCache(long phoneNo) {
         try {
+            if (Objects.isNull(otpCache))
+                throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.OTP_FETCH_FAILED);
             return otpCache.get(phoneNo);
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    private void verifyEmailIdFormat(String email) {
+        String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+        if (!email.matches(regex))
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_EMAIL_FORMAT);
     }
 }
