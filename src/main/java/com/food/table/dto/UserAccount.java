@@ -63,6 +63,11 @@ public class UserAccount implements Serializable, UserDetails {
     @JoinTable(name = "user_restaurant_link", joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")}
             , inverseJoinColumns = {@JoinColumn(name = "restaurant_id", referencedColumnName = "id")})
     private List<Restaurant> restaurants;
+    
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(name = "user_favorite_restaurants", joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")}, inverseJoinColumns = {@JoinColumn(name = "restaurant_id", referencedColumnName = "id")}, 
+            		uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "restaurant_id"}))
+    private List<Restaurant> favoriteRestaurants;
 
     private Boolean isAccountNonExpired;
 
