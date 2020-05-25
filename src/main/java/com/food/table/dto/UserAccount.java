@@ -50,6 +50,8 @@ public class UserAccount implements Serializable, UserDetails {
 
     private String refreshToken;
 
+    private String imageUrl;
+
     @Fetch(FetchMode.SELECT)
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "user_role_link", joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")}

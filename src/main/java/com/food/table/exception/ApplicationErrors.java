@@ -57,5 +57,9 @@ public class ApplicationErrors {
 	public static final String INVALID_TIER_ID = "Invalid tier Id";
 
 	public static final String ADD_RESTAURANT_FAILED = "Add restaurant failed";
+
+	public static final String INVALID_USER_PHONE_NO = "Invalid User Phone No";
+
+	public static final String EDIT_USER_PROFILE_FAILED = "Edit User Profile Failed";
 	
 }
