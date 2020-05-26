@@ -162,7 +162,7 @@ public class RestaurantController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@ApiOperation(value = "Update the restaurants status. it should be Active/Inactive", authorizations = {@Authorization(value = "accessToken")})
+	@ApiOperation(value = "Get Restaurant Timings", authorizations = {@Authorization(value = "accessToken")})
 	@GetMapping("/timings")
 	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public ResponseEntity<List<TimingModel>> getRestaurantTimings(@RequestParam(value = "restaurantId") int restaurantId) {

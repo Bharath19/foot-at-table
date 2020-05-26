@@ -27,7 +27,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
 	Page<Restaurant> findByDistanceFilter(@Param("state") String state, @Param("latitude") String latitude,
 			@Param("longitude") String longitude, @Param("km") String km, @Param("day") String day, Pageable pageable);
 
-	@Query(value = "SELECT res.* FROM restaurant_detail res JOIN(SELECT  ad.id, (6371 * acos (cos ( radians(:latitude) ) * cos( radians( ad.lattitude ) )* cos( radians( ad.longitude ) - radians(:longitude) ) + sin ( radians(:latitude) )* sin( radians( ad.lattitude ) ))) AS distance FROM address_detail ad) AS T ON res.address_id = T.id JOIN timings tim ON tim.restaurant_id=res.id JOIN timings tim ON tim.restaurant_id=res.id where tim.day like :day AND res.state=:state ORDER BY T.distance", nativeQuery = true)
+	@Query(value = "SELECT res.* FROM restaurant_detail res JOIN(SELECT  ad.id, (6371 * acos (cos ( radians(:latitude) ) * cos( radians( ad.lattitude ) )* cos( radians( ad.longitude ) - radians(:longitude) ) + sin ( radians(:latitude) )* sin( radians( ad.lattitude ) ))) AS distance FROM address_detail ad) AS T ON res.address_id = T.id JOIN timings tim ON tim.restaurant_id=res.id where tim.day like :day AND res.state=:state ORDER BY T.distance", nativeQuery = true)
 	Page<Restaurant> findByStateWithDistance(@Param("state") String state, @Param("latitude") String latitude,
 			@Param("longitude") String longitude, @Param("day") String day, Pageable pageable);
 

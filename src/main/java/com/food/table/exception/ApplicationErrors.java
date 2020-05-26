@@ -8,7 +8,7 @@ public class ApplicationErrors {
 	
 	public static final String INVALID_RESTAURANT_ID = "Invalid restaurant Id";
 	
-	public static final String INVALID_USER_ID = "Invalid user Id";
+	public static final String INVALID_REQUIRED_ID_FOR_OFFER = "Invalid user Id or Order Id or Restaurant Id ";
 	
 	public static final String INVALID_ORDER_ID = "Invalid order Id";
 	
@@ -120,5 +120,17 @@ public class ApplicationErrors {
 	public static final String INVALID_USER_PHONE_NO = "Invalid User Phone No";
 
 	public static final String EDIT_USER_PROFILE_FAILED = "Edit User Profile Failed";
+	
+	public static final String INVALID_OFFER_TYPE = "Invalid Offer type value";
+	
+	public static final String INVALID_OFFER_STATE = "Invalid Offer state value";
+
+	public static final String INVALID_COUPON_CODE = "Invalid Coupon code or Minimum bill amount";
+	
+	public static final String NOT_ELIGIBLE = "Not eligible for this offer";
+	
+	public static final String OFFER_EXPIRED = "Offer Expired";
+
+	public static final String INVALID_USER_ID = "Invalid user Id";
 	
 }
