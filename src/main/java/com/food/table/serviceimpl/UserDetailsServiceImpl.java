@@ -181,6 +181,31 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         notificationService.publish(smsNotification);
     }
 
+    @Override
+    public boolean createMaintenanceUser(AuthRequest authRequest) {
+        UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
+        if (Objects.nonNull(userAccount)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
+        }
+        verifyEmailIdFormat(authRequest.getUserName());
+        UserRole userRole = userRoleRepository.findRoleByName("ADMIN");
+        List userRoleList = new LinkedList<>();
+        userRoleList.add(userRole);
+        UserAccount savedUserAccount = userRepository.save(UserAccount.builder()
+                .email(authRequest.getUserName())
+                .password(new BCryptPasswordEncoder().encode(authRequest.getPassword()))
+                .roles(userRoleList)
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .isEnabled(true)
+                .build()
+        );
+        savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
+        userRepository.save(savedUserAccount);
+        return true;
+    }
+
     private int getOtpFromCache(long phoneNo) {
         try {
             if (Objects.isNull(otpCache))

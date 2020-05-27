@@ -79,6 +79,18 @@ public class AuthController {
 
     }
 
+    @ApiOperation(value = "Maintenance user signup api")
+    @RequestMapping(value = "auth/maintenance/signup", method = RequestMethod.POST)
+    public ResponseEntity<String> maintenanceUserSignUp(@RequestBody AuthRequest authenticationRequest) {
+        if (userDetailsService.createMaintenanceUser(authenticationRequest)) {
+            log.info("User created Successfully for Email Id " + authenticationRequest.getUserName());
+            return ResponseEntity.ok("User Created Successfully");
+        } else {
+            throw new BadCredentialsException("EmailId Already Taken");
+        }
+
+    }
+
     @ApiOperation(value = "Validates user using refresh token")
     @RequestMapping(value = "auth/customer/refreshtoken", method = RequestMethod.POST)
     public ResponseEntity<AuthResponse> verifyRefreshToken(@RequestBody RefreshAuthRequest refreshAuthRequest) throws Exception {

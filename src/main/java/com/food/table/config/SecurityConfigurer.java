@@ -60,6 +60,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .antMatchers("/auth/customer/login",
                         "/auth/restaurant/login",
                         "/auth/restaurant/signup",
+                        "/auth/maintenance/signup",
                         "/auth/customer/verifyotp",
                         "/auth/customer/refreshtoken",
                         "/swagger-ui.html/**",

@@ -16,5 +16,7 @@ public interface CustomUserDetailsService extends UserDetailsService {
 
     void invalidateOtp(long phoneNo);
 
+    boolean createMaintenanceUser(AuthRequest authRequest);
+
 
 }
