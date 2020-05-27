@@ -117,9 +117,14 @@ public class ApplicationErrors {
 	public static final String USER_EXPIRED = "User Expired.";
 
 	public static final String USER_CREDENTIALS_EXPIRED = "User Credentials Expired.";
+
 	public static final String INVALID_USER_PHONE_NO = "Invalid User Phone No";
 
 	public static final String EDIT_USER_PROFILE_FAILED = "Edit User Profile Failed";
+
+    public static final String INVALID_DELETE_TABLE = "Cannot delete Active Table.";
+
+    public static final String INVALID_TABLE_NAME = "Data with same table name is already present";
 	
 	public static final String INVALID_OFFER_TYPE = "Invalid Offer type value";
 	

@@ -52,6 +52,8 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
+        if (Objects.nonNull(restaurantTableRepository.findTableByNameAndRestaurantId(restaurantTableModel.getName(), restaurantTableModel.getRestaurantId())))
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_TABLE_NAME);
         RestaurantTable restaurantTable = RestaurantTable.builder().restaurant(restaurant.get())
                 .name(restaurantTableModel.getName())
                 .seats(restaurantTableModel.getSeats())
@@ -92,6 +94,8 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     @Override
     public boolean deleteById(int id) {
         RestaurantTable restaurantTable = getTablebyId(id);
+        if (restaurantTable.getStatus() == FoodStatusEnum.ACTIVE.getId())
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_DELETE_TABLE);
         restaurantTable.setDeleteFlag(1);
         restaurantTable.setDeletionDate(Timestamp.valueOf(LocalDateTime.now()));
         restaurantTableRepository.save(restaurantTable);
@@ -106,6 +110,9 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         if (!restaurant.isPresent())
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
         RestaurantTable restaurantTable = getTablebyId(tableId);
+        RestaurantTable fetchedRestaurantTable = restaurantTableRepository.findTableByNameAndRestaurantId(restaurantTableModel.getName(), restaurantTableModel.getRestaurantId());
+        if (Objects.nonNull(fetchedRestaurantTable) && fetchedRestaurantTable.getId() != tableId)
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_TABLE_NAME);
         RestaurantTable savedRestaurantTable = restaurantTableRepository.save(RestaurantTable.builder()
                 .id(tableId).restaurant(restaurant.get()).name(restaurantTableModel.getName())
                 .qrCode(restaurantTable.getQrCode())

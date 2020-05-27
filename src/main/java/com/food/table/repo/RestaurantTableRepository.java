@@ -24,5 +24,8 @@ public interface RestaurantTableRepository extends JpaRepository<RestaurantTable
     @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.qr_code=:qrCode", nativeQuery = true)
     RestaurantTable findTableByQRCode(@Param("qrCode") String qrCode);
 
+    @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.name=:tableName and f.restaurant_id=:restaurantId", nativeQuery = true)
+    RestaurantTable findTableByNameAndRestaurantId(@Param("tableName") String qrCode, @Param("restaurantId") int restaurantId);
+
 	Optional<RestaurantTable> findByIdAndRestaurantId(int restaurantTableId, int restaurantId);
 }
