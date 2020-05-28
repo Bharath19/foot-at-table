@@ -34,11 +34,17 @@ public class ApplicationErrors {
 	
 	public static final String INVALID_ORDER_STATE = "Invalid order state";
 	
+	public static final String ALREADY_COMPLETED_ORDER_STATE = "Order has been already completed";
+	
+	public static final String ALREADY_CANCELLED_ORDER_STATE = "Order has been already cancelled";
+	
+	public static final String INVALID_FOOD_OPTION_ID = "Invalid Food Option ID";
+	
 	public static final String INVALID_RESTAURANT_TABLE_ID = "Invalid restaurant table Id";
 	
 	public static final String INVALID_ORDER_TYPE_ID = "Invalid order type Id";
 	
-	public static final String INVALID_ORDER_STATE_OR_TYPE = "Invalid Order state or Order Type to add more food into cart";
+	public static final String INVALID_ORDER_STATE_OR_TYPE = "Invalid Order state or Order Type to add more food into cart. Order Type should be DineIn and state should be either INPROGRESS or SERVED";
 	
 	public static final String ADD_RESTAURANT_PROMOTION_FAILED = "Add restaurant promotion failed";
 	

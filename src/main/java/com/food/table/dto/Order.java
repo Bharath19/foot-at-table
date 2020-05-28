@@ -56,7 +56,7 @@ public class Order {
 	private double paidPrice;
 
 	@Enumerated(EnumType.STRING)
-	private OrderStateEnum state;
+	private OrderStateEnum state = OrderStateEnum.REQUESTED;
 
 	@CreationTimestamp
 	@Column(name = "created_at")

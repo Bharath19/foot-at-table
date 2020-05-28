@@ -20,10 +20,13 @@ import org.springframework.stereotype.Service;
 
 import com.food.table.dto.Address;
 import com.food.table.constant.ApplicationConstants;
+import com.food.table.constant.CartFoodOptionStateEnum;
 import com.food.table.constant.CartOrderStatus;
 import com.food.table.constant.CartStateEnum;
 import com.food.table.constant.OrderStateEnum;
 import com.food.table.dto.Cart;
+import com.food.table.dto.CartFoodOptions;
+import com.food.table.dto.FoodOptions;
 import com.food.table.dto.Foods;
 import com.food.table.dto.Order;
 import com.food.table.dto.Restaurant;
@@ -35,6 +38,7 @@ import com.food.table.exception.ApplicationException;
 import com.food.table.model.AddressModel;
 import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.BasicUserResponseModel;
+import com.food.table.model.CartFoodOptionModel;
 import com.food.table.model.CartModel;
 import com.food.table.model.CartResponseModel;
 import com.food.table.model.FoodResponseModel;
@@ -43,7 +47,9 @@ import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
 import com.food.table.model.RestaurantBasicGetModel;
 import com.food.table.model.RevenueDetailsModel;
+import com.food.table.model.CartFoodOptionResponseModel;
 import com.food.table.repo.CartRepository;
+import com.food.table.repo.FoodOptionsRepository;
 import com.food.table.repo.FoodRepository;
 import com.food.table.repo.OrderRepository;
 import com.food.table.repo.RestaurantRepository;
@@ -52,6 +58,7 @@ import com.food.table.repo.TypesRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.OrderService;
 import com.food.table.util.SimpleDateUtil;
+import com.food.table.util.UserUtil;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +85,8 @@ public class OrderServiceImpl implements OrderService {
 	@Autowired
 	FoodRepository foodRepository;
 	@Autowired
+	FoodOptionsRepository foodOptionsRepository;
+	@Autowired
 	CartRepository cartRepository;
 	@Autowired
 	RestaurantTableRepository restaurantTableRepository;
@@ -102,8 +111,16 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public ArrayList<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from,
 			int limit) {
-		Pageable pageable = PageRequest.of(from, limit);
+		try {
+			if (orderState != null) 
+				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
+		} catch (IllegalArgumentException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
+		}
 
+		if(userId == 0)
+			userId = userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo()).getId();
+		Pageable pageable = PageRequest.of(from, limit);
 		Page<Order> orderlist = null;
 		if (orderState == null && orderDate == null) {
 			orderlist = orderRepository.findByUserId(userId, pageable);
@@ -141,17 +158,22 @@ public class OrderServiceImpl implements OrderService {
 		if (!order.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
 
-		ArrayList<Cart> carts = new ArrayList<Cart>();
+		validateOrderAlreadyClosed(order.get());
+		
+		Order inProgressOrder = order.get();
+		
+		List<Cart> carts = inProgressOrder.getCarts();
 		cartModels.forEach(cartModel -> {
 			if (canCreateMoreCart(order.get())) {
-				carts.add(convertToDto(cartModel, order.get()));
+				carts.add(convertToDto(cartModel, inProgressOrder));
 			} else {
-				log.error("unable add more cart " + order.get().getId());
+				log.error("unable add more cart. Order ID: " + inProgressOrder.getId()+" Order State: " + inProgressOrder.getState());
 				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE_OR_TYPE);
 			}
 		});
-
-		cartRepository.saveAll(carts);
+		inProgressOrder.setState(OrderStateEnum.INPROGRESS);
+		inProgressOrder.setTotalPrice(getTotalOrderPrice(inProgressOrder.getCarts()));
+		orderRepository.save(inProgressOrder);
 		return order.get();
 	}
 
@@ -179,6 +201,13 @@ public class OrderServiceImpl implements OrderService {
 	public List<OrderResponseModel> getOrderByOrderTypeName(int restaurantId, List<String> orderTypes,
 			List<String> orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
+		
+		try {
+			if (orderState != null)
+				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
+		} catch (IllegalArgumentException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
+		}
 
 		Pageable pageable = PageRequest.of(from, limit);
 
@@ -205,6 +234,13 @@ public class OrderServiceImpl implements OrderService {
 	public List<OrderResponseModel> getOrderByRestaurantTableIdAndType(int restaurantId, int restaurantTableId,
 			String orderType, List<String> orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
+		
+		try {
+			if (orderState != null) 
+				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
+		} catch (IllegalArgumentException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
+		}
 
 		Pageable pageable = PageRequest.of(from, limit);
 
@@ -232,7 +268,14 @@ public class OrderServiceImpl implements OrderService {
 	public List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, List<String> orderState, Date orderDate,
 			int from, int limit) {
 		Page<Order> orderlist = null;
-
+		
+		try {
+			if (orderState != null) 
+				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
+		} catch (IllegalArgumentException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
+		}
+		
 		Pageable pageable = PageRequest.of(from, limit);
 
 		if (orderState == null && orderDate == null) {
@@ -261,7 +304,9 @@ public class OrderServiceImpl implements OrderService {
 	 * @return order entity object
 	 */
 	private Order updateState(OrderStateModel orderStateModel, Order order) {
-
+		
+		validateOrderAlreadyClosed(order);
+		
 		order.setState(orderStateModel.getState());
 
 		if (orderCartStateMap.containsKey(orderStateModel.getState())) {
@@ -294,6 +339,17 @@ public class OrderServiceImpl implements OrderService {
 		}
 		return order;
 	}
+	
+
+	private void validateOrderAlreadyClosed(Order order) {
+		if(order.getState().equals(OrderStateEnum.COMPLETED)) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_COMPLETED_ORDER_STATE);
+		}
+		
+		if(order.getState().equals(OrderStateEnum.CANCELLED)) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_CANCELLED_ORDER_STATE);
+		}
+	}
 
 	/**
 	 * This method convert OrderModel(POJO) to Order(Entity) on update action
@@ -303,9 +359,8 @@ public class OrderServiceImpl implements OrderService {
 	 * @return order entity object
 	 */
 	private Order convertToDto(OrderModel orderModel, Order order) {
-
-		Optional<RestaurantTable> restaurantTable = restaurantTableRepository
-				.findById(orderModel.getRestaurantTableId());
+		
+		Optional<RestaurantTable> restaurantTable = restaurantTableRepository.findById(orderModel.getRestaurantTableId());
 		if (!restaurantTable.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
 		order.setRestaurantTable(restaurantTable.get());
@@ -329,7 +384,7 @@ public class OrderServiceImpl implements OrderService {
 
 		order.setCarts(new ArrayList<Cart>(cartMap.values()));
 
-		order.setTotalPrice(getTotalOrderPrice((ArrayList<Cart>) order.getCarts()));
+		order.setTotalPrice(getTotalOrderPrice(order.getCarts()));
 
 		return order;
 	}
@@ -379,21 +434,25 @@ public class OrderServiceImpl implements OrderService {
 	private Order convertToDto(OrderModel orderModel) {
 		Order order = new Order();
 
-		Optional<Types> type = typeRepository.findById(orderModel.getOrderType());
-		if (!type.isPresent())
+		Types type = typeRepository.findByName(orderModel.getOrderType());
+		if (type == null)
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_TYPE_ID);
-		order.setType(type.get());
+		order.setType(type);
 
 		Optional<Restaurant> restaurant = restaurantRepository.findById(orderModel.getRestaurantId());
 		if (!restaurant.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
 		order.setRestaurant(restaurant.get());
-
-		Optional<UserAccount> user = userRepository.findById(orderModel.getUserId());
-		if (!user.isPresent())
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
-		order.setUserAccount(user.get());
-
+		
+		if(orderModel.getUserId() == 0){
+			order.setUserAccount(userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo()));
+		}else {
+			Optional<UserAccount> user = userRepository.findById(orderModel.getUserId());
+			if (!user.isPresent())
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
+			order.setUserAccount(user.get());
+		}
+		
 		Optional<RestaurantTable> restaurantTable = restaurantTableRepository
 				.findByIdAndRestaurantId(orderModel.getRestaurantTableId(), orderModel.getRestaurantId());
 		if (!restaurantTable.isPresent())
@@ -434,7 +493,28 @@ public class OrderServiceImpl implements OrderService {
 		cart.setRestaurant(restaurant);
 		cart.setPrice(food.get().getPrice() * cartModel.getQuantity());
 		cart.setState(cartModel.getState());
+		
+		if(cartModel.getCartFoodOptionModel() != null && cartModel.getCartFoodOptionModel().size() != 0)
+		{
+			List<CartFoodOptionModel> cartFoodOptionModels = cartModel.getCartFoodOptionModel();
+			List<CartFoodOptions> cartFoodOptions = new ArrayList<CartFoodOptions>();
+			cartFoodOptionModels.forEach(cartFoodOptionModel -> {
+				cartFoodOptions.add(convertToFoodOptionDto(cartFoodOptionModel));
+			});
+			cart.setCartFoodOptions(cartFoodOptions);
+		}
 		return cart;
+	}
+	
+	private CartFoodOptions convertToFoodOptionDto(CartFoodOptionModel cartFoodOptionModel) {
+		CartFoodOptions  cartFoodOption = new CartFoodOptions();
+		Optional<FoodOptions> foodOption = foodOptionsRepository.findById(cartFoodOptionModel.getFoodOptionId());
+		if (!foodOption.isPresent())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_ID);
+		cartFoodOption.setFoodOption(foodOption.get());
+		cartFoodOption.setQuantity(cartFoodOptionModel.getQuantity());
+		cartFoodOption.setPrice(foodOption.get().getPrice() * cartFoodOptionModel.getQuantity());
+		return cartFoodOption;
 	}
 
 	/**
@@ -468,11 +548,16 @@ public class OrderServiceImpl implements OrderService {
 	 * @param carts cart entity object
 	 * @return total price as double
 	 */
-	private double getTotalOrderPrice(ArrayList<Cart> carts) {
+	private double getTotalOrderPrice(List<Cart> carts) {
 		double totalPrice = 0;
 		for (Cart cart : carts) {
 			if (!(cart.getState().equals(CartStateEnum.CANCELLED))) {
 				totalPrice += cart.getPrice();
+				for(CartFoodOptions cartFoodOption: cart.getCartFoodOptions()) {
+					if(!(cartFoodOption.getState().equals(CartFoodOptionStateEnum.CANCELLED))) {
+						totalPrice += cartFoodOption.getPrice();
+					}
+				}
 			}
 		}
 		return totalPrice;
@@ -517,6 +602,21 @@ public class OrderServiceImpl implements OrderService {
 			cartResponseModel.setPrice(cart.getPrice());
 			cartResponseModel.setQuantity(cart.getQuantity());
 			cartResponseModel.setState(cart.getState());
+			
+			List<CartFoodOptions> cartFoodOptions = cart.getCartFoodOptions();
+			
+			if(cartFoodOptions != null && cartFoodOptions.size() != 0) {
+				
+				List<CartFoodOptionResponseModel> cartFoodOptionResponseModels = new ArrayList<CartFoodOptionResponseModel>();
+				cartFoodOptions.forEach(cartFoodOption -> {
+					FoodOptions foodOption = cartFoodOption.getFoodOption();
+					cartFoodOptionResponseModels.add(CartFoodOptionResponseModel.builder().name(foodOption.getName())
+							.imageUrl(foodOption.getImageUrl()).description(foodOption.getDescription())
+							.price(cartFoodOption.getPrice()).quantity(cartFoodOption.getQuantity()).build());
+				});
+				cartResponseModel.setCartFoodOptionResponseModels(cartFoodOptionResponseModels);
+			}
+			
 			cartResponseList.add(cartResponseModel);
 		});
 

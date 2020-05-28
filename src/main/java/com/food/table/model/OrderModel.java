@@ -17,14 +17,14 @@ public class OrderModel {
 	@Positive(message = "restaurantId not found")
 	private int restaurantId;
 	
-	@Positive(message = "userId not found")
+	@ApiModelProperty(value = "If user details is not avaiable. Order will be create on logged in user")
 	private int userId;
 	
 	@Positive(message = "restaurantTableId not found")
 	private int restaurantTableId;
 	
 	@Positive(message = "orderType not found")
-	private int orderType;
+	private String orderType;
 	
 	@ApiModelProperty(value = "Total price of the order. Optional field for new request")
 	private double totalPrice;
@@ -33,7 +33,7 @@ public class OrderModel {
 	private double paidPrice;
 
 	@Enumerated(EnumType.STRING)
-	private OrderStateEnum state;
+	private OrderStateEnum state = OrderStateEnum.REQUESTED;
 
 	private List<CartModel> carts;
 

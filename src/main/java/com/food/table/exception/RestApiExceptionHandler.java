@@ -27,12 +27,7 @@ public class RestApiExceptionHandler {
 		return new ResponseEntity<>(errorResource, ex.getStatus());
 	}
 	
-	
-	@ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResource> handleException(Exception ex) {
-        ErrorResource errorResource = convertTo(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
-        return new ResponseEntity<>(errorResource, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+
 	
 	private ErrorResource convertTo(HttpStatus status, String message, Throwable ex) {
 		return new ErrorResource(status, message, ex);

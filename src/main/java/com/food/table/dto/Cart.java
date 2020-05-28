@@ -1,16 +1,22 @@
 package com.food.table.dto;
 
 import java.sql.Timestamp;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.PositiveOrZero;
@@ -34,18 +40,22 @@ public class Cart {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="food_id",referencedColumnName = "id")
 	private Foods food;
 		
 	@Min(value = 1)
 	private int quantity;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private Restaurant restaurant;
 	
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinColumn(name = "cart_id", referencedColumnName = "id")
+	private List<CartFoodOptions> cartFoodOptions;
+	
 	@Enumerated(EnumType.STRING)
-	private CartStateEnum state;
+	private CartStateEnum state = CartStateEnum.REQUESTED;
 	
 	@PositiveOrZero
 	private double price;

@@ -1,5 +1,7 @@
 package com.food.table.model;
 
+import java.util.List;
+
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
@@ -19,5 +21,7 @@ public class CartResponseModel{
 	private CartStateEnum state;
 	
 	private double price;
+	
+	private List<CartFoodOptionResponseModel> cartFoodOptionResponseModels;
 
 }

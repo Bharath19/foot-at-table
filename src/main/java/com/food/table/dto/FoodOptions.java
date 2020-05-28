@@ -10,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.PositiveOrZero;
+
 import java.io.Serializable;
 
 import java.sql.Timestamp;
@@ -31,6 +33,8 @@ public class FoodOptions implements Serializable {
     public String imageUrl;
     public int status;
     public int sortNo;
+    @PositiveOrZero
+    private double price;
     @CreationTimestamp
     public Timestamp createdAt;
     @UpdateTimestamp
