@@ -518,7 +518,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	/**
-	 * This method update convert CartModel(POJO) to Cart(Entity) on creation action
+	 * This method update convert CartModel(POJO) to Cart(Entity) on creation action for add more food
 	 * 
 	 * @param order     user given order POJO object
 	 * @param cartModel user given cart POJO object
@@ -539,6 +539,15 @@ public class OrderServiceImpl implements OrderService {
 		cart.setRestaurant(restaurant);
 		cart.setPrice(food.get().getPrice() * cartModel.getQuantity());
 		cart.setState(cartModel.getState());
+		if(cartModel.getCartFoodOptionModel() != null && cartModel.getCartFoodOptionModel().size() != 0)
+		{
+			List<CartFoodOptionModel> cartFoodOptionModels = cartModel.getCartFoodOptionModel();
+			List<CartFoodOptions> cartFoodOptions = new ArrayList<CartFoodOptions>();
+			cartFoodOptionModels.forEach(cartFoodOptionModel -> {
+				cartFoodOptions.add(convertToFoodOptionDto(cartFoodOptionModel));
+			});
+			cart.setCartFoodOptions(cartFoodOptions);
+		}
 		return cart;
 	}
 
@@ -553,11 +562,12 @@ public class OrderServiceImpl implements OrderService {
 		for (Cart cart : carts) {
 			if (!(cart.getState().equals(CartStateEnum.CANCELLED))) {
 				totalPrice += cart.getPrice();
-				for(CartFoodOptions cartFoodOption: cart.getCartFoodOptions()) {
-					if(!(cartFoodOption.getState().equals(CartFoodOptionStateEnum.CANCELLED))) {
-						totalPrice += cartFoodOption.getPrice();
+				if(cart.getCartFoodOptions() != null)
+					for(CartFoodOptions cartFoodOption: cart.getCartFoodOptions()) {
+						if(!(cartFoodOption.getState().equals(CartFoodOptionStateEnum.CANCELLED))) {
+							totalPrice += cartFoodOption.getPrice();
+						}
 					}
-				}
 			}
 		}
 		return totalPrice;

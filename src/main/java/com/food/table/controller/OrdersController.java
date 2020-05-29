@@ -99,9 +99,9 @@ public class OrdersController {
 		return orderResponse;
 	}
 
-	@ApiOperation(value = "Get Order details by User ID", authorizations = { @Authorization(value = "accessToken") })
-	@GetMapping("/getOrderByUserId/{userId}")
-	public List<OrderResponseModel> getOrderByUserID(@RequestParam(required = true) int userId, @RequestParam(value = "orderState", required = false) List<String> orderState, @RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
+	@ApiOperation(value = "Get Order details by User ID. Here user ID is optional param. If we did not pass the user ID, current user order details will be displayed", authorizations = { @Authorization(value = "accessToken") })
+	@GetMapping("/getOrderByUserId")
+	public List<OrderResponseModel> getOrderByUserID(@RequestParam(value = "userId", required = false, defaultValue = "0") int userId, @RequestParam(value = "orderState", required = false) List<String> orderState, @RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
 			@RequestParam(value = "from", required = false, defaultValue = "0") int from, @RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering get order details by userID starttime : "+startTime);
