@@ -25,23 +25,24 @@ public class SmsNotificationServiceImpl implements SmsNotificationService {
 	private AmazonSNS amazonSNS;
 
 	@Override
-	public void smsNotification(String message, String deviceId) {
-		Map<String, MessageAttributeValue> smsAttributes = 
-                new HashMap<String, MessageAttributeValue>();
-		smsAttributes.put("AWS.SNS.SMS.SenderID", new MessageAttributeValue()
-		        .withStringValue("CBroot") 
-		        .withDataType("String"));		
-		smsAttributes.put("AWS.SNS.SMS.SMSType", new MessageAttributeValue()
-		        .withStringValue("Transactional") 
-		        .withDataType("String"));
+	public String smsNotification(String message, String deviceId) {
+		String messageId = null;
+		Map<String, MessageAttributeValue> smsAttributes = new HashMap<String, MessageAttributeValue>();
+		smsAttributes.put("AWS.SNS.SMS.SenderID",
+				new MessageAttributeValue().withStringValue("CBroot").withDataType("String"));
+		smsAttributes.put("AWS.SNS.SMS.SMSType",
+				new MessageAttributeValue().withStringValue("Transactional").withDataType("String"));
 		try {
-			PublishResult result =amazonSNS.publish(new PublishRequest().withPhoneNumber(deviceId).withMessage(message).withMessageAttributes(smsAttributes));
-			log.info("sms notification is success for deviceID : "+result);
+			PublishResult result = amazonSNS.publish(new PublishRequest().withPhoneNumber(deviceId).withMessage(message)
+					.withMessageAttributes(smsAttributes));
+			messageId = result.getMessageId();
+			log.info("sms notification is success for deviceID : " + result.getMessageId());
 		} catch (Exception e) {
 			log.error("sms notification failed for deviceId : " + deviceId);
 			throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					ApplicationConstants.SMS_NOTIFICATION_FAILED);
 		}
+		return messageId;
 	}
 
 }

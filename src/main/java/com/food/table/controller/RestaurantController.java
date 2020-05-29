@@ -1,25 +1,37 @@
 package com.food.table.controller;
 
-import com.food.table.constant.ApplicationConstants;
-import com.food.table.model.DefaultValuesResponse;
-import com.food.table.model.RestaurantGetModel;
-import com.food.table.model.RestaurantModel;
-import com.food.table.model.TimingModel;
-import com.food.table.service.RestaurantService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.Authorization;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import java.util.List;
+import com.food.table.constant.RestaurantStateEnum;
+import com.food.table.constant.RestaurantStatusEnum;
+import com.food.table.model.DefaultValuesResponse;
+import com.food.table.model.RestaurantGetModel;
+import com.food.table.model.RestaurantModel;
+import com.food.table.model.RestaurantUpdateRequest;
+import com.food.table.model.TimingModel;
+import com.food.table.service.RestaurantService;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.Authorization;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/restaurant")
@@ -139,29 +151,18 @@ public class RestaurantController {
 	}
 
 	@ApiOperation(value = "Update state of the restaurant", authorizations = {@Authorization(value = "accessToken")})
-	@PutMapping("/restaurants/updateState/{id}")
+	@PutMapping("/updateStateAndStatus/{id}")
 	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
-	public ResponseEntity<Void> updateState(@RequestParam(required = true) int id, @RequestParam(value = "state", required = true, defaultValue = ApplicationConstants.confirmedState) String state) {
+	public ResponseEntity<Void> updateState(@PathVariable(required = true) int id,  @Valid @RequestBody RestaurantUpdateRequest restaurantUpdateRequest) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering update restaurant state starttime : "+startTime);
-		restaurantService.updateState(id, state);
+		restaurantService.updateStateAndStatus(id, restaurantUpdateRequest);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting update restaurant state and timetaken : "+(endTime-startTime));
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-	@ApiOperation(value = "Update the restaurants status. it should be Active/Inactive", authorizations = {@Authorization(value = "accessToken")})
-	@PutMapping("/restaurants/updateStatus/{id}")
-	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
-	public ResponseEntity<Void> updateStatus(@RequestParam(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "Inactive") String status) {
-		long startTime=System.currentTimeMillis();
-		log.info("Entering update restaurant status starttime : "+startTime);
-		long endTime=System.currentTimeMillis();
-		restaurantService.updateStatus(id, status);
-		log.info("Exiting update restaurant status is success and timetaken : "+(endTime-startTime));
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
-	
+		
 	@ApiOperation(value = "Get Restaurant Timings", authorizations = {@Authorization(value = "accessToken")})
 	@GetMapping("/timings")
 	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")

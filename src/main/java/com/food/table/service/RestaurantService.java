@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
+import com.food.table.model.RestaurantUpdateRequest;
 import com.food.table.model.SearchModel;
 import com.food.table.model.TimingModel;
 
@@ -31,9 +32,7 @@ public interface RestaurantService {
 	
 	public DefaultValuesResponse getDefaultTableValues() ;
 
-	public void updateState(int id, String state);
-
-	public void updateStatus(int id, String status);
+	public void updateStateAndStatus(int id, RestaurantUpdateRequest restaurantUpdateRequest);
 
 	public List<TimingModel> getRestaurantTimings(int restaurantId);
 }

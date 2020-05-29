@@ -38,6 +38,7 @@ import com.food.table.model.BaseModel;
 import com.food.table.model.DefaultValuesResponse;
 import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
+import com.food.table.model.RestaurantUpdateRequest;
 import com.food.table.model.TimingModel;
 import com.food.table.repo.AccountRepository;
 import com.food.table.repo.AddressRepository;
@@ -196,7 +197,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 					PageRequest.of(from, limit));
 		} else {
 			restaurants = restaurantepository.findByName(
-					RestaurantStateEnum.getValue(ApplicationConstants.confirmedState), restaurantName, currentDay,
+					RestaurantStateEnum.getValue(ApplicationConstants.confirmedState), restaurantName, 
 					pageable);
 		}
 		List<RestaurantGetModel> restauGetModels = parseGetAllRestaurant(restaurants.getContent(), latitude, longitude);
@@ -272,9 +273,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 				.collect(Collectors.toList()));
 		defaultValuesResponse.setDiets(diets.parallelStream().map(data -> new BaseModel(data.getId(), data.getName()))
 				.collect(Collectors.toList()));
-		defaultValuesResponse.setTypes(cuisines.parallelStream()
+		defaultValuesResponse.setCuisines(cuisines.parallelStream()
 				.map(data -> new BaseModel(data.getId(), data.getName())).collect(Collectors.toList()));
-		defaultValuesResponse.setTypes(searchType.parallelStream()
+		defaultValuesResponse.setSearchTags(searchType.parallelStream()
 				.map(data -> new BaseModel(data.getId(), data.getName())).collect(Collectors.toList()));
 		log.info("Exiting get default values for all restaurant is success");
 		return defaultValuesResponse;
@@ -524,27 +525,31 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	public void updateState(int id, String state) {
+	public void updateStateAndStatus(int id, RestaurantUpdateRequest restaurantUpdateRequest) {
 		Optional<Restaurant> restaurant = restaurantepository.findById(id);
-		try {
+		if (restaurant.isPresent()) {
 			Restaurant res = restaurant.get();
-			res.setState(state);
-			emailService.triggerEmail(restaurantepository.save(res), EmailModel.confirmRestaurant);
-		} catch (Exception e) {
-			log.error("unable to update the restaurant state " + e);
+			if (restaurantUpdateRequest.getState() != null && !restaurantUpdateRequest.getState().isEmpty()) {
+				res.setState(RestaurantStateEnum.getValue(restaurantUpdateRequest.getState()));
+			}
+			if (restaurantUpdateRequest.getStatus() != null && !restaurantUpdateRequest.getStatus().isEmpty()) {
+				res.setStatus(RestaurantStatusEnum.getValue(restaurantUpdateRequest.getStatus()));
+			}
+			Restaurant restaurantResponse = restaurantepository.save(res);
+			if (restaurantUpdateRequest.getState() != null && !restaurantUpdateRequest.getState().isEmpty()) {
+				try {
+					emailService.triggerEmail(restaurantResponse, EmailModel.confirmRestaurant);
+				} catch (Exception e) {
+					log.error("unable to update the restaurant state " + e);
+					throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR,
+							ApplicationErrors.UPDATE_RESTAURANT_STATE_FAILED);
+				}
+			}
+		} else {
+			log.error("Update state is failed for restaurant : " + id);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
 		}
 
-	}
-
-	@Override
-	public void updateStatus(int id, String status) {
-		try {
-			Restaurant restaurant = restaurantepository.getOne(id);
-			restaurant.setStatus(status);
-			restaurantepository.save(restaurant);
-		} catch (Exception e) {
-			log.error("unable to update the restaurant status " + e);
-		}
 	}
 
 	@Override

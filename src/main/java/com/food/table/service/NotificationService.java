@@ -7,5 +7,5 @@ import com.food.table.model.NotificationModel;
 @Service
 public interface NotificationService {
 
-	public void publish(NotificationModel notificationModel);
+	public String publish(NotificationModel notificationModel);
 }

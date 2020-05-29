@@ -144,4 +144,13 @@ public class ApplicationErrors {
 
 	public static final String INVALID_USER_ID = "Invalid user Id";
 	
+	public static final String UPDATE_RESTAURANT_STATE_FAILED = " Update restaurant state is failed ";
+	
+	public static final String UPDATE_RESTAURANT_STATUS_FAILED = " Update restaurant status is failed ";
+	
+	public static final String CREATE_ENDPOINT_FAILED = "Create device end point failed";
+
+	public static final String PUSH_NOTIFICATION_FAILED = "Push notification failed";
+
+	public static final String PUBLISH_MESSAGE_FAILED = "Publish message failed";
 }

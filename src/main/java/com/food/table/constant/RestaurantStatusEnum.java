@@ -6,7 +6,7 @@ import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 
 public enum RestaurantStatusEnum {
-	OPEN("Open"), CLOSED("Closed");
+	ACTIVE("Active"), INACTIVE("InActive");
 
 	private String value;
 

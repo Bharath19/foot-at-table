@@ -14,9 +14,15 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
+import com.amazonaws.services.sns.model.GetEndpointAttributesRequest;
+import com.amazonaws.services.sns.model.GetEndpointAttributesResult;
 import com.amazonaws.services.sns.model.InvalidParameterException;
+import com.amazonaws.services.sns.model.NotFoundException;
 import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
+import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.food.table.constant.ApplicationConstants;
+import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 import com.food.table.service.PushNotificationService;
 
@@ -29,24 +35,26 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 	@Autowired
 	private AmazonSNS amazonSNS;
 
+	@Value("${sns.arn.topicname}")
+	private String snsTopicARN;
+
 	@Value("${sns.app.endpointTRN}")
 	private String appEndpointTRN;
 
 	@Override
-	public void pushNotification(String message, String deviceId) {
-		log.info("Push notification started for deviceId : " + deviceId);
-		String targetArn = createEndpoint(deviceId);
+	public String pushNotification(String message, String deviceId) {
+		String targetArn = registerWithSNS(deviceId);
 		try {
-			publish(message, targetArn);
+			return publish(message, targetArn);
 		} catch (Exception e) {
 			log.error("Push notification failed for deviceId : " + deviceId);
 			throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					ApplicationConstants.PUSH_NOTIFICATION_FAILED);
+					ApplicationErrors.PUSH_NOTIFICATION_FAILED);
 		}
-		log.info("Push notification completed for deviceId : " + deviceId);
 	}
 
-	public void publish(String subject, String targetArn) throws Exception {
+	public String publish(String subject, String targetArn) throws Exception {
+		String messageId = null;
 		PublishRequest request = new PublishRequest();
 		request.setMessageStructure(ApplicationConstants.GCM_MSG_STRUCTURE);
 		Map<String, Map<String, String>> androidMsg = new HashMap<>();
@@ -62,6 +70,15 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 		String sendMsg = msgMapObject.toString();
 		request.setTargetArn(targetArn);
 		request.setMessage(sendMsg);
+		try {
+			PublishResult responseSNS = amazonSNS.publish(request);
+			messageId = responseSNS.getMessageId();
+		} catch (Exception e) {
+			log.error("Publish message to SNS is failed", e);
+			throw new ApplicationException(e, HttpStatus.INTERNAL_SERVER_ERROR,
+					ApplicationErrors.PUBLISH_MESSAGE_FAILED);
+		}
+		return messageId;
 	}
 
 	private String createEndpoint(String deviceToken) {
@@ -79,9 +96,51 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 				endpointArn = m.group(1);
 			} else {
 				throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						ApplicationConstants.CREATE_ENDPOINT_FAILED);
+						ApplicationErrors.CREATE_ENDPOINT_FAILED);
 			}
 		}
 		return endpointArn;
 	}
+
+	public String registerWithSNS(String deviceToken) {
+
+		String endpointArn = retrieveEndpointArn();
+		boolean updateNeeded = false;
+		boolean createNeeded = (null == endpointArn);
+		if (createNeeded) {
+			endpointArn = createEndpoint(deviceToken);
+			createNeeded = false;
+		}
+		try {
+			GetEndpointAttributesRequest geaReq = new GetEndpointAttributesRequest().withEndpointArn(endpointArn);
+			GetEndpointAttributesResult geaRes = amazonSNS.getEndpointAttributes(geaReq);
+
+			updateNeeded = !geaRes.getAttributes().get("Token").equals(deviceToken)
+					|| !geaRes.getAttributes().get("Enabled").equalsIgnoreCase("true");
+
+		} catch (NotFoundException nfe) {
+			log.info("Endpoint not created and retrigger the create end point");
+			createNeeded = true;
+		}
+
+		if (createNeeded) {
+			createEndpoint(deviceToken);
+		}
+		log.info("EndpointARN updateNeeded : " + updateNeeded);
+		if (updateNeeded) {
+			System.out.println("Updating platform endpoint " + endpointArn);
+			Map<String, String> attribs = new HashMap<String, String>();
+			attribs.put("Token", deviceToken);
+			attribs.put("Enabled", "true");
+			SetEndpointAttributesRequest saeReq = new SetEndpointAttributesRequest().withEndpointArn(endpointArn)
+					.withAttributes(attribs);
+			amazonSNS.setEndpointAttributes(saeReq);
+		}
+		return endpointArn;
+	}
+
+	private String retrieveEndpointArn() {
+		return null;
+	}
+
 }

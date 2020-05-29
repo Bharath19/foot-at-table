@@ -36,32 +36,22 @@ public class NotificationServiceImpl implements NotificationService {
 	private SmsNotificationService smsNotificationService;
 
 	@Override
-	public void publish(NotificationModel notificationModel) {
+	public String publish(NotificationModel notificationModel) {
+		String messageId = null;
 		if (notificationModel.getNotificationType().equalsIgnoreCase("sms")) {
-			smsNotificationService.smsNotification(notificationModel.getNotificationText(),
+			messageId = smsNotificationService.smsNotification(notificationModel.getNotificationText(),
 					notificationModel.getRecipientId());
 		} else if (notificationModel.getNotificationType().equalsIgnoreCase("push")) {
-			ObjectMapper mapper = new ObjectMapper();
-			String notificationMessage = null;
-			try {
-				notificationMessage = mapper.writeValueAsString(notificationModel);
-			} catch (JsonProcessingException e1) {
-				log.error("Exception while getting topic from sns", e1);
-				throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						ApplicationConstants.SNS_JSON_PARSE_EXCEPTION);
+			log.info("Push notification started for deviceId : " + notificationModel.getRecipientId());			
+			if (notificationModel.getNotificationType().equalsIgnoreCase("push")) {
+				messageId = pushNotificationService.pushNotification(notificationModel.getNotificationText(),
+						notificationModel.getRecipientId());
 			}
-			MessageAttributeValue attributeValue = new MessageAttributeValue();
-			attributeValue.setDataType(ApplicationConstants.MESSAGE_DATA_TYPE);
-			attributeValue.setStringValue(notificationModel.getNotificationType());
-			Map<String, MessageAttributeValue> messageAttribute = new HashMap<String, MessageAttributeValue>();
-			messageAttribute.put(ApplicationConstants.NOTIFICATION_TYPE, attributeValue);
-			PublishRequest publishRequest = new PublishRequest(snsTopicARN, notificationMessage);
-			publishRequest.withMessageAttributes(messageAttribute);
-			pushNotificationService.pushNotification(notificationModel.getNotificationText(),
-					notificationModel.getRecipientId());
+			log.info("Push notification completed for deviceId : " + notificationModel.getRecipientId());
 		} else {
 			new ApplicationException(HttpStatus.BAD_REQUEST, "Invalid Notification Type");
 		}
+		return messageId;
 	}
 
 }
