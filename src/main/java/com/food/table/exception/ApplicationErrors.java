@@ -143,6 +143,16 @@ public class ApplicationErrors {
 	public static final String OFFER_EXPIRED = "Offer Expired";
 
 	public static final String INVALID_USER_ID = "Invalid user Id";
+
+    public static final String INVALID_USER_ROLE = "Invalid User Role";
+
+    public static final String EMPLOYEE_CREATION_FAILED = "Add new Employee failed";
+
+    public static final String EMPLOYEE_UPDATE_FAILED = "Update Employee failed";
+
+    public static final String INVALID_EMAIL_ID = "Invalid Email Id";
+
+    public static final String INVALID_EMPLOYEE_ID = "Invalid Employee Id";
 	
 	public static final String UPDATE_RESTAURANT_STATE_FAILED = " Update restaurant state is failed ";
 	

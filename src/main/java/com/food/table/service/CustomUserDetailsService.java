@@ -1,7 +1,9 @@
 package com.food.table.service;
 
+import com.food.table.dto.UserAccount;
 import com.food.table.model.AuthRequest;
 import com.food.table.model.CustomerAuthRequest;
+import com.food.table.model.RestaurantEmployeeRequestModel;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface CustomUserDetailsService extends UserDetailsService {
@@ -17,6 +19,10 @@ public interface CustomUserDetailsService extends UserDetailsService {
     void invalidateOtp(long phoneNo);
 
     boolean createMaintenanceUser(AuthRequest authRequest);
+
+    UserAccount createEmployeeUser(RestaurantEmployeeRequestModel restaurantEmployeeRequestModel);
+
+    boolean changeEmployeeUserStatus(String emailId, String status);
 
 
 }

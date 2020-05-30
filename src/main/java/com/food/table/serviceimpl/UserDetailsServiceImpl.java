@@ -1,5 +1,7 @@
 package com.food.table.serviceimpl;
 
+import com.food.table.constant.EmployeeStatusEnum;
+import com.food.table.dto.Restaurant;
 import com.food.table.dto.UserAccount;
 import com.food.table.dto.UserRole;
 import com.food.table.exception.ApplicationErrors;
@@ -7,6 +9,8 @@ import com.food.table.exception.ApplicationException;
 import com.food.table.model.AuthRequest;
 import com.food.table.model.CustomerAuthRequest;
 import com.food.table.model.NotificationModel;
+import com.food.table.model.RestaurantEmployeeRequestModel;
+import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.repo.UserRoleRepository;
 import com.food.table.service.CustomUserDetailsService;
@@ -15,6 +19,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -27,13 +32,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class UserDetailsServiceImpl implements CustomUserDetailsService {
@@ -45,6 +48,8 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     final NotificationService notificationService;
 
     private LoadingCache<Long, Integer> otpCache;
+
+    private final RestaurantRepository restaurantRepository;
 
     @Override
     public UserAccount loadUserByUsername(String user) throws UsernameNotFoundException {
@@ -206,6 +211,66 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         return true;
     }
 
+    @Override
+    public UserAccount createEmployeeUser(RestaurantEmployeeRequestModel restaurantEmployeeRequestModel) {
+        log.info("Entering createEmployeeUser method for email Id" + restaurantEmployeeRequestModel.getEmailId());
+        Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantEmployeeRequestModel.getRestaurantId());
+        if (!restaurant.isPresent()) {
+            log.error("Invalid restaurantId entered: " + restaurantEmployeeRequestModel.getRestaurantId());
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_RESTAURANT_ID);
+        }
+        UserAccount userAccount = userRepository.findUserByEmailId(restaurantEmployeeRequestModel.getEmailId());
+        if (Objects.nonNull(userAccount)) {
+            log.error("EmailId is already present: " + restaurantEmployeeRequestModel.getEmailId());
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
+        }
+        verifyEmailIdFormat(restaurantEmployeeRequestModel.getEmailId());
+        UserRole userRole = userRoleRepository.findRoleByName(restaurantEmployeeRequestModel.getRole());
+        if (Objects.isNull(userRole)) {
+            log.error("Invalid User Role: " + restaurantEmployeeRequestModel.getRole());
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_USER_ROLE);
+
+        }
+        List userRoleList = new LinkedList<>();
+        userRoleList.add(userRole);
+        List<Restaurant> restaurantList = new LinkedList<>();
+        restaurantList.add(restaurant.get());
+        UserAccount savedUserAccount = userRepository.save(UserAccount.builder()
+                .email(restaurantEmployeeRequestModel.getEmailId())
+                .password(new BCryptPasswordEncoder().encode(restaurantEmployeeRequestModel.getPassword()))
+                .roles(userRoleList)
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .isEnabled(true)
+                .restaurants(restaurantList)
+                .build()
+        );
+        if (Objects.isNull(savedUserAccount)) {
+            log.error("createEmployeeUser failed for EmailId: " + restaurantEmployeeRequestModel.getEmailId());
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
+        }
+        savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
+        UserAccount finalUserAccount = userRepository.save(savedUserAccount);
+        if (Objects.isNull(finalUserAccount)) {
+            log.error("createEmployeeUser failed for EmailId: " + restaurantEmployeeRequestModel.getEmailId());
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
+        }
+        log.info("Finished createEmployeeUser method successfully for emailId:" + restaurantEmployeeRequestModel.getEmailId());
+        return finalUserAccount;
+    }
+
+    @Override
+    public boolean changeEmployeeUserStatus(String emailId, String status) {
+        UserAccount userAccount = userRepository.findUserByEmailId(emailId);
+        if (status.equalsIgnoreCase(EmployeeStatusEnum.ACTIVE.getName())) {
+            userAccount.setIsEnabled(true);
+        } else {
+            userAccount.setIsEnabled(false);
+        }
+        return true;
+    }
+
     private int getOtpFromCache(long phoneNo) {
         try {
             if (Objects.isNull(otpCache))
@@ -219,7 +284,9 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     private void verifyEmailIdFormat(String email) {
         String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
-        if (!email.matches(regex))
+        if (!email.matches(regex)) {
+            log.error("Invalid Email Format: " + email);
             throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_EMAIL_FORMAT);
+        }
     }
 }
