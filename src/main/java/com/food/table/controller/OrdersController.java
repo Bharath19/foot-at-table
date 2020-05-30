@@ -113,7 +113,7 @@ public class OrdersController {
 
 	@ApiOperation(value = "Get all food history by RestaurantId and order date. Order date should be yyyy-MM-dd format", authorizations = { @Authorization(value = "accessToken") })
 	@GetMapping("/menuMovement/{restaurantId}")
-	public List<FoodHistoryProjectionModel> getFoodHistoryByRestaurantId( @RequestParam(required = true) int restaurantId, @RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
+	public List<FoodHistoryProjectionModel> getFoodHistoryByRestaurantId( @PathVariable(required = true) int restaurantId, @RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering food history starttime : "+startTime);
 		List<FoodHistoryProjectionModel> foodHistoryResponse = cartService.getFoodHistoryByRestaurantId(restaurantId, orderDate);
@@ -124,7 +124,7 @@ public class OrdersController {
 
 	@ApiOperation(value = "Get Revenue details of the restaurant. OrderDate should be yyyy-MM-dd format", authorizations = {@Authorization(value = "accessToken") })
 	@GetMapping("/revenueDetails/{restaurantId}")
-	public BasicRevenueModel getBasicRevenue(@RequestParam(required = true) int restaurantId, @RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
+	public BasicRevenueModel getBasicRevenue(@PathVariable(required = true) int restaurantId, @RequestParam(value = "orderDate", required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering revenue details starttime : "+startTime);
 		BasicRevenueModel basicRevenueModel =  orderService.getBasicRevenue(restaurantId, orderDate);
@@ -135,7 +135,7 @@ public class OrdersController {
 
 	@ApiOperation(value = "Get order details by restaurantId, OrderTypes, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {@Authorization(value = "accessToken") })
 	@GetMapping("/getOrderByOrderTypeName/{restaurantId}")
-	public List<OrderResponseModel> getOrderByOrderTypeName(@RequestParam(required = true) int restaurantId, @RequestParam(value = "orderTypes", required = true) List<String> orderTypes, @RequestParam(value = "orderState", required = false) List<String> orderState,
+	public List<OrderResponseModel> getOrderByOrderTypeName(@PathVariable(required = true) int restaurantId, @RequestParam(value = "orderTypes", required = true) List<String> orderTypes, @RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate, @RequestParam(value = "from", required = false, defaultValue = "0") int from, 
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		long startTime=System.currentTimeMillis();
@@ -149,7 +149,7 @@ public class OrdersController {
 	@ApiOperation(value = "Get order details by restaurantId, RestaurantTableId, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {
 			@Authorization(value = "accessToken") })
 	@GetMapping("/getDineInOrders/{restaurantId}")
-	public List<OrderResponseModel> getDineInOrders(@RequestParam(required = true) int restaurantId, @RequestParam(value = "restaurantTableId", required = true) int restaurantTableId, @RequestParam(value = "orderState", required = false) List<String> orderState,
+	public List<OrderResponseModel> getDineInOrders(@PathVariable(required = true) int restaurantId, @RequestParam(value = "restaurantTableId", required = true) int restaurantTableId, @RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate, @RequestParam(value = "from", required = false, defaultValue = "0") int from,
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		long startTime=System.currentTimeMillis();
@@ -163,7 +163,7 @@ public class OrdersController {
 	@ApiOperation(value = "Get order details by restaurantId, RestaurantTableId, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {
 			@Authorization(value = "accessToken") })
 	@GetMapping("/getSelfServiceOrders/{restaurantId}")
-	public List<OrderResponseModel> getSelfServiceOrders(@RequestParam(required = true) int restaurantId, @RequestParam(value = "restaurantTableId", required = true) int restaurantTableId, @RequestParam(value = "orderState", required = false) List<String> orderState,
+	public List<OrderResponseModel> getSelfServiceOrders(@PathVariable(required = true) int restaurantId, @RequestParam(value = "restaurantTableId", required = true) int restaurantTableId, @RequestParam(value = "orderState", required = false) List<String> orderState,
 			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate, @RequestParam(value = "from", required = false, defaultValue = "0") int from,
 			@RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		long startTime=System.currentTimeMillis();
@@ -177,7 +177,7 @@ public class OrdersController {
 	@ApiOperation(value = "Get order details by restaurantId, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {
 			@Authorization(value = "accessToken") })
 	@GetMapping("/getOrderByRestaurantId/{restaurantId}")
-	public List<OrderResponseModel> getOrderByRestaurantId(@RequestParam(required = true) int restaurantId, @RequestParam(value = "orderState", required = false) List<String> orderState, @RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
+	public List<OrderResponseModel> getOrderByRestaurantId(@PathVariable(required = true) int restaurantId, @RequestParam(value = "orderState", required = false) List<String> orderState, @RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate,
 			@RequestParam(value = "from", required = false, defaultValue = "0") int from, @RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering order details by RestaurantId starttime : "+startTime);
