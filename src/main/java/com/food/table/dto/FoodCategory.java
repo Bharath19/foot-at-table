@@ -28,6 +28,9 @@ public class FoodCategory {
 	private String description;
 
 	private Integer sortOrder;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Restaurant restaurant;
 	
 	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)

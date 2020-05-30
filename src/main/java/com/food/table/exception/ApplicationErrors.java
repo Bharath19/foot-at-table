@@ -163,4 +163,6 @@ public class ApplicationErrors {
 	public static final String PUSH_NOTIFICATION_FAILED = "Push notification failed";
 
 	public static final String PUBLISH_MESSAGE_FAILED = "Publish message failed";
+
+	public static final String INVALID_FOOD_CATEGORY = "Invalid Category Id";
 }
