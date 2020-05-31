@@ -1,20 +1,37 @@
 package com.food.table.controller;
 
-import com.food.table.model.*;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.food.table.constant.RestaurantStateEnum;
+import com.food.table.constant.RestaurantStatusEnum;
+import com.food.table.model.DefaultValuesResponse;
+import com.food.table.model.RestaurantGetModel;
+import com.food.table.model.RestaurantModel;
+import com.food.table.model.RestaurantUpdateRequest;
+import com.food.table.model.TimingModel;
 import com.food.table.service.RestaurantService;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/restaurant")
@@ -51,8 +68,9 @@ public class RestaurantController {
 		return ResponseEntity.ok(restaurantGetModel);
 	}
 
-    @ApiOperation(value = "Add a new restaurant")
+	@ApiOperation(value = "Add a new restaurant", authorizations = {@Authorization(value = "accessToken")})
 	@PostMapping("/add")
+	@PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
 	public ResponseEntity<Void> addRestaurant(@ApiParam(value = "Restaurant object store in database table without id", required = false)@Valid@RequestBody RestaurantModel restaurantModel) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering add restaurant starttime : "+startTime);
@@ -124,11 +142,11 @@ public class RestaurantController {
 	@ApiOperation(value = "Get static values of restaurant", authorizations = {@Authorization(value = "accessToken")})
 	@GetMapping("/getStaticValues/")
 	public ResponseEntity<DefaultValuesResponse> getDefaultTableValues() {
-		long startTime = System.currentTimeMillis();
-		log.info("Entering get all default values for restaurant starttime : " + startTime);
+		long startTime=System.currentTimeMillis();
+		log.info("Entering get all default values for restaurant starttime : "+startTime);
 		DefaultValuesResponse defaultValuesResponse = restaurantService.getDefaultTableValues();
-		long endTime = System.currentTimeMillis();
-		log.info("Entering get all default values for restaurant timetaken : " + (endTime - startTime));
+		long endTime=System.currentTimeMillis();
+		log.info("Entering get all default values for restaurant timetaken : "+(endTime-startTime));
 		return ResponseEntity.ok(defaultValuesResponse);
 	}
 

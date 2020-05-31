@@ -18,7 +18,6 @@ import com.food.table.service.NotificationService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
@@ -130,9 +129,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     @Override
-    public boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant) {
-        List<Restaurant> restaurantList = new ArrayList<>();
-        restaurantList.add(restaurant);
+    public boolean createRestaurantUser(AuthRequest authRequest) {
         UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
         if (Objects.nonNull(userAccount)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
@@ -144,12 +141,11 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         UserAccount savedUserAccount = userRepository.save(UserAccount.builder()
                 .email(authRequest.getUserName())
                 .password(new BCryptPasswordEncoder().encode(authRequest.getPassword()))
-                .restaurants(restaurantList)
                 .roles(userRoleList)
                 .isAccountNonExpired(true)
                 .isAccountNonLocked(true)
                 .isCredentialsNonExpired(true)
-                .isEnabled(false)
+                .isEnabled(true)
                 .build()
         );
         savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
@@ -273,14 +269,6 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
             userAccount.setIsEnabled(false);
         }
         return true;
-    }
-
-    @Override
-    public int getRestaurantIdForUser(String emailId) {
-        UserAccount userAccount = userRepository.findUserByEmailId(emailId);
-        if (CollectionUtils.isNotEmpty(userAccount.getRestaurants()))
-            return userAccount.getRestaurants().get(0).getId();
-        return 0;
     }
 
     private int getOtpFromCache(long phoneNo) {

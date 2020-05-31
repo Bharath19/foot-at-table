@@ -1,18 +1,11 @@
 package com.food.table.serviceimpl;
 
-import com.food.table.constant.ApplicationConstants;
-import com.food.table.constant.RestaurantStateEnum;
-import com.food.table.constant.RestaurantStatusEnum;
-import com.food.table.dto.*;
-import com.food.table.email.EmailModel;
-import com.food.table.email.EmailService;
-import com.food.table.exception.ApplicationErrors;
-import com.food.table.exception.ApplicationException;
-import com.food.table.model.*;
-import com.food.table.repo.*;
-import com.food.table.service.CustomUserDetailsService;
-import com.food.table.service.RestaurantService;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.lucene.util.SloppyMath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,11 +14,47 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.food.table.constant.ApplicationConstants;
+import com.food.table.constant.RestaurantStateEnum;
+import com.food.table.constant.RestaurantStatusEnum;
+import com.food.table.dto.Account;
+import com.food.table.dto.Address;
+import com.food.table.dto.Cuisines;
+import com.food.table.dto.Diets;
+import com.food.table.dto.Payments;
+import com.food.table.dto.Restaurant;
+import com.food.table.dto.SearchType;
+import com.food.table.dto.Seatings;
+import com.food.table.dto.Services;
+import com.food.table.dto.Tiers;
+import com.food.table.dto.Timings;
+import com.food.table.dto.Types;
+import com.food.table.email.EmailModel;
+import com.food.table.email.EmailService;
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
+import com.food.table.model.AddressModel;
+import com.food.table.model.BaseModel;
+import com.food.table.model.DefaultValuesResponse;
+import com.food.table.model.RestaurantGetModel;
+import com.food.table.model.RestaurantModel;
+import com.food.table.model.RestaurantUpdateRequest;
+import com.food.table.model.TimingModel;
+import com.food.table.repo.AccountRepository;
+import com.food.table.repo.AddressRepository;
+import com.food.table.repo.CuisinesRepository;
+import com.food.table.repo.DietRepository;
+import com.food.table.repo.PaymentsRepository;
+import com.food.table.repo.RestaurantRepository;
+import com.food.table.repo.SearchTypeRepository;
+import com.food.table.repo.SeatingsRepository;
+import com.food.table.repo.ServiceRepository;
+import com.food.table.repo.TiersRepository;
+import com.food.table.repo.TimingRepository;
+import com.food.table.repo.TypesRepository;
+import com.food.table.service.RestaurantService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -70,25 +99,17 @@ public class RestaurantServiceImpl implements RestaurantService {
 	@Autowired
 	private EmailService emailService;
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-
-
 	@Override
 	public void addRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering add new restaurant for : "+restaurantModel.getRestaurantName());
 		Restaurant restaurant = parseRestaurantValue(restaurantModel);
-        Restaurant savedRestaurant = new Restaurant();
 		try {
-            savedRestaurant = restaurantepository.save(restaurant);
+			restaurantepository.save(restaurant);
 		} catch (Exception e) {
 			log.error("Addind new restaurant is failed for : "+restaurantModel.getRestaurantName());
 			throw new ApplicationException(e, HttpStatus.INTERNAL_SERVER_ERROR,
 					ApplicationErrors.ADD_RESTAURANT_FAILED);
 		}
-        AuthRequest authRequest = AuthRequest.builder().userName(restaurantModel.getEmailId()).password(restaurantModel.getPassword()).build();
-        userDetailsService.createRestaurantUser(authRequest, savedRestaurant);
 		log.info("Exiting add new restaurant is success for : "+restaurantModel.getRestaurantName());
 	}
 
@@ -101,7 +122,6 @@ public class RestaurantServiceImpl implements RestaurantService {
 		}
 		restaurant.get().setState(RestaurantStateEnum.getValue(ApplicationConstants.deleteState));
 		try {
-            userDetailsService.changeEmployeeUserStatus(restaurant.get().getEmailId(), "inactive");
 			restaurantepository.save(restaurant.get());
 		} catch (Exception e) {
 			throw new ApplicationException(e, HttpStatus.INTERNAL_SERVER_ERROR,
@@ -511,9 +531,6 @@ public class RestaurantServiceImpl implements RestaurantService {
 			Restaurant res = restaurant.get();
 			if (restaurantUpdateRequest.getState() != null && !restaurantUpdateRequest.getState().isEmpty()) {
 				res.setState(RestaurantStateEnum.getValue(restaurantUpdateRequest.getState()));
-                if (restaurantUpdateRequest.getState().equalsIgnoreCase(RestaurantStateEnum.CONFIRMED.toString())) {
-                    userDetailsService.changeEmployeeUserStatus(res.getEmailId(), "active");
-                }
 			}
 			if (restaurantUpdateRequest.getStatus() != null && !restaurantUpdateRequest.getStatus().isEmpty()) {
 				res.setStatus(RestaurantStatusEnum.getValue(restaurantUpdateRequest.getStatus()));
