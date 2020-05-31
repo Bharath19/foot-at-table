@@ -43,17 +43,33 @@ public class Order {
 	private UserAccount userAccount;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "restaurant_table_id", referencedColumnName = "id")
+	@JoinColumn(name = "restaurant_table_id", referencedColumnName = "id", nullable = true)
 	private RestaurantTable restaurantTable;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Types type;
 
+// TODO need to check whether offerPrice applied to cart price alone or include GST amount
+//	Total (cart price + cgst + sgst) - offerPrice
 	@Column(name = "total_price", nullable = false)
 	private double totalPrice;
 
 	@Column(name = "paid_price")
 	private double paidPrice;
+	
+	private double requestedPrice;
+	
+	private double cgst;
+	
+	private double sgst;
+	
+	private double offerCode;
+	
+	private double offerPrice;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "offer_id", referencedColumnName = "id", nullable = true)
+	private Offers offer_id;
 
 	@Enumerated(EnumType.STRING)
 	private OrderStateEnum state = OrderStateEnum.REQUESTED;

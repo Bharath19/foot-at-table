@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.food.table.constant.PaymentStatusEnum;
 import com.food.table.dto.Order;
 import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.CartModel;
@@ -20,9 +21,9 @@ public interface OrderService {
 
 	OrderResponseModel getOrderById(int orderid);
 
-	Order updateOrder(OrderModel orderModel, int orderId);
+//	Order updateOrder(OrderModel orderModel, int orderId);
 
-	Order updateOrderState(OrderStateModel orderModel, int orderId);
+	Object updateOrderState(OrderStateModel orderModel, int orderId);
 
 	List<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from, int limit);
 
@@ -38,5 +39,7 @@ public interface OrderService {
 			int limit);
 
 	Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId);
+
+	void updateOrderStateAfterPayment(int orderId, PaymentStatusEnum paymrntState);
 
 }

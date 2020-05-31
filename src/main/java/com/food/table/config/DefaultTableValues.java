@@ -4,16 +4,21 @@ import com.food.table.constant.ApplicationConstants;
 import com.food.table.dto.Payments;
 import com.food.table.dto.Seatings;
 import com.food.table.dto.Services;
+import com.food.table.dto.Setup;
 import com.food.table.dto.Types;
 import com.food.table.repo.PaymentsRepository;
 import com.food.table.repo.SeatingsRepository;
 import com.food.table.repo.ServiceRepository;
+import com.food.table.repo.SetupRepository;
 import com.food.table.repo.TypesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class DefaultTableValues {
@@ -30,17 +35,21 @@ public class DefaultTableValues {
 	@Autowired
 	TypesRepository typesRepository;
 	
+	@Autowired
+	SetupRepository setupRepository;
+	
 	@PostConstruct
 	public void init() {
 		List<Payments> payment=paymentsRepository.findAll();
 		List<Seatings> seating=seatingsRepository.findAll();
 		List<Services> service=serviceRepository.findAll();
 		List<Types> type=typesRepository.findAll();
-		loadDefaultData(payment, seating, service, type);
+		List<Setup> setup = setupRepository.findAll();
+		loadDefaultData(payment, seating, service, type, setup);
 	}
 	
 	private void loadDefaultData(List<Payments> payment, List<Seatings> seating, List<Services> service,
-			List<Types> type) {
+			List<Types> type, List<Setup> setup) {
 		
 		if(payment.isEmpty() || payment.size()<=0) {
 			List<String> paymentValue=ApplicationConstants.payments;
@@ -72,6 +81,15 @@ public class DefaultTableValues {
 				type.add(Types.builder().name(val).build());
 			});
 			typesRepository.saveAll(type);
+		}
+		
+		if(setup.isEmpty() || setup.size()<=0) {
+			Map<String, String> defaultsetups = ApplicationConstants.defaultSetups;
+			List<Setup> setupList = new ArrayList<Setup>();
+			defaultsetups.forEach((k, v) -> {
+				setupList.add(Setup.builder().code(k).value(v).build());
+			});
+			setupRepository.saveAll(setupList);
 		}
 	}
 	

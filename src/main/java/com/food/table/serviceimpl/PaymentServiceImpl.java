@@ -6,10 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.food.table.constant.PaymentStatus;
+import com.food.table.constant.PaymentStatusEnum;
 import com.food.table.dto.Payment;
 import com.food.table.model.PaymentCallback;
 import com.food.table.model.PaymentDetail;
+import com.food.table.repo.OrderRepository;
 import com.food.table.repo.PaymentRepository;
+import com.food.table.service.OrderService;
 import com.food.table.service.PaymentService;
 import com.food.table.util.PaymentUtil;
 
@@ -18,6 +21,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private PaymentRepository paymentRepository;
+	@Autowired
+	private OrderService orderService;
 
     @Override
     public PaymentDetail proceedPayment(PaymentDetail paymentDetail) {
@@ -29,7 +34,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public String payuCallback(PaymentCallback paymentResponse) {
-        String msg = "Transaction failed.";        
+    	PaymentStatusEnum paymentStatusEnum = PaymentStatusEnum.TRANSACTION_FAILED;       
         Payment payment = paymentRepository.findByTxnId(paymentResponse.getTxnid());
         if(payment != null) {
             //TODO validate the hash
@@ -38,14 +43,15 @@ public class PaymentServiceImpl implements PaymentService {
                 paymentStatus = PaymentStatus.Failed;
             }else if(paymentResponse.getStatus().equals("success")) {
                 paymentStatus = PaymentStatus.Success;
-                msg = "Transaction success";
+                paymentStatusEnum = PaymentStatusEnum.TRANSACTION_SUCCESSFUL;
             }
             payment.setPaymentStatus(paymentStatus);
             payment.setMihpayId(paymentResponse.getMihpayid());
             payment.setMode(paymentResponse.getMode());
             paymentRepository.save(payment);
         }
-        return msg;
+        orderService.updateOrderStateAfterPayment(0, paymentStatusEnum);
+        return paymentStatusEnum.toString();
     }
 
     private void savePaymentDetail(PaymentDetail paymentDetail) {

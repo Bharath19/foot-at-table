@@ -23,12 +23,14 @@ import org.springframework.web.bind.annotation.*;
 import com.food.table.constant.ApplicationConstants;
 import com.food.table.constant.CartStateEnum;
 import com.food.table.constant.OrderStateEnum;
+import com.food.table.dto.Order;
 import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.CartModel;
 import com.food.table.model.FoodHistoryProjectionModel;
 import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
+import com.food.table.model.PaymentDetail;
 
 @RestController
 @RequestMapping("/orders")
@@ -43,7 +45,7 @@ public class OrdersController {
 
 	@ApiOperation(value = "Create a new order", authorizations = { @Authorization(value = "accessToken") })
 	@PostMapping(value = "/createOrder")
-	public @ResponseBody ResponseEntity<Map<String, Integer>> createOrder(@RequestBody OrderModel orderModel) {
+	public ResponseEntity<Map<String, Integer>> createOrder(@RequestBody OrderModel orderModel) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering create new order starttime : "+startTime);
 		ResponseEntity<Map<String, Integer>> response = new ResponseEntity<Map<String, Integer>>(Collections.singletonMap("OrderId", orderService.createOrder(orderModel).getId()), HttpStatus.CREATED);
@@ -54,7 +56,6 @@ public class OrdersController {
 
 	@ApiOperation(value = "Add more food on dineIn/live cart", authorizations = {@Authorization(value = "accessToken") })
 	@PutMapping("/addMoreFoods/{orderId}")
-	@ResponseBody
 	public ResponseEntity<Map<String, Integer>> addMoreFoods(@PathVariable int orderId, @RequestBody ArrayList<CartModel> cartModels) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering add more food starttime : "+startTime);
@@ -64,25 +65,33 @@ public class OrdersController {
 		return response;
 	}
 
-	@ApiOperation(value = "Update a restaurantTableId, Food quantity and Cart status", authorizations = {@Authorization(value = "accessToken") })
-	@PutMapping("/updateOrder/{orderId}")
-	@ResponseBody
-	public ResponseEntity<OrderResponseModel> updateOrder(@PathVariable int orderId, @RequestBody OrderModel orderModel) {
-		long startTime=System.currentTimeMillis();
-		log.info("Entering update order starttime : "+startTime);
-		ResponseEntity<OrderResponseModel> response = new ResponseEntity<OrderResponseModel>(orderService.getOrderById(orderService.updateOrder(orderModel, orderId).getId()), HttpStatus.ACCEPTED);
-		long endTime=System.currentTimeMillis();
-		log.info("Exiting update order is success and timetaken : "+(endTime-startTime));
-		return response;
-	}
+//	TODO - handle failure case / exceptional case for support team
+//	@ApiOperation(value = "Update a restaurantTableId, Food quantity and Cart status", authorizations = {@Authorization(value = "accessToken") })
+//	@PutMapping("/updateOrder/{orderId}")
+//	@ResponseBody
+//	public ResponseEntity<OrderResponseModel> updateOrder(@PathVariable int orderId, @RequestBody OrderModel orderModel) {
+//		long startTime=System.currentTimeMillis();
+//		log.info("Entering update order starttime : "+startTime);
+//		ResponseEntity<OrderResponseModel> response = new ResponseEntity<OrderResponseModel>(orderService.getOrderById(orderService.updateOrder(orderModel, orderId).getId()), HttpStatus.ACCEPTED);
+//		long endTime=System.currentTimeMillis();
+//		log.info("Exiting update order is success and timetaken : "+(endTime-startTime));
+//		return response;
+//	}
 
 	@ApiOperation(value = "Here we can update order and cart<one or more> state. If we need to update order state as COMPLETED, SERVED or CANCELLED, respect all the cart states are updated automatically. Otherwise need to update order and cart state separately", authorizations = {@Authorization(value = "accessToken") })
 	@PutMapping("/updateState/{orderId}")
 	@ResponseBody
-	public ResponseEntity<Map<String, Integer>> updateOrderState(@PathVariable int orderId, @RequestBody OrderStateModel orderStateModel) {
+	public ResponseEntity<Map<String, Object>> updateOrderState(@PathVariable int orderId, @RequestBody OrderStateModel orderStateModel) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering update order and cart state starttime : "+startTime);
-		ResponseEntity<Map<String, Integer>> response = new ResponseEntity<Map<String, Integer>>(Collections.singletonMap("OrderId", orderService.updateOrderState(orderStateModel, orderId).getId()), HttpStatus.OK);
+		Object object = orderService.updateOrderState(orderStateModel, orderId);
+		Map<String, Object> responseObject = null;
+		if(object instanceof Order) {
+			responseObject = Collections.singletonMap("OrderId", ((Order)object).getId());
+		}else if (object instanceof PaymentDetail) {
+			responseObject = Collections.singletonMap("paymentDetails", ((PaymentDetail)object));
+		}
+		ResponseEntity<Map<String, Object>> response = new ResponseEntity<Map<String, Object>>(responseObject, HttpStatus.OK);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting update order and cart state is success and timetaken : "+(endTime-startTime));
 		return response;

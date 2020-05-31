@@ -40,6 +40,8 @@ public class ApplicationErrors {
 	
 	public static final String INVALID_FOOD_OPTION_ID = "Invalid Food Option ID";
 	
+	public static final String INVALID_FOOD_OPTION_STATUS = "Food option is unavaiable";
+	
 	public static final String INVALID_RESTAURANT_TABLE_ID = "Invalid restaurant table Id";
 	
 	public static final String INVALID_ORDER_TYPE_ID = "Invalid order type Id";
@@ -165,4 +167,8 @@ public class ApplicationErrors {
 	public static final String PUBLISH_MESSAGE_FAILED = "Publish message failed";
 
 	public static final String INVALID_FOOD_CATEGORY = "Invalid Category Id";
+
+	public static final String INVALID_FOOD_STATE = "Food is unavaiable";
+	
+	public static final String INVALID_FOOD_TIME = "Food is unavaiable and it will be avaiable on : ";
 }

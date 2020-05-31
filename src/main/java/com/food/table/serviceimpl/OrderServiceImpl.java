@@ -1,15 +1,17 @@
 
 package com.food.table.serviceimpl;
 
+import static java.util.Map.entry;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
 
-import static java.util.Map.entry;
+import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,12 +20,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.food.table.dto.Address;
 import com.food.table.constant.ApplicationConstants;
-import com.food.table.constant.CartFoodOptionStateEnum;
 import com.food.table.constant.CartOrderStatus;
 import com.food.table.constant.CartStateEnum;
 import com.food.table.constant.OrderStateEnum;
+import com.food.table.constant.PaymentStatusEnum;
+import com.food.table.dto.Address;
 import com.food.table.dto.Cart;
 import com.food.table.dto.CartFoodOptions;
 import com.food.table.dto.FoodOptions;
@@ -39,6 +41,7 @@ import com.food.table.model.AddressModel;
 import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.BasicUserResponseModel;
 import com.food.table.model.CartFoodOptionModel;
+import com.food.table.model.CartFoodOptionResponseModel;
 import com.food.table.model.CartModel;
 import com.food.table.model.CartResponseModel;
 import com.food.table.model.FoodResponseModel;
@@ -47,7 +50,6 @@ import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
 import com.food.table.model.RestaurantBasicGetModel;
 import com.food.table.model.RevenueDetailsModel;
-import com.food.table.model.CartFoodOptionResponseModel;
 import com.food.table.repo.CartRepository;
 import com.food.table.repo.FoodOptionsRepository;
 import com.food.table.repo.FoodRepository;
@@ -57,6 +59,7 @@ import com.food.table.repo.RestaurantTableRepository;
 import com.food.table.repo.TypesRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.OrderService;
+import com.food.table.service.PaymentService;
 import com.food.table.util.SimpleDateUtil;
 import com.food.table.util.UserUtil;
 
@@ -66,15 +69,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
-
-	private static final Map<OrderStateEnum, CartStateEnum> orderCartStateMap = Map.ofEntries(
-			entry(OrderStateEnum.COMPLETED, CartStateEnum.COMPLETED),
-			entry(OrderStateEnum.SERVED, CartStateEnum.SERVED),
-			entry(OrderStateEnum.CANCELLED, CartStateEnum.CANCELLED));
-
-	private static final Map<OrderStateEnum, CartOrderStatus> cartOrderStatusMap = Map.ofEntries(
-			entry(OrderStateEnum.COMPLETED, CartOrderStatus.SUCCESS),
-			entry(OrderStateEnum.CANCELLED, CartOrderStatus.FAILED));
 
 	@Autowired
 	OrderRepository orderRepository;
@@ -92,7 +86,22 @@ public class OrderServiceImpl implements OrderService {
 	RestaurantTableRepository restaurantTableRepository;
 	@Autowired
 	UserRepository userRepository;
+	@Autowired
+    PaymentService paymentService;
+//	TODO get gst details
+//	@Autowired
+//	SetupService setupService;
+	
+	private static final Map<OrderStateEnum, CartStateEnum> orderCartStateMap = Map.ofEntries(
+			entry(OrderStateEnum.COMPLETED, CartStateEnum.COMPLETED),
+			entry(OrderStateEnum.SERVED, CartStateEnum.SERVED),
+			entry(OrderStateEnum.CANCELLED, CartStateEnum.CANCELLED),
+			entry(OrderStateEnum.REQUESTED, CartStateEnum.REQUESTED));
 
+	private static final Map<OrderStateEnum, CartOrderStatus> cartOrderStatusMap = Map.ofEntries(
+			entry(OrderStateEnum.COMPLETED, CartOrderStatus.SUCCESS),
+			entry(OrderStateEnum.CANCELLED, CartOrderStatus.FAILED));
+	
 	/**
 	 * If order have any of the state, can add more food Additionally, need to check
 	 * whether order type is dineIn
@@ -100,6 +109,79 @@ public class OrderServiceImpl implements OrderService {
 	@Getter
 	private static final OrderStateEnum[] addMoreCartOrderState = { OrderStateEnum.INPROGRESS, OrderStateEnum.SERVED };
 
+	@Override
+	public Order createOrder(OrderModel orderModel) {
+		return orderRepository.save(convertToDto(orderModel));
+	}
+
+//	@Override
+//	public Order updateOrder(OrderModel orderModel, int orderId) {
+//		try {
+//			return orderRepository.save(convertToDto(orderModel, orderRepository.getOne(orderId)));
+//		} catch (EntityNotFoundException e) {
+//			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
+//		}
+//	}
+
+	@Override
+	public Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
+		Optional<Order> order = orderRepository.findById(orderId);
+		if (!order.isPresent())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
+
+		validateOrderAlreadyClosed(order.get());
+		
+		Order inProgressOrder = order.get();
+		
+		List<Cart> carts = inProgressOrder.getCarts();
+		cartModels.forEach(cartModel -> {
+			if (canCreateMoreCart(order.get())) {
+				carts.add(convertToDto(cartModel, inProgressOrder));
+			} else {
+				log.error("unable add more cart. Order ID: " + inProgressOrder.getId()+" Order State: " + inProgressOrder.getState());
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE_OR_TYPE);
+			}
+		});
+		inProgressOrder.setState(OrderStateEnum.INPROGRESS);
+		inProgressOrder.setTotalPrice(getTotalOrderPrice(inProgressOrder.getCarts()));
+		orderRepository.save(inProgressOrder);
+		return order.get();
+	}
+
+	@Override
+	public Object updateOrderState(OrderStateModel orderStateModel, int orderId) {
+		try {
+			Order order =  orderRepository.save(updateState(orderStateModel, orderRepository.getOne(orderId)));
+//			TODO get offer code and test payment gateway
+//			if(order.getState().equals(OrderStateEnum.BILL_REQUESTED)) {
+//				UserAccount userAccount = order.getUserAccount();
+//				PaymentDetail paymentDetail = PaymentDetail.builder().name(userAccount.getName()).email(userAccount.getEmail())
+//						.phone(userAccount.getPhoneNo().toString()).productInfo(order.getId()+"").amount(order.getTotalPrice()+"").build();
+//				return paymentService.proceedPayment(paymentDetail);
+//			}
+			return order;
+		} catch (EntityNotFoundException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
+		}
+	}
+	
+	@Override
+	public void updateOrderStateAfterPayment(int orderId, PaymentStatusEnum paymrntState) {
+		Optional<Order> order = orderRepository.findById(orderId);
+		if (!order.isPresent())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
+		String orderType = order.get().getType().getName();
+		if(orderType.equals(ApplicationConstants.dineInTypeText) || orderType.equals(ApplicationConstants.selfServiceTypeText)) {
+			OrderStateModel orderStateModel = new OrderStateModel();
+			orderStateModel.setState(OrderStateEnum.COMPLETED);
+			updateOrderState(orderStateModel, orderId);
+		}else {
+			OrderStateModel orderStateModel = new OrderStateModel();
+			orderStateModel.setState(OrderStateEnum.REQUESTED);
+			updateOrderState(orderStateModel, orderId);	
+		}
+	}
+	
 	@Override
 	public OrderResponseModel getOrderById(int orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
@@ -136,54 +218,6 @@ public class OrderServiceImpl implements OrderService {
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
 		orderlist.forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
 		return orderResponseModelList;
-	}
-
-	@Override
-	public Order createOrder(OrderModel orderModel) {
-		return orderRepository.save(convertToDto(orderModel));
-	}
-
-	@Override
-	public Order updateOrder(OrderModel orderModel, int orderId) {
-		try {
-			return orderRepository.save(convertToDto(orderModel, orderRepository.getOne(orderId)));
-		} catch (EntityNotFoundException e) {
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-		}
-	}
-
-	@Override
-	public Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
-		Optional<Order> order = orderRepository.findById(orderId);
-		if (!order.isPresent())
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-
-		validateOrderAlreadyClosed(order.get());
-		
-		Order inProgressOrder = order.get();
-		
-		List<Cart> carts = inProgressOrder.getCarts();
-		cartModels.forEach(cartModel -> {
-			if (canCreateMoreCart(order.get())) {
-				carts.add(convertToDto(cartModel, inProgressOrder));
-			} else {
-				log.error("unable add more cart. Order ID: " + inProgressOrder.getId()+" Order State: " + inProgressOrder.getState());
-				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE_OR_TYPE);
-			}
-		});
-		inProgressOrder.setState(OrderStateEnum.INPROGRESS);
-		inProgressOrder.setTotalPrice(getTotalOrderPrice(inProgressOrder.getCarts()));
-		orderRepository.save(inProgressOrder);
-		return order.get();
-	}
-
-	@Override
-	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
-		try {
-			return orderRepository.save(updateState(orderStateModel, orderRepository.getOne(orderId)));
-		} catch (EntityNotFoundException e) {
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-		}
 	}
 
 	@Override
@@ -307,7 +341,8 @@ public class OrderServiceImpl implements OrderService {
 		
 		validateOrderAlreadyClosed(order);
 		
-		order.setState(orderStateModel.getState());
+		if(orderStateModel.getState() != null)
+			order.setState(orderStateModel.getState());
 
 		if (orderCartStateMap.containsKey(orderStateModel.getState())) {
 			HashMap<Integer, Cart> cartMap = new HashMap<Integer, Cart>();
@@ -358,36 +393,36 @@ public class OrderServiceImpl implements OrderService {
 	 * @param order      existing order Entity object
 	 * @return order entity object
 	 */
-	private Order convertToDto(OrderModel orderModel, Order order) {
-		
-		Optional<RestaurantTable> restaurantTable = restaurantTableRepository.findById(orderModel.getRestaurantTableId());
-		if (!restaurantTable.isPresent())
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
-		order.setRestaurantTable(restaurantTable.get());
-
-		HashMap<Integer, Cart> cartMap = new HashMap<Integer, Cart>();
-		order.getCarts().forEach(cart -> cartMap.put(cart.getId(), cart));
-
-		orderModel.getCarts().forEach(cartModel -> {
-			if (cartMap.containsKey(cartModel.getId())) {
-				Cart cart = cartMap.get(cartModel.getId());
-				if (cartModel.getQuantity() > 0) {
-					cart.setQuantity(cartModel.getQuantity());
-					cart.setPrice(cart.getFood().getPrice() * cart.getQuantity());
-				}
-				cart.setState(cartModel.getState());
-				cartMap.put(cartModel.getId(), cart);
-			} else {
-				log.error("can not add more cart " + order.getId());
-			}
-		});
-
-		order.setCarts(new ArrayList<Cart>(cartMap.values()));
-
-		order.setTotalPrice(getTotalOrderPrice(order.getCarts()));
-
-		return order;
-	}
+//	private Order convertToDto(OrderModel orderModel, Order order) {
+//		
+//		Optional<RestaurantTable> restaurantTable = restaurantTableRepository.findById(orderModel.getRestaurantTableId());
+//		if (!restaurantTable.isPresent())
+//			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
+//		order.setRestaurantTable(restaurantTable.get());
+//
+//		HashMap<Integer, Cart> cartMap = new HashMap<Integer, Cart>();
+//		order.getCarts().forEach(cart -> cartMap.put(cart.getId(), cart));
+//
+//		orderModel.getCarts().forEach(cartModel -> {
+//			if (cartMap.containsKey(cartModel.getId())) {
+//				Cart cart = cartMap.get(cartModel.getId());
+//				if (cartModel.getQuantity() > 0) {
+//					cart.setQuantity(cartModel.getQuantity());
+//					cart.setPrice(cart.getFood().getPrice() * cart.getQuantity());
+//				}
+//				cart.setState(cartModel.getState());
+//				cartMap.put(cartModel.getId(), cart);
+//			} else {
+//				log.error("can not add more cart " + order.getId());
+//			}
+//		});
+//
+//		order.setCarts(new ArrayList<Cart>(cartMap.values()));
+//
+//		order.setTotalPrice(getTotalOrderPrice(order.getCarts()));
+//
+//		return order;
+//	}
 
 	/**
 	 * check whether we can add additional food on same order or not
@@ -453,13 +488,13 @@ public class OrderServiceImpl implements OrderService {
 			order.setUserAccount(user.get());
 		}
 		
-		Optional<RestaurantTable> restaurantTable = restaurantTableRepository
-				.findByIdAndRestaurantId(orderModel.getRestaurantTableId(), orderModel.getRestaurantId());
-		if (!restaurantTable.isPresent())
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
-		order.setRestaurantTable(restaurantTable.get());
+		if(orderModel.isDineInType() || orderModel.isSelfServiceType()) {
+			Optional<RestaurantTable> restaurantTable = restaurantTableRepository.findByIdAndRestaurantId(orderModel.getRestaurantTableId(), orderModel.getRestaurantId());
+			if (!restaurantTable.isPresent())
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
+			order.setRestaurantTable(restaurantTable.get());
+		}
 
-		order.setPaidPrice(orderModel.getPaidPrice());
 		order.setState(orderModel.getState());
 
 		ArrayList<Cart> cartList = new ArrayList<Cart>();
@@ -471,6 +506,18 @@ public class OrderServiceImpl implements OrderService {
 		order.setTotalPrice(getTotalOrderPrice(cartList));
 		return order;
 	}
+	
+//	TODO improve the price calculation
+//	private Order updatePriceDetails(Order order) {
+//		double totalPrice = getTotalOrderPrice(order.getCarts());
+//		order.setTotalPrice(totalPrice);
+//		double cgstPrice = getCgstPrice(totalPrice);
+//		order.setCgst(cgstPrice);
+//		double sgstPrice = getSgstPrice(totalPrice);
+//		order.setSgst(sgstPrice);
+//		order.setRequestedPrice(totalPrice+cgstPrice+sgstPrice);
+//		return order;
+//	}
 
 	/**
 	 * This method update convert CartModel(POJO) to Cart(Entity) on creation action
@@ -481,39 +528,41 @@ public class OrderServiceImpl implements OrderService {
 	 */
 	private Cart convertToDto(CartModel cartModel, OrderModel orderModel) {
 		Cart cart = new Cart();
-		Optional<Foods> food = foodRepository.findById(cartModel.getFoodId());
-		if (!food.isPresent())
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_ID);
-		cart.setFood(food.get());
+		Foods food = getFoodWithValidation(cartModel.getFoodId(), orderModel.getRestaurantId());
+		cart.setFood(food);
 		cart.setQuantity(cartModel.getQuantity());
+	
 		Restaurant restaurant = restaurantRepository.getOne(orderModel.getRestaurantId());
 		if (restaurant == null) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
 		}
 		cart.setRestaurant(restaurant);
-		cart.setPrice(food.get().getPrice() * cartModel.getQuantity());
-		cart.setState(cartModel.getState());
+		cart.setPrice(food.getPrice() * cartModel.getQuantity());
+		
+		if(orderModel.getState().equals(OrderStateEnum.DRAFTED)) {
+			cart.setState(CartStateEnum.DRAFTED);
+		}else if(orderModel.getState().equals(OrderStateEnum.REQUESTED)) {
+			cart.setState(CartStateEnum.REQUESTED);
+		}
 		
 		if(cartModel.getCartFoodOptionModel() != null && cartModel.getCartFoodOptionModel().size() != 0)
 		{
 			List<CartFoodOptionModel> cartFoodOptionModels = cartModel.getCartFoodOptionModel();
 			List<CartFoodOptions> cartFoodOptions = new ArrayList<CartFoodOptions>();
 			cartFoodOptionModels.forEach(cartFoodOptionModel -> {
-				cartFoodOptions.add(convertToFoodOptionDto(cartFoodOptionModel));
+				cartFoodOptions.add(convertToFoodOptionDto(cartFoodOptionModel, cartModel));
 			});
 			cart.setCartFoodOptions(cartFoodOptions);
 		}
 		return cart;
 	}
-	
-	private CartFoodOptions convertToFoodOptionDto(CartFoodOptionModel cartFoodOptionModel) {
+
+	private CartFoodOptions convertToFoodOptionDto(CartFoodOptionModel cartFoodOptionModel, CartModel cartModel) {
 		CartFoodOptions  cartFoodOption = new CartFoodOptions();
-		Optional<FoodOptions> foodOption = foodOptionsRepository.findById(cartFoodOptionModel.getFoodOptionId());
-		if (!foodOption.isPresent())
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_ID);
-		cartFoodOption.setFoodOption(foodOption.get());
+		FoodOptions foodOption = getFoodOptionWithValidation(cartFoodOptionModel.getFoodOptionId(), cartModel.getFoodId());
+		cartFoodOption.setFoodOption(foodOption);
 		cartFoodOption.setQuantity(cartFoodOptionModel.getQuantity());
-		cartFoodOption.setPrice(foodOption.get().getPrice() * cartFoodOptionModel.getQuantity());
+		cartFoodOption.setPrice(foodOption.getPrice() * cartFoodOptionModel.getQuantity());
 		return cartFoodOption;
 	}
 
@@ -538,13 +587,14 @@ public class OrderServiceImpl implements OrderService {
 		}
 		cart.setRestaurant(restaurant);
 		cart.setPrice(food.get().getPrice() * cartModel.getQuantity());
-		cart.setState(cartModel.getState());
+//		default sate when add more food
+		cart.setState(CartStateEnum.REQUESTED);
 		if(cartModel.getCartFoodOptionModel() != null && cartModel.getCartFoodOptionModel().size() != 0)
 		{
 			List<CartFoodOptionModel> cartFoodOptionModels = cartModel.getCartFoodOptionModel();
 			List<CartFoodOptions> cartFoodOptions = new ArrayList<CartFoodOptions>();
 			cartFoodOptionModels.forEach(cartFoodOptionModel -> {
-				cartFoodOptions.add(convertToFoodOptionDto(cartFoodOptionModel));
+				cartFoodOptions.add(convertToFoodOptionDto(cartFoodOptionModel, cartModel));
 			});
 			cart.setCartFoodOptions(cartFoodOptions);
 		}
@@ -564,13 +614,50 @@ public class OrderServiceImpl implements OrderService {
 				totalPrice += cart.getPrice();
 				if(cart.getCartFoodOptions() != null)
 					for(CartFoodOptions cartFoodOption: cart.getCartFoodOptions()) {
-						if(!(cartFoodOption.getState().equals(CartFoodOptionStateEnum.CANCELLED))) {
-							totalPrice += cartFoodOption.getPrice();
-						}
+						totalPrice += cartFoodOption.getPrice();
 					}
 			}
 		}
 		return totalPrice;
+	}
+	
+//	TODO get gst details
+//	private double getSgstPrice(double totalPrice) {
+//		double sgstPercentage = setupService.getGstValues().get(ApplicationConstants.sgstKey).intValue();
+//		return (totalPrice * sgstPercentage) / 100;
+//	}
+//
+//	private double getCgstPrice(double totalPrice) {
+//		double cgstPercentage = setupService.getGstValues().get(ApplicationConstants.cgstKey).intValue();
+//		return (totalPrice * cgstPercentage) / 100;
+//	}
+	
+	private FoodOptions getFoodOptionWithValidation(int id, int foodId) {
+		if(foodId < 1) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_ID);
+		}
+		FoodOptions foodOption = foodOptionsRepository.findIdByIdAndFoodId(id, foodId);
+		if(Objects.isNull(foodOption)){
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_ID);
+		}else if(foodOption.getStatus() != 1) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_STATUS);
+		}
+		return foodOption;
+	}
+	
+	private Foods getFoodWithValidation(int foodId, int restaurantId) {
+		if(foodId < 1) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_ID);
+		}
+		Foods food = foodRepository.findByIdAndRestaurantId(foodId, restaurantId);
+		if(Objects.isNull(food)) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_ID);
+		}
+		if(food.getStatus() != 1) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_STATE);
+		}
+//		TODO - finalize food start and end time format, add food availability at the time condition
+		return food;
 	}
 
 	private static OrderResponseModel convertToOrderResponse(Order order) {
@@ -594,7 +681,9 @@ public class OrderServiceImpl implements OrderService {
 		UserAccount userAccount = order.getUserAccount();
 		orderResponseModel.setUserAccount(
 				BasicUserResponseModel.builder().id(userAccount.getId()).name(userAccount.getName()).build());
-		orderResponseModel.setRestaurantTableId(order.getRestaurantTable().getId());
+		if(Objects.nonNull(order.getRestaurantTable())) {
+			orderResponseModel.setRestaurantTableId(order.getRestaurantTable().getId());
+		}
 		orderResponseModel.setOrderTypeName(order.getType().getName());
 		orderResponseModel.setTotalPrice(order.getTotalPrice());
 		orderResponseModel.setPaidPrice(order.getPaidPrice());

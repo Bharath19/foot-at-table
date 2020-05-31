@@ -20,6 +20,10 @@ public interface FoodRepository extends JpaRepository<Foods, Integer> {
     @Query(value = "SELECT * FROM foods f where f.delete_flag=0 and f.restaurant_id=:id", nativeQuery = true)
     List<Foods> findFoodsByRestaurantId(@Param("id") int id);
     
-    @Query(value = "select * from fooddb.foods  f join fooddb.promotion_food pf on f.id=pf.food_id where f.restaurant_id=:restaurantId order by pf.rank_id", nativeQuery = true)
+    @Query(value = "select * from foods  f join promotion_food pf on f.id=pf.food_id where f.restaurant_id=:restaurantId order by pf.rank_id", nativeQuery = true)
     List<Foods> findPromotionFoods(@Param("restaurantId") int restaurantId);
+    
+    @Query(value = "SELECT * FROM foods f where f.delete_flag=0 and f.id =:id and f.restaurant_id=:restaurantId", nativeQuery = true)
+    Foods findByIdAndRestaurantId(@Param("id") int id, @Param("restaurantId") int restaurantId);
+
 }
