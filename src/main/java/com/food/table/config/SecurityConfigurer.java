@@ -61,7 +61,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                         "/auth/restaurant/login",
                         "/auth/maintenance/signup",
                         "/restaurant/add",
-                        "/restaurant/getStaticValues",
+                        "/restaurant/getStaticValues/",
                         "/auth/customer/verifyotp",
                         "/auth/customer/refreshtoken",
                         "/actuator",

@@ -121,7 +121,7 @@ public class RestaurantController {
 		return ResponseEntity.ok(restaurantGetModel);
 	}
 
-	@ApiOperation(value = "Get static values of restaurant", authorizations = {@Authorization(value = "accessToken")})
+	@ApiOperation(value = "Get static values of restaurant")
 	@GetMapping("/getStaticValues/")
 	public ResponseEntity<DefaultValuesResponse> getDefaultTableValues() {
 		long startTime = System.currentTimeMillis();
