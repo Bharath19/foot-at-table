@@ -1,5 +1,6 @@
 package com.food.table.service;
 
+import com.food.table.dto.Restaurant;
 import com.food.table.dto.UserAccount;
 import com.food.table.model.AuthRequest;
 import com.food.table.model.CustomerAuthRequest;
@@ -10,7 +11,7 @@ public interface CustomUserDetailsService extends UserDetailsService {
 
     void checkAndCreateCustomerUser(CustomerAuthRequest authenticationRequest);
 
-    boolean createRestaurantUser(AuthRequest authRequest);
+    boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant);
 
     String createRefreshToken(long phoneNo);
 
@@ -23,6 +24,8 @@ public interface CustomUserDetailsService extends UserDetailsService {
     UserAccount createEmployeeUser(RestaurantEmployeeRequestModel restaurantEmployeeRequestModel);
 
     boolean changeEmployeeUserStatus(String emailId, String status);
+
+    int getRestaurantIdForUser(String emailId);
 
 
 }
