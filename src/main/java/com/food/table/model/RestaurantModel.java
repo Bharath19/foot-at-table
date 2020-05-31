@@ -1,9 +1,9 @@
 package com.food.table.model;
 
+import lombok.Data;
+
 import java.util.Date;
 import java.util.List;
-
-import lombok.Data;
 
 @Data
 public class RestaurantModel {
@@ -61,4 +61,6 @@ public class RestaurantModel {
 	private List<Integer> dietId;
 	
 	private List<TimingModel> timings;
+
+    private String password;
 }

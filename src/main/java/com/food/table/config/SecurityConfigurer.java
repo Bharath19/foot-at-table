@@ -59,10 +59,12 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/auth/customer/login",
                         "/auth/restaurant/login",
-                        "/auth/restaurant/signup",
                         "/auth/maintenance/signup",
+                        "/restaurant/add",
+                        "/restaurant/getStaticValues",
                         "/auth/customer/verifyotp",
                         "/auth/customer/refreshtoken",
+                        "/actuator",
                         "/swagger-ui.html/**",
                         "/configuration/**",
                         "/swagger-resources/**",

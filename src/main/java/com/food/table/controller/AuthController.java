@@ -1,5 +1,6 @@
 package com.food.table.controller;
 
+import com.food.table.dto.Restaurant;
 import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 import com.food.table.model.*;
@@ -63,14 +64,15 @@ public class AuthController {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_LOGIN);
         }
         final String jwt = jwtUtil.generateToken(authenticationRequest.getUserName());
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        return ResponseEntity.ok(new AuthResponse(jwt, userDetailsService.getRestaurantIdForUser(authenticationRequest.getUserName())));
 
     }
 
+    @Deprecated
     @ApiOperation(value = "Restaurant user signup api")
     @RequestMapping(value = "auth/restaurant/signup", method = RequestMethod.POST)
     public ResponseEntity<String> restaurantSignUp(@RequestBody AuthRequest authenticationRequest) {
-        if (userDetailsService.createRestaurantUser(authenticationRequest)) {
+        if (userDetailsService.createRestaurantUser(authenticationRequest, new Restaurant())) {
             log.info("User created Successfully for Email Id " + authenticationRequest.getUserName());
             return ResponseEntity.ok("User Created Successfully");
         } else {
