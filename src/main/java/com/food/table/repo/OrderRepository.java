@@ -61,7 +61,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 	Page<Order> findByRestaurantAndrestaurantTableAndCreatedAtAndType(int restaurantId, int restaurantTableId,
 			String orderDate, String orderType, Pageable pageable);
 
-	Page<Order> findByRestaurant(int restaurantId, Pageable pageable);
+	Page<Order> findByRestaurantId(int restaurantId, Pageable pageable);
 
 	@Query(value = "Select * from orders o  where o.restaurant_id = :restaurantId DATE(o.created_at)= DATE(:orderDate)", nativeQuery = true)
 	Page<Order> findByRestaurantAndCreatedAt(int restaurantId, String orderDate, Pageable pageable);

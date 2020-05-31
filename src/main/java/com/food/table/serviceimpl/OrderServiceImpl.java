@@ -313,7 +313,7 @@ public class OrderServiceImpl implements OrderService {
 		Pageable pageable = PageRequest.of(from, limit);
 
 		if (orderState == null && orderDate == null) {
-			orderlist = orderRepository.findByRestaurant(restaurantId, pageable);
+			orderlist = orderRepository.findByRestaurantId(restaurantId, pageable);
 		} else if (orderState == null) {
 			orderlist = orderRepository.findByRestaurantAndCreatedAt(restaurantId, SimpleDateUtil.toDate(orderDate),
 					pageable);
