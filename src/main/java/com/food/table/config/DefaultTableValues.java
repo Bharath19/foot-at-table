@@ -1,5 +1,13 @@
 package com.food.table.config;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.food.table.constant.ApplicationConstants;
 import com.food.table.dto.Payments;
 import com.food.table.dto.Seatings;
@@ -11,16 +19,9 @@ import com.food.table.repo.SeatingsRepository;
 import com.food.table.repo.ServiceRepository;
 import com.food.table.repo.SetupRepository;
 import com.food.table.repo.TypesRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-@Component
 public class DefaultTableValues {
 	
 	@Autowired

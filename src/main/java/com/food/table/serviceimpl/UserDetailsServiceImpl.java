@@ -126,7 +126,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                 throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
 
         }
-        generateOtp(authenticationRequest.getPhoneNo());
+        generateOtp(authenticationRequest.getPhoneNo(), userAccount.getId());
     }
 
     @Override
@@ -177,7 +177,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         otpCache.invalidate(phoneNo);
     }
 
-    private void generateOtp(long phoneNo) {
+    private void generateOtp(long phoneNo ,Integer userId) {
         int otp = RandomUtils.nextInt(1001, 9999);
         otpCache = CacheBuilder.newBuilder().
                 expireAfterWrite(5, TimeUnit.MINUTES).build(new CacheLoader<Long, Integer>() {
@@ -186,7 +186,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
             }
         });
         otpCache.put(phoneNo, otp);
-        NotificationModel smsNotification = NotificationModel.builder().notificationText("Your otp is " + otp).notificationType("sms").recipientId(+91 + String.valueOf(phoneNo)).build();
+        NotificationModel smsNotification = NotificationModel.builder().notificationText("Your otp is " + otp).notificationType("sms").userId(userId).build();
         notificationService.publish(smsNotification);
     }
 

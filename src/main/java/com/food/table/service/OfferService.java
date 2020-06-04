@@ -12,9 +12,9 @@ public interface OfferService {
 	
 	public void addoffers(OffersModel offersModel);
 	
-	public List<OfferResponseModel> getCouponsForUser(Integer restaurantId,Integer userId);
+	public List<OfferResponseModel> getCouponsForUser(Integer restaurantId);
 	
 	public ValidateCouponResponse validateCouponsService(ValidateCouponRequest validateCouponRequest);
 	
-	public List<UserOfferMonitorResponse> getUserUsedOffers(Integer userId);
+	public List<UserOfferMonitorResponse> getUserUsedOffers();
 }

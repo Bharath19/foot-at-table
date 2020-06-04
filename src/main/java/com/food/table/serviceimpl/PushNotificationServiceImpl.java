@@ -22,8 +22,10 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.food.table.constant.ApplicationConstants;
+import com.food.table.dto.UserDevice;
 import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
+import com.food.table.repo.UserDeviceRepository;
 import com.food.table.service.PushNotificationService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,8 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
 	@Value("${sns.app.endpointTRN}")
 	private String appEndpointTRN;
+	
+	private UserDeviceRepository userDeviceRepository;
 
 	@Override
 	public String pushNotification(String message, String deviceId) {
@@ -99,12 +103,13 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 						ApplicationErrors.CREATE_ENDPOINT_FAILED);
 			}
 		}
+		storeEndPointArn(deviceToken,endpointArn);
 		return endpointArn;
 	}
 
 	public String registerWithSNS(String deviceToken) {
 
-		String endpointArn = retrieveEndpointArn();
+		String endpointArn = retrieveEndpointArn(deviceToken);
 		boolean updateNeeded = false;
 		boolean createNeeded = (null == endpointArn);
 		if (createNeeded) {
@@ -138,9 +143,23 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 		}
 		return endpointArn;
 	}
+	
 
-	private String retrieveEndpointArn() {
-		return null;
+	private void storeEndPointArn(String deviceToken, String endPointArn) {
+		UserDevice userDevice =	userDeviceRepository.findByDeviceToken(deviceToken);
+		if(userDevice!=null) {
+			userDevice.setEndPointArn(endPointArn);
+			userDeviceRepository.save(userDevice);
+		}
+	}
+	
+	private String retrieveEndpointArn(String deviceToken) {
+		String endPointArn = null;
+		UserDevice userDevice =	userDeviceRepository.findByDeviceToken(deviceToken);
+		if(userDevice!=null) {
+			endPointArn = userDevice.getEndPointArn();
+		}
+		return endPointArn;
 	}
 
 }

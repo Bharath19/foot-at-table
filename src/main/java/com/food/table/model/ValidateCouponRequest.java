@@ -8,9 +8,7 @@ import lombok.Data;
 public class ValidateCouponRequest {
 	
 	
-	private int restaurantId;
-	
-	private int userId;
+	private int restaurantId;	
 	
 	private int orderId;
 	

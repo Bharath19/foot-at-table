@@ -37,6 +37,7 @@ import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.UserOfferRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.OfferService;
+import com.food.table.util.UserUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,7 +65,10 @@ public class OfferServiceImpl implements OfferService {
 
 	@Autowired
 	private OfferMonitorRepository offerMonitorRepository;
-
+	
+	@Autowired
+	private UserUtil userUtil;
+	
 	@Override
 	public void addoffers(OffersModel offersModel) {
 		Offers offers = new Offers();
@@ -142,7 +146,8 @@ public class OfferServiceImpl implements OfferService {
 	}
 
 	@Override
-	public List<OfferResponseModel> getCouponsForUser(Integer restaurantId, Integer userId) {
+	public List<OfferResponseModel> getCouponsForUser(Integer restaurantId) {
+		int userId=userUtil.getCurrentUserId();
 		List<OfferResponseModel> offerResponseModel = new ArrayList<OfferResponseModel>();
 		List<Offers> offers = offerRepository.findallCoupons(OfferStateEnum.getValue(ApplicationConstants.ACTIVE));
 		parseOfferResponse(offerResponseModel, offers);
@@ -159,8 +164,9 @@ public class OfferServiceImpl implements OfferService {
 	@Override
 	public ValidateCouponResponse validateCouponsService(ValidateCouponRequest validateCouponRequest) {
 		OfferMonitor offerMonitor = null;
+		int userId=userUtil.getCurrentUserId();
 		ValidateCouponResponse validateResponse = new ValidateCouponResponse();
-		Optional<UserAccount> useraccount = userRepository.findById(validateCouponRequest.getUserId());
+		Optional<UserAccount> useraccount = userRepository.findById(userId);
 		Optional<Restaurant> restaurant = restaurantRepository.findById(validateCouponRequest.getRestaurantId());
 		Optional<Order> order = orderRepository.findById(validateCouponRequest.getOrderId());
 		double finalAmount = 0;
@@ -199,7 +205,7 @@ public class OfferServiceImpl implements OfferService {
 					for(RestaurantOffers restaurantOffers:restaurantOffer){
 						if ((restaurantOffers.isAllUsers()
 								&& restaurantOffers.getRestaurant().getId() == validateCouponRequest.getRestaurantId())
-								|| (restaurantOffers.getUseraccount().getId() == validateCouponRequest.getUserId()
+								|| (restaurantOffers.getUseraccount().getId() == userId
 										&& restaurantOffers.getRestaurant().getId() == validateCouponRequest
 												.getRestaurantId())) {
 							if (checkDate(currentDate, restaurantOffers.getExpirationDate())
@@ -272,7 +278,8 @@ public class OfferServiceImpl implements OfferService {
 	}
 
 	@Override
-	public List<UserOfferMonitorResponse> getUserUsedOffers(Integer userId) {
+	public List<UserOfferMonitorResponse> getUserUsedOffers() {
+		int userId = userUtil.getCurrentUserId();
 		List<UserOfferMonitorResponse> userOfferMonitorResponse = new ArrayList<UserOfferMonitorResponse>();
 		Optional<UserAccount> useraccount = userRepository.findById(userId);
 		if(useraccount.isPresent()) {

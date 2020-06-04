@@ -11,6 +11,6 @@ public class NotificationModel {
 
 	private String notificationType;
 
-	private String recipientId;
+	private Integer userId;
 
 }

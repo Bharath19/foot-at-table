@@ -47,29 +47,28 @@ public class OfferController {
 	@ApiOperation(value = "Get Coupouns for User", authorizations = {@Authorization(value = "accessToken")})
 	@GetMapping("/users")
 	public ResponseEntity<List<OfferResponseModel>> getCouponsForUser(
-			@RequestParam(value = "restaurantId") Integer restaurantId,
-			@RequestParam(value = "userId") Integer userId) {
-		log.info(" Entering get Coupouns for User : "+userId +" and restaurant Id : "+restaurantId);
-		List<OfferResponseModel> offerResponseModel = offerservice.getCouponsForUser(restaurantId, userId);
-		log.info(" Entering get Coupouns is success for User : "+userId +" and restaurant Id : "+restaurantId);
+			@RequestParam(value = "restaurantId") Integer restaurantId) {
+		log.info(" Entering get Coupouns for restaurant Id : "+restaurantId);
+		List<OfferResponseModel> offerResponseModel = offerservice.getCouponsForUser(restaurantId);
+		log.info(" Entering get Coupouns is success for restaurant Id : "+restaurantId);
 		return ResponseEntity.ok(offerResponseModel);
 	}
 	
 	@ApiOperation(value = "Validate Coupouns for User", authorizations = {@Authorization(value = "accessToken")})
 	@PostMapping("/validateCoupoun")
 	public ResponseEntity<ValidateCouponResponse> validateCoupoun(@RequestBody @Valid ValidateCouponRequest validateCouponRequest) {
-		log.info(" Entering validate Coupouns for User : "+validateCouponRequest.getUserId() +" and restaurant Id : "+validateCouponRequest.getRestaurantId());
+		log.info(" Entering validate Coupouns for User and restaurant Id : "+validateCouponRequest.getRestaurantId());
 		ValidateCouponResponse validateCouponResponse = offerservice.validateCouponsService(validateCouponRequest);
-		log.info(" Entering validate Coupouns is success for User : "+validateCouponRequest.getUserId() +" and restaurant Id : "+validateCouponRequest.getRestaurantId());
+		log.info(" Entering validate Coupouns is success for User and restaurant Id : "+validateCouponRequest.getRestaurantId());
 		return ResponseEntity.ok(validateCouponResponse);
 	}
 	
 	@ApiOperation(value = "Get Used Coupouns for User", authorizations = {@Authorization(value = "accessToken")})
 	@GetMapping("/getRewardsInfo")
-	public ResponseEntity<List<UserOfferMonitorResponse>> getRewardsInfo(@RequestParam(value = "userID") Integer userId) {
-		log.info(" Entering get Used Coupouns for User : "+userId );
-		List<UserOfferMonitorResponse> userOfferResponse=offerservice.getUserUsedOffers(userId);
-		log.info(" Entering get Used Coupouns is success for User : "+userId);
+	public ResponseEntity<List<UserOfferMonitorResponse>> getRewardsInfo() {
+		log.info(" Entering get Used Coupouns for User : ");
+		List<UserOfferMonitorResponse> userOfferResponse=offerservice.getUserUsedOffers();
+		log.info(" Entering get Used Coupouns is success for User : ");
 		return ResponseEntity.ok(userOfferResponse);
 	}
 }
