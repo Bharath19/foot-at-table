@@ -71,6 +71,8 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements OrderService {
 
 	@Autowired
+	UserUtil userUtil;
+	@Autowired
 	OrderRepository orderRepository;
 	@Autowired
 	TypesRepository typeRepository;
@@ -201,7 +203,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		if(userId == 0)
-			userId = userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo()).getId();
+			userId = userUtil.getCurrentUserId().getId();
 		Pageable pageable = PageRequest.of(from, limit);
 		Page<Order> orderlist = null;
 		if (orderState == null && orderDate == null) {
@@ -480,7 +482,7 @@ public class OrderServiceImpl implements OrderService {
 		order.setRestaurant(restaurant.get());
 		
 		if(orderModel.getUserId() == 0){
-			order.setUserAccount(userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo()));
+			order.setUserAccount(userUtil.getCurrentUserId());
 		}else {
 			Optional<UserAccount> user = userRepository.findById(orderModel.getUserId());
 			if (!user.isPresent())

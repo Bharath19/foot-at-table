@@ -147,16 +147,16 @@ public class OfferServiceImpl implements OfferService {
 
 	@Override
 	public List<OfferResponseModel> getCouponsForUser(Integer restaurantId) {
-		int userId=userUtil.getCurrentUserId();
+		UserAccount currentUser = userUtil.getCurrentUserId();
 		List<OfferResponseModel> offerResponseModel = new ArrayList<OfferResponseModel>();
 		List<Offers> offers = offerRepository.findallCoupons(OfferStateEnum.getValue(ApplicationConstants.ACTIVE));
 		parseOfferResponse(offerResponseModel, offers);
 		offers.clear();
 		offers = offerRepository.findallRestaurantCoupons(OfferStateEnum.getValue(ApplicationConstants.ACTIVE),
-				restaurantId, userId);
+				restaurantId, currentUser.getId());
 		parseOfferResponse(offerResponseModel, offers);
 		offers.clear();
-		offers = offerRepository.findallUserCoupons(OfferStateEnum.getValue(ApplicationConstants.ACTIVE), userId);
+		offers = offerRepository.findallUserCoupons(OfferStateEnum.getValue(ApplicationConstants.ACTIVE), currentUser.getId());
 		parseOfferResponse(offerResponseModel, offers);
 		return offerResponseModel;
 	}
@@ -164,14 +164,13 @@ public class OfferServiceImpl implements OfferService {
 	@Override
 	public ValidateCouponResponse validateCouponsService(ValidateCouponRequest validateCouponRequest) {
 		OfferMonitor offerMonitor = null;
-		int userId=userUtil.getCurrentUserId();
+		UserAccount currentUser = userUtil.getCurrentUserId();
 		ValidateCouponResponse validateResponse = new ValidateCouponResponse();
-		Optional<UserAccount> useraccount = userRepository.findById(userId);
 		Optional<Restaurant> restaurant = restaurantRepository.findById(validateCouponRequest.getRestaurantId());
 		Optional<Order> order = orderRepository.findById(validateCouponRequest.getOrderId());
 		double finalAmount = 0;
 		Date currentDate = new Date();
-		if (useraccount.isPresent() && restaurant.isPresent() && order.isPresent()) {
+		if (restaurant.isPresent() && order.isPresent()) {
 			Offers offer = offerRepository.findByOfferCode(validateCouponRequest.getCouponCode());
 			DateTime currentDateTime=new DateTime();
 			long count= offerMonitorRepository.countByCreatedAtBetweenAndOffers(currentDateTime.minusDays(offer.getUsageType()).toDate(), currentDateTime.toDate(), offer);
@@ -180,17 +179,17 @@ public class OfferServiceImpl implements OfferService {
 				if (offer.isAllRestaurant() && offer.isAllUsers()) {
 					finalAmount = calculateOfferAmount(validateCouponRequest, offer);
 					offerMonitor = OfferMonitor.builder().offers(offer).restaurant(restaurant.get())
-							.useraccount(useraccount.get()).order(order.get()).offerType(offer.getOfferType())
+							.useraccount(currentUser).order(order.get()).offerType(offer.getOfferType())
 							.billAmount(validateCouponRequest.getBillAmount()).offerAmount(finalAmount).build();
 				} else if (offer.isAllRestaurant() && !offer.isAllUsers()) {
-					UserOffers useroffers = userOfferRepository.findByUseraccount(useraccount.get());
+					UserOffers useroffers = userOfferRepository.findByUseraccount(currentUser);
 					if (useroffers != null) {
 						if (checkDate(currentDate, useroffers.getExpirationDate())) {
 							finalAmount = calculateOfferAmount(validateCouponRequest, offer);
 							useroffers.setUsageCount(useroffers.getUsageCount()-1);
 							userOfferRepository.save(useroffers);
 							offerMonitor = OfferMonitor.builder().offers(offer).restaurant(restaurant.get())
-									.useraccount(useraccount.get()).order(order.get()).offerType(offer.getOfferType())
+									.useraccount(currentUser).order(order.get()).offerType(offer.getOfferType())
 									.billAmount(validateCouponRequest.getBillAmount()).offerAmount(finalAmount).build();
 						} else {
 							log.error("Offer is expired");
@@ -205,7 +204,7 @@ public class OfferServiceImpl implements OfferService {
 					for(RestaurantOffers restaurantOffers:restaurantOffer){
 						if ((restaurantOffers.isAllUsers()
 								&& restaurantOffers.getRestaurant().getId() == validateCouponRequest.getRestaurantId())
-								|| (restaurantOffers.getUseraccount().getId() == userId
+								|| (restaurantOffers.getUseraccount().getId() == currentUser.getId()
 										&& restaurantOffers.getRestaurant().getId() == validateCouponRequest
 												.getRestaurantId())) {
 							if (checkDate(currentDate, restaurantOffers.getExpirationDate())
@@ -216,7 +215,7 @@ public class OfferServiceImpl implements OfferService {
 								restaurantOfferRepository.save(restaurantOffers);
 								}
 								offerMonitor = OfferMonitor.builder().offers(offer).restaurant(restaurant.get())
-										.useraccount(useraccount.get()).order(order.get()).offerType(offer.getOfferType())
+										.useraccount(currentUser).order(order.get()).offerType(offer.getOfferType())
 										.billAmount(validateCouponRequest.getBillAmount()).offerAmount(finalAmount).build();
 							} else {
 								log.error("Offer is expired");
@@ -279,23 +278,16 @@ public class OfferServiceImpl implements OfferService {
 
 	@Override
 	public List<UserOfferMonitorResponse> getUserUsedOffers() {
-		int userId = userUtil.getCurrentUserId();
+		UserAccount currentUser = userUtil.getCurrentUserId();
 		List<UserOfferMonitorResponse> userOfferMonitorResponse = new ArrayList<UserOfferMonitorResponse>();
-		Optional<UserAccount> useraccount = userRepository.findById(userId);
-		if(useraccount.isPresent()) {
-			List<OfferMonitor> offerMonitor = offerMonitorRepository.findByUseraccount(useraccount.get());
-			offerMonitor.parallelStream().forEach(offer -> {
-				UserOfferMonitorResponse userOffer=new UserOfferMonitorResponse();
-				userOffer.setCreatedAt(offer.getCreatedAt());
-				userOffer.setOfferAmount(offer.getOfferAmount());
-				userOffer.setRestaurantName(offer.getRestaurant().getRestaurantName());
-				userOfferMonitorResponse.add(userOffer);
-			});
-		} else {
-			log.error("Invalid user id for getting offers" + userId);
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
-
-		}
+		List<OfferMonitor> offerMonitor = offerMonitorRepository.findByUseraccount(currentUser);
+		offerMonitor.parallelStream().forEach(offer -> {
+			UserOfferMonitorResponse userOffer=new UserOfferMonitorResponse();
+			userOffer.setCreatedAt(offer.getCreatedAt());
+			userOffer.setOfferAmount(offer.getOfferAmount());
+			userOffer.setRestaurantName(offer.getRestaurant().getRestaurantName());
+			userOfferMonitorResponse.add(userOffer);
+		});
 		return userOfferMonitorResponse;
 	}
 }

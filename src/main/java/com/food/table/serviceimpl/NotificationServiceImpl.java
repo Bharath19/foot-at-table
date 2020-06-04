@@ -68,24 +68,20 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public void addDeviceToken(DeviceRequest deviceRequest) {
-		int userId = userUtil.getCurrentUserId();
-		Optional<UserAccount> userAccount = userRepository.findById(userId);
-		if(userAccount.isPresent()) {
-			UserDevice userDevice = userDeviceRepository.findByUseraccount(userAccount.get());
-			if(userDevice!=null) {
-				userDevice.setDeviceType(deviceRequest.getDeviceType());
-				userDevice.setDeviceToken(deviceRequest.getDeviceToken());
-				userDeviceRepository.save(userDevice);
-			} else {
-				UserDevice userDeviceNew = new UserDevice();
-				userDeviceNew.setUseraccount(userAccount.get());
-				userDeviceNew.setDeviceType(deviceRequest.getDeviceType());
-				userDeviceNew.setDeviceToken(deviceRequest.getDeviceToken());
-				userDeviceRepository.save(userDeviceNew);
-			}
-			
+		UserAccount currentUser = userUtil.getCurrentUserId();
+		UserDevice userDevice = userDeviceRepository.findByUseraccount(currentUser);
+		if(userDevice!=null) {
+			userDevice.setDeviceType(deviceRequest.getDeviceType());
+			userDevice.setDeviceToken(deviceRequest.getDeviceToken());
+			userDeviceRepository.save(userDevice);
+		} else {
+			UserDevice userDeviceNew = new UserDevice();
+			userDeviceNew.setUseraccount(currentUser);
+			userDeviceNew.setDeviceType(deviceRequest.getDeviceType());
+			userDeviceNew.setDeviceToken(deviceRequest.getDeviceToken());
+			userDeviceRepository.save(userDeviceNew);
 		}
-		
+
 	}
 
 }

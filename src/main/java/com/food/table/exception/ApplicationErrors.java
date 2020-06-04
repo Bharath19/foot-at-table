@@ -171,4 +171,6 @@ public class ApplicationErrors {
 	public static final String INVALID_FOOD_STATE = "Food is unavaiable";
 	
 	public static final String INVALID_FOOD_TIME = "Food is unavaiable and it will be avaiable on : ";
+
+	public static final String INVALID_CURRENT_USER = "Invalid user. Please login again";
 }

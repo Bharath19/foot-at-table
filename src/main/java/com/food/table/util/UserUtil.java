@@ -19,16 +19,21 @@ public class UserUtil {
 	@Autowired
 	private UserRepository userRepository;
 
-	public static UserAccount getUserDetails() {
+	public UserAccount getCurrentUserId() {
 		try {
-			return (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			UserAccount userAccount = (UserAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			if(userAccount.getPhoneNo() != null) {
+				userAccount  = userRepository.findUserByPhoneNo(userAccount.getPhoneNo());
+			}else if (userAccount.getEmail() != null){
+				userAccount  = userRepository.findUserByEmailId(userAccount.getEmail());
+			}
+			if(userAccount.getId() != 0) {
+				return userAccount;
+			}
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_CURRENT_USER);
 		}catch (Exception e) {
 			log.info("Error while extracting user from token" + e.getStackTrace());
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_CURRENT_USER);
 		}
-	}
-	
-	public Integer getCurrentUserId() {
-		return userRepository.findUserByPhoneNo(getUserDetails().getPhoneNo()).getId();
 	}
 }

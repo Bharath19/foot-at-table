@@ -34,6 +34,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	private UserUtil userUtil;
 
 	@Override
 	public void addFavoriteRestaurant(int restaurantId) {
@@ -41,17 +44,17 @@ public class UserServiceImpl implements UserService {
 		Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantId);
 		if (!restaurant.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
-		UserAccount userAccount = userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo());
-		List<Restaurant> favoriteRestaurants = userAccount.getFavoriteRestaurants();
+		UserAccount currentUser = userUtil.getCurrentUserId();
+		List<Restaurant> favoriteRestaurants = currentUser.getFavoriteRestaurants();
 		if (favoriteRestaurants == null) {
 			favoriteRestaurants = List.of(restaurant.get());
 		}
 		favoriteRestaurants.add(restaurant.get());
-		userAccount.setFavoriteRestaurants(favoriteRestaurants);
+		currentUser.setFavoriteRestaurants(favoriteRestaurants);
 		try {
-			userRepository.save(userAccount);
+			userRepository.save(currentUser);
 		} catch (DataIntegrityViolationException e) {
-			log.info("Favorite restaurant already mapped to user" + restaurantId+", userId" + userAccount.getId());
+			log.info("Favorite restaurant already mapped to user" + restaurantId+", userId" + currentUser.getId());
 		}
 
 		log.info("Exiting add favorite restaurant " + restaurantId);
@@ -63,12 +66,12 @@ public class UserServiceImpl implements UserService {
 		Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantId);
 		if (!restaurant.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
-		UserAccount userAccount = userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo());
-		List<Restaurant> favoriteRestaurants = userAccount.getFavoriteRestaurants();
+		UserAccount currentUser = userUtil.getCurrentUserId();
+		List<Restaurant> favoriteRestaurants = currentUser.getFavoriteRestaurants();
 		if (favoriteRestaurants != null) {
 			favoriteRestaurants.removeIf(favoriteRestaurant -> favoriteRestaurant.getId() == restaurant.get().getId());
-			userAccount.setFavoriteRestaurants(favoriteRestaurants);
-			userRepository.save(userAccount);
+			currentUser.setFavoriteRestaurants(favoriteRestaurants);
+			userRepository.save(currentUser);
 		} else {
 			log.info("Restaurant not exist " + restaurantId);
 		}
@@ -80,10 +83,10 @@ public class UserServiceImpl implements UserService {
 			int limit) {
 		log.info("Entering get all favorite restaurant from: " + from + " limit : " + limit);
 		Pageable pageable = PageRequest.of(from, limit);
-		UserAccount userAccount = userRepository.findUserByPhoneNo(UserUtil.getUserDetails().getPhoneNo());
+		UserAccount currentUser = userUtil.getCurrentUserId();
 		Page<FavoriteRestaurantModel> favoriteRestaurants = userRepository.findByFavoriteRestaurant(
 				RestaurantStateEnum.getValue(RestaurantStateEnum.getValue(ApplicationConstants.confirmedState)),
-				latitude, longitude, userAccount.getId(), pageable);
+				latitude, longitude, currentUser.getId(), pageable);
 
 		log.info("Exiting get all confirmed restaurant from: " + from + " limit : " + limit + " is success");
 		return favoriteRestaurants.getContent();
