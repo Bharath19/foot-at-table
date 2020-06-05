@@ -49,27 +49,32 @@ public class Order {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Types type;
 
-// TODO need to check whether offerPrice applied to cart price alone or include GST amount
-//	Total (cart price + cgst + sgst) - offerPrice
+//	Total (cart price + cgst + sgst) 
 	@Column(name = "total_price", nullable = false)
-	private double totalPrice;
+	private Double totalPrice;
 
 	@Column(name = "paid_price")
-	private double paidPrice;
+	private Double paidPrice;
 	
-	private double requestedPrice;
+//	Total (cart price + cgst + sgst) - offerPrice
+	@Column(name = "payment_price", nullable = true)
+	private Double paymentPrice;
 	
-	private double cgst;
+	@Column(name = "cgst", nullable = true)
+	private Double cgst;
 	
-	private double sgst;
+	@Column(name = "sgst", nullable = true)
+	private Double sgst;
 	
-	private double offerCode;
+	@Column(name = "offer_code", nullable = true)
+	private String offerCode;
 	
-	private double offerPrice;
+	@Column(name = "offer_price", nullable = true)
+	private Double offerPrice;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "offer_id", referencedColumnName = "id", nullable = true)
-	private Offers offer_id;
+	private Offers offer;
 
 	@Enumerated(EnumType.STRING)
 	private OrderStateEnum state = OrderStateEnum.REQUESTED;

@@ -19,9 +19,4 @@ public class OrderStateModel {
 
 	private List<CartStateModel> carts;
 	
-	@ApiModelProperty(value = "Optional param. It required if user have offer code on BILL_REQUESTED state")
-	private String offerCode;
-	
-	@JsonIgnore
-	private double offerAmount;
 }

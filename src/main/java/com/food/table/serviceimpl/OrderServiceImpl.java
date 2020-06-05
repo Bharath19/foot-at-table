@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,8 +49,11 @@ import com.food.table.model.FoodResponseModel;
 import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
+import com.food.table.model.PaymentDetail;
 import com.food.table.model.RestaurantBasicGetModel;
 import com.food.table.model.RevenueDetailsModel;
+import com.food.table.model.ValidateCouponRequest;
+import com.food.table.model.ValidateCouponResponse;
 import com.food.table.repo.CartRepository;
 import com.food.table.repo.FoodOptionsRepository;
 import com.food.table.repo.FoodRepository;
@@ -58,6 +62,7 @@ import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.RestaurantTableRepository;
 import com.food.table.repo.TypesRepository;
 import com.food.table.repo.UserRepository;
+import com.food.table.service.OfferService;
 import com.food.table.service.OrderService;
 import com.food.table.service.PaymentService;
 import com.food.table.util.SimpleDateUtil;
@@ -90,9 +95,10 @@ public class OrderServiceImpl implements OrderService {
 	UserRepository userRepository;
 	@Autowired
     PaymentService paymentService;
-//	TODO get gst details
-//	@Autowired
-//	SetupService setupService;
+	@Autowired
+	SetupServiceImpl setupServiceImpl;
+	@Autowired
+	private OfferService offerservice;
 	
 	private static final Map<OrderStateEnum, CartStateEnum> orderCartStateMap = Map.ofEntries(
 			entry(OrderStateEnum.COMPLETED, CartStateEnum.COMPLETED),
@@ -145,28 +151,64 @@ public class OrderServiceImpl implements OrderService {
 			}
 		});
 		inProgressOrder.setState(OrderStateEnum.INPROGRESS);
-		inProgressOrder.setTotalPrice(getTotalOrderPrice(inProgressOrder.getCarts()));
+		
+//		update price details
+		final double totalCartPrice = getTotalOrderPrice(inProgressOrder.getCarts());
+		final double cgstPrice = getCgstPrice(totalCartPrice);
+		final double sgstPrice = getSgstPrice(totalCartPrice);
+		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
+		inProgressOrder.setTotalPrice(totalPrice);
+		inProgressOrder.setCgst(cgstPrice);
+		inProgressOrder.setSgst(sgstPrice);
+		inProgressOrder.setPaymentPrice(totalPrice);
+		
 		orderRepository.save(inProgressOrder);
 		return order.get();
 	}
 
 	@Override
-	public Object updateOrderState(OrderStateModel orderStateModel, int orderId) {
-		try {
-			Order order =  orderRepository.save(updateState(orderStateModel, orderRepository.getOne(orderId)));
-//			TODO get offer code and test payment gateway
-//			if(order.getState().equals(OrderStateEnum.BILL_REQUESTED)) {
-//				UserAccount userAccount = order.getUserAccount();
-//				PaymentDetail paymentDetail = PaymentDetail.builder().name(userAccount.getName()).email(userAccount.getEmail())
-//						.phone(userAccount.getPhoneNo().toString()).productInfo(order.getId()+"").amount(order.getTotalPrice()+"").build();
-//				return paymentService.proceedPayment(paymentDetail);
-//			}
-			return order;
-		} catch (EntityNotFoundException e) {
+	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
+		Order order = orderRepository.getOne(orderId);
+		if(Objects.isNull(order)) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
 		}
+		if(order.getType().equals(OrderStateEnum.BILL_REQUESTED)) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_BILL_REQUEST_STATUS);
+		}
+		return orderRepository.save(updateState(orderStateModel, order));
+
 	}
 	
+	@Override
+	public PaymentDetail initiatePayment(int orderId, String couponCode) {
+		Order order =  orderRepository.getOne(orderId); 
+
+		order.setState(OrderStateEnum.BILL_REQUESTED);
+		double offerAmount = 0;
+		ValidateCouponResponse validateCouponResponse = getOfferAmount(couponCode, order);
+		if(Objects.nonNull(validateCouponResponse)) {
+			offerAmount = validateCouponResponse.getOfferAmount();
+			order.setOffer(validateCouponResponse.getOffer());
+			order.setOfferPrice(offerAmount);
+			order.setOfferCode(validateCouponResponse.getOfferCode());
+		}
+		final double totalCartPrice = getTotalOrderPrice(order.getCarts());
+		final double cgstPrice = getCgstPrice(totalCartPrice);
+		final double sgstPrice = getSgstPrice(totalCartPrice);
+		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
+		final double paymentPrice = (totalCartPrice + cgstPrice + sgstPrice) - offerAmount;
+		order.setTotalPrice(totalPrice);
+		order.setCgst(cgstPrice);
+		order.setSgst(sgstPrice);
+		order.setPaymentPrice(paymentPrice);
+
+		UserAccount userAccount = order.getUserAccount();
+		PaymentDetail paymentDetail = PaymentDetail.builder().name(userAccount.getName()).email(userAccount.getEmail())
+				.phone(userAccount.getPhoneNo().toString()).productInfo(order.getId()+"")
+				.amount(order.getPaymentPrice()+"").order(order).build();
+		return paymentService.proceedPayment(paymentDetail);
+	}
+
 	@Override
 	public void updateOrderStateAfterPayment(int orderId, PaymentStatusEnum paymrntState) {
 		Optional<Order> order = orderRepository.findById(orderId);
@@ -504,22 +546,18 @@ public class OrderServiceImpl implements OrderService {
 			cartList.add(convertToDto(cartModel, orderModel));
 		});
 		order.setCarts(cartList);
-
-		order.setTotalPrice(getTotalOrderPrice(cartList));
+		
+//		update price details
+		final double totalCartPrice = getTotalOrderPrice(order.getCarts());
+		final double cgstPrice = getCgstPrice(totalCartPrice);
+		final double sgstPrice = getSgstPrice(totalCartPrice);
+		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
+		order.setTotalPrice(totalPrice);
+		order.setCgst(cgstPrice);
+		order.setSgst(sgstPrice);
+		order.setPaymentPrice(totalPrice);
 		return order;
 	}
-	
-//	TODO improve the price calculation
-//	private Order updatePriceDetails(Order order) {
-//		double totalPrice = getTotalOrderPrice(order.getCarts());
-//		order.setTotalPrice(totalPrice);
-//		double cgstPrice = getCgstPrice(totalPrice);
-//		order.setCgst(cgstPrice);
-//		double sgstPrice = getSgstPrice(totalPrice);
-//		order.setSgst(sgstPrice);
-//		order.setRequestedPrice(totalPrice+cgstPrice+sgstPrice);
-//		return order;
-//	}
 
 	/**
 	 * This method update convert CartModel(POJO) to Cart(Entity) on creation action
@@ -602,13 +640,24 @@ public class OrderServiceImpl implements OrderService {
 		}
 		return cart;
 	}
-
-	/**
-	 * Calculate the total price of the order
-	 * 
-	 * @param carts cart entity object
-	 * @return total price as double
-	 */
+	
+	private ValidateCouponResponse getOfferAmount(String couponCode, Order order) {
+		if(couponCode != null && !couponCode.isBlank()) {
+			ValidateCouponRequest validateCouponRequest = ValidateCouponRequest.builder().restaurantId(order.getRestaurant().getId()).userAccount(order.getUserAccount())
+					.orderId(order.getId()).couponCode(couponCode).billAmount(order.getTotalPrice()).build();
+			try {
+				ValidateCouponResponse validateCouponResponse = offerservice.validateCouponsService(validateCouponRequest);
+				if(validateCouponResponse.getOfferAmount() > 0) {
+					return validateCouponResponse;
+				}
+			}catch(Exception ex) {
+				log.error("Error while get the offer code. Order ID :  "+order.getId()+ "  and error details "  +ex.getStackTrace());
+			}
+			
+		}
+		return null;
+	}
+	
 	private double getTotalOrderPrice(List<Cart> carts) {
 		double totalPrice = 0;
 		for (Cart cart : carts) {
@@ -623,16 +672,15 @@ public class OrderServiceImpl implements OrderService {
 		return totalPrice;
 	}
 	
-//	TODO get gst details
-//	private double getSgstPrice(double totalPrice) {
-//		double sgstPercentage = setupService.getGstValues().get(ApplicationConstants.sgstKey).intValue();
-//		return (totalPrice * sgstPercentage) / 100;
-//	}
-//
-//	private double getCgstPrice(double totalPrice) {
-//		double cgstPercentage = setupService.getGstValues().get(ApplicationConstants.cgstKey).intValue();
-//		return (totalPrice * cgstPercentage) / 100;
-//	}
+	private double getSgstPrice(double totalPrice) {
+		double sgstPercentage = setupServiceImpl.getGstValues().get(ApplicationConstants.sgstKey).intValue();
+		return (totalPrice * sgstPercentage) / 100;
+	}
+
+	private double getCgstPrice(double totalPrice) {
+		double cgstPercentage = setupServiceImpl.getGstValues().get(ApplicationConstants.cgstKey).intValue();
+		return (totalPrice * cgstPercentage) / 100;
+	}
 	
 	private FoodOptions getFoodOptionWithValidation(int id, int foodId) {
 		if(foodId < 1) {
@@ -687,10 +735,15 @@ public class OrderServiceImpl implements OrderService {
 			orderResponseModel.setRestaurantTableId(order.getRestaurantTable().getId());
 		}
 		orderResponseModel.setOrderTypeName(order.getType().getName());
-		orderResponseModel.setTotalPrice(order.getTotalPrice());
-		orderResponseModel.setPaidPrice(order.getPaidPrice());
+		orderResponseModel.setTotalPrice(ObjectUtils.defaultIfNull(order.getTotalPrice(), 0.0d));
+		orderResponseModel.setPaidPrice(ObjectUtils.defaultIfNull(order.getPaidPrice(), 0.0d));
 		orderResponseModel.setState(order.getState());
 		orderResponseModel.setOrderDate(order.getCreatedAt());
+		orderResponseModel.setOfferCode(order.getOfferCode());
+		orderResponseModel.setOfferPrice(ObjectUtils.defaultIfNull(order.getOfferPrice(), 0.0d));
+		orderResponseModel.setPaymentPrice(ObjectUtils.defaultIfNull(order.getPaymentPrice(), 0.0d));
+		orderResponseModel.setCgst(order.getCgst());
+		orderResponseModel.setSgst(order.getSgst());
 
 		List<CartResponseModel> cartResponseList = new ArrayList<CartResponseModel>();
 		order.getCarts().forEach(cart -> {

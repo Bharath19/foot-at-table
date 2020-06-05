@@ -3,8 +3,10 @@ package com.food.table.serviceimpl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -164,7 +166,7 @@ public class OfferServiceImpl implements OfferService {
 	@Override
 	public ValidateCouponResponse validateCouponsService(ValidateCouponRequest validateCouponRequest) {
 		OfferMonitor offerMonitor = null;
-		UserAccount currentUser = userUtil.getCurrentUserId();
+		UserAccount currentUser = ObjectUtils.defaultIfNull(validateCouponRequest.getUserAccount(), userUtil.getCurrentUserId());
 		ValidateCouponResponse validateResponse = new ValidateCouponResponse();
 		Optional<Restaurant> restaurant = restaurantRepository.findById(validateCouponRequest.getRestaurantId());
 		Optional<Order> order = orderRepository.findById(validateCouponRequest.getOrderId());
@@ -172,7 +174,12 @@ public class OfferServiceImpl implements OfferService {
 		Date currentDate = new Date();
 		if (restaurant.isPresent() && order.isPresent()) {
 			Offers offer = offerRepository.findByOfferCode(validateCouponRequest.getCouponCode());
+			if(Objects.isNull(offer)) {
+				log.error("Offer code is not exist");
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_OFFER_CODE);
+			}
 			DateTime currentDateTime=new DateTime();
+			validateResponse.setOffer(offer);
 			long count= offerMonitorRepository.countByCreatedAtBetweenAndOffers(currentDateTime.minusDays(offer.getUsageType()).toDate(), currentDateTime.toDate(), offer);
 			if (offer != null && offer.getMinBillAmount() <= validateCouponRequest.getBillAmount()
 					&& checkDate(currentDate, offer.getExpirationDate()) && count <offer.getUsageCount()) {

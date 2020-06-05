@@ -142,6 +142,8 @@ public class ApplicationErrors {
 	
 	public static final String NOT_ELIGIBLE = "Not eligible for this offer";
 	
+	public static final String INVALID_OFFER_CODE = "Offer code is not exist";
+	
 	public static final String OFFER_EXPIRED = "Offer Expired";
 
 	public static final String INVALID_USER_ID = "Invalid user Id";
@@ -173,4 +175,7 @@ public class ApplicationErrors {
 	public static final String INVALID_FOOD_TIME = "Food is unavaiable and it will be avaiable on : ";
 
 	public static final String INVALID_CURRENT_USER = "Invalid user. Please login again";
+
+	public static final String INVALID_BILL_REQUEST_STATUS = "BILL_REQUEST state not alllowed here";
+
 }

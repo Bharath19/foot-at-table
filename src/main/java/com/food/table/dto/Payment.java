@@ -2,12 +2,15 @@ package com.food.table.dto;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -34,6 +37,9 @@ public class Payment {
 	    private String productInfo;
 	    
 	    private Double amount;
+	    
+	    @OneToOne(cascade = CascadeType.ALL)
+	    private Order order;
 	    
 	    @Enumerated(EnumType.STRING)
 	    private PaymentStatus paymentStatus;

@@ -1,5 +1,8 @@
 package com.food.table.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.food.table.dto.Order;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -26,4 +29,7 @@ public class PaymentDetail {
     private String fUrl;
     
     private String key;
+    
+    @JsonIgnore
+    private Order order;
 }

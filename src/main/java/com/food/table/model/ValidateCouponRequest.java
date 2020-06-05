@@ -2,11 +2,15 @@ package com.food.table.model;
 
 import javax.validation.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.food.table.dto.UserAccount;
+
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class ValidateCouponRequest {
-	
 	
 	private int restaurantId;	
 	
@@ -16,4 +20,7 @@ public class ValidateCouponRequest {
 	private String couponCode;
 	
 	private double billAmount;
+	
+	@JsonIgnore
+	private UserAccount userAccount;
 }

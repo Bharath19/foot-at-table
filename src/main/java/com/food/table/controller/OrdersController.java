@@ -96,6 +96,25 @@ public class OrdersController {
 		log.info("Exiting update order and cart state is success and timetaken : "+(endTime-startTime));
 		return response;
 	}
+	
+	@ApiOperation(value = "Initiate Bil Request for order. Here, order automatically moved to BIL_REQUESTED state", authorizations = {@Authorization(value = "accessToken") })
+	@PutMapping("/initiatePayment/{orderId}")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> billRequest(@PathVariable int orderId,  @RequestParam(value = "couponCode", required = false) String couponCode) {
+		long startTime=System.currentTimeMillis();
+		log.info("Entering initiate bill request starttime : "+startTime);
+		Object object = orderService.initiatePayment(orderId, couponCode);
+		Map<String, Object> responseObject = null;
+		if(object instanceof Order) {
+			responseObject = Collections.singletonMap("OrderId", ((Order)object).getId());
+		}else if (object instanceof PaymentDetail) {
+			responseObject = Collections.singletonMap("paymentDetails", ((PaymentDetail)object));
+		}
+		ResponseEntity<Map<String, Object>> response = new ResponseEntity<Map<String, Object>>(responseObject, HttpStatus.OK);
+		long endTime=System.currentTimeMillis();
+		log.info("Exiting initiate bill request is success and timetaken : "+(endTime-startTime));
+		return response;
+	}
 
 	@ApiOperation(value = "Get Order details by order ID", authorizations = { @Authorization(value = "accessToken") })
 	@GetMapping("/{id}")

@@ -13,6 +13,7 @@ import com.food.table.model.CartModel;
 import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
+import com.food.table.model.PaymentDetail;
 
 @Service
 public interface OrderService {
@@ -23,7 +24,7 @@ public interface OrderService {
 
 //	Order updateOrder(OrderModel orderModel, int orderId);
 
-	Object updateOrderState(OrderStateModel orderModel, int orderId);
+	Order updateOrderState(OrderStateModel orderModel, int orderId);
 
 	List<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from, int limit);
 
@@ -41,5 +42,7 @@ public interface OrderService {
 	Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId);
 
 	void updateOrderStateAfterPayment(int orderId, PaymentStatusEnum paymrntState);
+
+	PaymentDetail initiatePayment(int orderId, String couponCode);
 
 }

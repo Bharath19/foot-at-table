@@ -4,17 +4,28 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
+
 import com.food.table.model.PaymentDetail;
 
+@Service
 public class PaymentUtil {
-	
+		
 	private static final String paymentKey = "as1JZtHP";
 
     private static final String paymentSalt = "bACZe3KkHX";
+    
+//    @Value("${hostname}")
+    String hostname = "http://countrybroot.com/api";
+    
+    String sUrl = hostname+"/payment/payment-response";
 
-    private static final String sUrl = "http://localhost:8080/payment/payment-response";
-
-    private static final String fUrl = "http://localhost:8080/payment/payment-response";
+    String fUrl = hostname+"/payment/payment-response";
 
     public PaymentDetail populatePaymentDetail(PaymentDetail paymentDetail){
         String hashString = "";
@@ -30,8 +41,10 @@ public class PaymentUtil {
         hashString = hashString.replace("txnid", txnId);
         hashString = hashString.replace("amount", paymentDetail.getAmount());
         hashString = hashString.replace("productinfo", paymentDetail.getProductInfo());
-        hashString = hashString.replace("firstname", paymentDetail.getName());
-        hashString = hashString.replace("email", paymentDetail.getEmail());
+//      TODO remove below condition 
+        hashString = hashString.replace("firstname", ObjectUtils.defaultIfNull(paymentDetail.getName(), ""));
+//      TODO remove below condition 
+        hashString = hashString.replace("email", ObjectUtils.defaultIfNull(paymentDetail.getEmail(), ""));
 
         hash = hashCal("SHA-512", hashString);
         paymentDetail.setHash(hash);
