@@ -37,7 +37,7 @@ public class OrderResponseModel {
 
 	private List<CartResponseModel> carts;
 	
-	public double getGstprice() {
+	public double getGst() {
 		return getCgst() + getSgst();
 	}
 

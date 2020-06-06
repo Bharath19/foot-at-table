@@ -316,7 +316,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 				.state(state).tier(tiers.get()).avgPricePerPerson(restaurantModel.getAvgPricePerPerson())
 				.description(restaurantModel.getDescription()).alcoholServed(restaurantModel.getAlcoholServed())
 				.address(address).services(service).seatings(seating).payments(payment).types(type).diets(dietList)
-				.timings(timings).cuisines(cuisines).searchType(searchType).build();
+				.timings(timings).cuisines(cuisines).searchType(searchType).cgst(restaurantModel.getCgst())
+				.sgst(restaurantModel.getSgst()).build();
 
 		return restaurant;
 	}
@@ -376,6 +377,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 		List<Types> types = res.getTypes();
 		List<String> typesName = types.stream().map(m -> m.getName()).collect(Collectors.toList());
 		restaurantGetModel.setTypes(typesName);
+		restaurantGetModel.setCgst(res.getCgst());
+		restaurantGetModel.setSgst(res.getSgst());
 		restaurantGetModels.add(restaurantGetModel);
 	}
 
@@ -494,6 +497,14 @@ public class RestaurantServiceImpl implements RestaurantService {
 		    	}
 		    }
 		    restaurant.setTimings(timings);
+		}
+		
+		if (restaurantModel.getCgst() >= 0 ) {
+			restaurant.setCgst(restaurantModel.getCgst());
+		}
+		
+		if (restaurantModel.getSgst() >= 0 ) {
+			restaurant.setSgst(restaurantModel.getSgst());
 		}
 		return restaurant;
 	}

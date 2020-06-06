@@ -76,27 +76,23 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements OrderService {
 
 	@Autowired
-	UserUtil userUtil;
+	private UserUtil userUtil;
 	@Autowired
-	OrderRepository orderRepository;
+	private OrderRepository orderRepository;
 	@Autowired
-	TypesRepository typeRepository;
+	private TypesRepository typeRepository;
 	@Autowired
-	RestaurantRepository restaurantRepository;
+	private RestaurantRepository restaurantRepository;
 	@Autowired
-	FoodRepository foodRepository;
+	private FoodRepository foodRepository;
 	@Autowired
-	FoodOptionsRepository foodOptionsRepository;
+	private FoodOptionsRepository foodOptionsRepository;
 	@Autowired
-	CartRepository cartRepository;
+	private RestaurantTableRepository restaurantTableRepository;
 	@Autowired
-	RestaurantTableRepository restaurantTableRepository;
+	private UserRepository userRepository;
 	@Autowired
-	UserRepository userRepository;
-	@Autowired
-    PaymentService paymentService;
-	@Autowired
-	SetupServiceImpl setupServiceImpl;
+	private PaymentService paymentService;
 	@Autowired
 	private OfferService offerservice;
 	
@@ -154,8 +150,8 @@ public class OrderServiceImpl implements OrderService {
 		
 //		update price details
 		final double totalCartPrice = getTotalOrderPrice(inProgressOrder.getCarts());
-		final double cgstPrice = getCgstPrice(totalCartPrice);
-		final double sgstPrice = getSgstPrice(totalCartPrice);
+		final double cgstPrice = calculateGST(totalCartPrice, inProgressOrder.getRestaurant().getCgst());
+		final double sgstPrice = calculateGST(totalCartPrice, inProgressOrder.getRestaurant().getSgst());
 		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
 		inProgressOrder.setTotalPrice(totalPrice);
 		inProgressOrder.setCgst(cgstPrice);
@@ -176,7 +172,6 @@ public class OrderServiceImpl implements OrderService {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_BILL_REQUEST_STATUS);
 		}
 		return orderRepository.save(updateState(orderStateModel, order));
-
 	}
 	
 	@Override
@@ -193,8 +188,8 @@ public class OrderServiceImpl implements OrderService {
 			order.setOfferCode(validateCouponResponse.getOfferCode());
 		}
 		final double totalCartPrice = getTotalOrderPrice(order.getCarts());
-		final double cgstPrice = getCgstPrice(totalCartPrice);
-		final double sgstPrice = getSgstPrice(totalCartPrice);
+		final double cgstPrice = calculateGST(totalCartPrice, order.getRestaurant().getCgst());
+		final double sgstPrice = calculateGST(totalCartPrice, order.getRestaurant().getSgst());
 		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
 		final double paymentPrice = (totalCartPrice + cgstPrice + sgstPrice) - offerAmount;
 		order.setTotalPrice(totalPrice);
@@ -534,9 +529,11 @@ public class OrderServiceImpl implements OrderService {
 		
 		if(orderModel.isDineInType() || orderModel.isSelfServiceType()) {
 			Optional<RestaurantTable> restaurantTable = restaurantTableRepository.findByIdAndRestaurantId(orderModel.getRestaurantTableId(), orderModel.getRestaurantId());
-			if (!restaurantTable.isPresent())
+			if (!restaurantTable.isPresent() && orderModel.isDineInType()){
 				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
-			order.setRestaurantTable(restaurantTable.get());
+			}else if(restaurantTable.isPresent()) {
+				order.setRestaurantTable(restaurantTable.get());
+			}
 		}
 
 		order.setState(orderModel.getState());
@@ -549,8 +546,8 @@ public class OrderServiceImpl implements OrderService {
 		
 //		update price details
 		final double totalCartPrice = getTotalOrderPrice(order.getCarts());
-		final double cgstPrice = getCgstPrice(totalCartPrice);
-		final double sgstPrice = getSgstPrice(totalCartPrice);
+		final double cgstPrice = calculateGST(totalCartPrice, restaurant.get().getCgst());
+		final double sgstPrice = calculateGST(totalCartPrice, restaurant.get().getSgst());
 		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
 		order.setTotalPrice(totalPrice);
 		order.setCgst(cgstPrice);
@@ -672,14 +669,8 @@ public class OrderServiceImpl implements OrderService {
 		return totalPrice;
 	}
 	
-	private double getSgstPrice(double totalPrice) {
-		double sgstPercentage = setupServiceImpl.getGstValues().get(ApplicationConstants.sgstKey).intValue();
-		return (totalPrice * sgstPercentage) / 100;
-	}
-
-	private double getCgstPrice(double totalPrice) {
-		double cgstPercentage = setupServiceImpl.getGstValues().get(ApplicationConstants.cgstKey).intValue();
-		return (totalPrice * cgstPercentage) / 100;
+	private double calculateGST(double totalPrice, double gstPercentage) {
+		return (totalPrice * gstPercentage) / 100;
 	}
 	
 	private FoodOptions getFoodOptionWithValidation(int id, int foodId) {

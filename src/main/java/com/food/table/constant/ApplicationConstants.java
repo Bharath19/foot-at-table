@@ -13,12 +13,6 @@ public class ApplicationConstants {
 	public static final List<String> seatings = Arrays.asList("Indoor", "Outdoor");
 
 	public static final List<String> payments = Arrays.asList("Card", "Cash", "UPI", "Paytm", "Gpay", "Phonepe");
-	
-	public static final String sgstKey = "SGST";
-	
-	public static final String cgstKey = "CGST";
-	
-	public static final Map<String, String> defaultSetups = Map.ofEntries(entry(sgstKey, "9"), entry(cgstKey, "9"));
 
     public static final String dineInTypeText = "DineIn";
     

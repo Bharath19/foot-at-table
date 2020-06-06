@@ -28,6 +28,10 @@ public class RestaurantGetModel {
 	private float avgPricePerPerson;
 	
 	private List<TimingModel> timingModel;
+	
+	private double cgst;
+	
+	private double sgst;
 
 }
  

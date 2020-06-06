@@ -36,21 +36,17 @@ public class DefaultTableValues {
 	@Autowired
 	TypesRepository typesRepository;
 	
-	@Autowired
-	SetupRepository setupRepository;
-	
 	@PostConstruct
 	public void init() {
 		List<Payments> payment=paymentsRepository.findAll();
 		List<Seatings> seating=seatingsRepository.findAll();
 		List<Services> service=serviceRepository.findAll();
 		List<Types> type=typesRepository.findAll();
-		List<Setup> setup = setupRepository.findAll();
-		loadDefaultData(payment, seating, service, type, setup);
+		loadDefaultData(payment, seating, service, type);
 	}
 	
 	private void loadDefaultData(List<Payments> payment, List<Seatings> seating, List<Services> service,
-			List<Types> type, List<Setup> setup) {
+			List<Types> type) {
 		
 		if(payment.isEmpty() || payment.size()<=0) {
 			List<String> paymentValue=ApplicationConstants.payments;
@@ -84,14 +80,6 @@ public class DefaultTableValues {
 			typesRepository.saveAll(type);
 		}
 		
-		if(setup.isEmpty() || setup.size()<=0) {
-			Map<String, String> defaultsetups = ApplicationConstants.defaultSetups;
-			List<Setup> setupList = new ArrayList<Setup>();
-			defaultsetups.forEach((k, v) -> {
-				setupList.add(Setup.builder().code(k).value(v).build());
-			});
-			setupRepository.saveAll(setupList);
-		}
 	}
 	
 }
