@@ -33,7 +33,7 @@ public class SmsNotificationServiceImpl implements SmsNotificationService {
 		smsAttributes.put("AWS.SNS.SMS.SMSType",
 				new MessageAttributeValue().withStringValue("Transactional").withDataType("String"));
 		try {
-			PublishResult result = amazonSNS.publish(new PublishRequest().withPhoneNumber(deviceId).withMessage(message)
+			PublishResult result = amazonSNS.publish(new PublishRequest().withPhoneNumber("+91"+deviceId).withMessage(message)
 					.withMessageAttributes(smsAttributes));
 			messageId = result.getMessageId();
 			log.info("sms notification is success for deviceID : " + result.getMessageId());
