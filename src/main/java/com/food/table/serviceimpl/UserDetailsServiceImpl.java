@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,9 +55,11 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     @Override
     public UserAccount loadUserByUsername(String user) throws UsernameNotFoundException {
+        log.info("Entering loadUserByUsername for phoneNo/Email " + user);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserAccount userAccount = userRepository.findUserByEmailId(user);
         if (Objects.isNull(userAccount)) {
+            log.info("No user is found for Email " + user);
             return loadUserByPhoneNo(user, authentication);
         }
         validateUser(userAccount);
@@ -64,6 +67,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     private UserAccount loadUserByPhoneNo(String user, Authentication authentication) {
+        log.info("Entering loadUserByPhoneNo method  for phoneNo " + user);
         if (!NumberUtils.isParsable(user))
             throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.NO_USER_EMAIL_ID);
         UserAccount customerUserAccount = userRepository.findUserByPhoneNo(Long.parseLong(user));
@@ -73,10 +77,19 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                 throw new BadCredentialsException("OTP is invalid");
             UserAccount userAccount = buildUserAccount(customerUserAccount, String.valueOf(otp));
             validateUser(userAccount);
+            UserRole userRole = userRoleRepository.findRoleByName("CUSTOMER");
+            List userRoleList = new LinkedList<>();
+            userRoleList.add(userRole);
+            userAccount.setRoles(userRoleList);
             return userAccount;
         }
         UserAccount userAccount = buildUserAccount(customerUserAccount, StringUtils.EMPTY);
         validateUser(userAccount);
+        UserRole userRole = userRoleRepository.findRoleByName("CUSTOMER");
+        List userRoleList = new LinkedList<>();
+        userRoleList.add(userRole);
+        userAccount.setRoles(userRoleList);
+        log.info("Finished successfully loadUserByPhoneNo method  for phoneNo " + user);
         return userAccount;
     }
 
@@ -106,8 +119,10 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     @Override
     public void checkAndCreateCustomerUser(CustomerAuthRequest authenticationRequest) {
-    	UserAccount userAccount = userRepository.findUserByPhoneNo(authenticationRequest.getPhoneNo());        
+        log.info("Entering checkAndCreateCustomerUser method  for phoneNo " + authenticationRequest.getPhoneNo());
+        UserAccount userAccount = userRepository.findUserByPhoneNo(authenticationRequest.getPhoneNo());
         if (Objects.isNull(userAccount)) {
+            log.info("No User found.Creating new user for phoneNo" + authenticationRequest.getPhoneNo());
             UserRole userRole = userRoleRepository.findRoleByName("CUSTOMER");
             List userRoleList = new LinkedList<>();
             userRoleList.add(userRole);
@@ -120,22 +135,39 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                     .roles(userRoleList)
                     .build());
             savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
-            userAccount = userRepository.save(savedUserAccount);
-            if (Objects.isNull(userAccount))
-                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);        }
+            UserAccount userAccountresponse = userRepository.save(savedUserAccount);
+            if (Objects.isNull(userAccountresponse)) {
+                log.error("Create Customer user failed for phoneNo" + authenticationRequest.getPhoneNo());
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
+            }
+
+        } else {
+            List<UserRole> userRoleList = userAccount.getRoles();
+            List<String> userRoleNameList = userRoleList.stream().map(UserRole::getRoleName).collect(Collectors.toList());
+            if (!userRoleNameList.contains("CUSTOMER")) {
+                UserRole customerRole = userRoleRepository.findRoleByName("CUSTOMER");
+                userRoleList.add(customerRole);
+                userAccount.setRoles(userRoleList);
+                userRepository.save(userAccount);
+
+            }
+        }
         generateOtp(authenticationRequest.getPhoneNo(), userAccount.getId());
     }
 
     @Override
-    public boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant) {
+    public boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant, String userType) {
         List<Restaurant> restaurantList = new ArrayList<>();
         restaurantList.add(restaurant);
         UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
         if (Objects.nonNull(userAccount)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
+            throw new ApplicationException(HttpStatus.CONFLICT, ApplicationErrors.DUPLICATE_EMAIL_USER);
         }
         verifyEmailIdFormat(authRequest.getUserName());
-        UserRole userRole = userRoleRepository.findRoleByName("RESTAURANT_OWNER");
+        UserRole userRole = userRoleRepository.findRoleByName(userType);
+        if (Objects.isNull(userRole)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ROLE);
+        }
         List userRoleList = new LinkedList<>();
         userRoleList.add(userRole);
         UserAccount savedUserAccount = userRepository.save(UserAccount.builder()
@@ -175,6 +207,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     private void generateOtp(long phoneNo ,Integer userId) {
+        log.info("Entering generateOtp for phoneNo: " + phoneNo);
         int otp = RandomUtils.nextInt(1001, 9999);
         otpCache = CacheBuilder.newBuilder().
                 expireAfterWrite(5, TimeUnit.MINUTES).build(new CacheLoader<Long, Integer>() {
@@ -183,15 +216,19 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
             }
         });
         otpCache.put(phoneNo, otp);
+        log.info("OTP Stored in Cache for : " + phoneNo);
         NotificationModel smsNotification = NotificationModel.builder().notificationText("Your otp is " + otp).notificationType("sms").userId(userId).build();
         notificationService.publish(smsNotification);
+        log.info("OTP generated successfully for: " + phoneNo);
     }
 
     @Override
     public boolean createMaintenanceUser(AuthRequest authRequest) {
+        log.info("Entering createMaintenanceUser for email: " + authRequest.getUserName());
         UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
         if (Objects.nonNull(userAccount)) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
+            log.error("Entered email id is already present: " + authRequest.getUserName());
+            throw new ApplicationException(HttpStatus.CONFLICT, ApplicationErrors.DUPLICATE_EMAIL_USER);
         }
         verifyEmailIdFormat(authRequest.getUserName());
         UserRole userRole = userRoleRepository.findRoleByName("ADMIN");
@@ -209,6 +246,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         );
         savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
         userRepository.save(savedUserAccount);
+        log.info("Finished successfully createMaintenanceUser for email: " + authRequest.getUserName());
         return true;
     }
 
@@ -223,7 +261,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         UserAccount userAccount = userRepository.findUserByEmailId(restaurantEmployeeRequestModel.getEmailId());
         if (Objects.nonNull(userAccount)) {
             log.error("EmailId is already present: " + restaurantEmployeeRequestModel.getEmailId());
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.DUPLICATE_EMAIL_USER);
+            throw new ApplicationException(HttpStatus.CONFLICT, ApplicationErrors.DUPLICATE_EMAIL_USER);
         }
         verifyEmailIdFormat(restaurantEmployeeRequestModel.getEmailId());
         UserRole userRole = userRoleRepository.findRoleByName(restaurantEmployeeRequestModel.getRole());
@@ -263,12 +301,19 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     @Override
     public boolean changeEmployeeUserStatus(String emailId, String status) {
+        log.info("Entering changeEmployeeUserStatus for email: " + emailId);
         UserAccount userAccount = userRepository.findUserByEmailId(emailId);
+        if (Objects.isNull(userAccount)) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
+        }
         if (status.equalsIgnoreCase(EmployeeStatusEnum.ACTIVE.getName())) {
             userAccount.setIsEnabled(true);
+            log.info("User enabled for emailId: " + emailId);
         } else {
             userAccount.setIsEnabled(false);
+            log.info("User disabled for emailId: " + emailId);
         }
+        log.info("Finished successfully changeEmployeeUserStatus for email: " + emailId);
         return true;
     }
 
@@ -281,11 +326,15 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     private int getOtpFromCache(long phoneNo) {
+        log.info("Entering getOtpFromCache method  for phoneNo " + phoneNo);
         try {
-            if (Objects.isNull(otpCache))
+            if (Objects.isNull(otpCache)) {
+                log.error("No OTP found for phoneNo  " + phoneNo);
                 throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.OTP_FETCH_FAILED);
+            }
             return otpCache.get(phoneNo);
         } catch (ExecutionException e) {
+            log.error("OTP Fetching failed for phoneNo  " + phoneNo);
             e.printStackTrace();
         }
         return 0;

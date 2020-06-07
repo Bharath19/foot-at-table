@@ -11,7 +11,7 @@ public interface CustomUserDetailsService extends UserDetailsService {
 
     void checkAndCreateCustomerUser(CustomerAuthRequest authenticationRequest);
 
-    boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant);
+    boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant, String userType);
 
     String createRefreshToken(long phoneNo);
 
