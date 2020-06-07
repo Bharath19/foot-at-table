@@ -8,7 +8,6 @@ import com.food.table.service.CustomUserDetailsService;
 import com.food.table.util.JwtUtil;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +72,7 @@ public class AuthController {
     @ApiOperation(value = "Restaurant user signup api")
     @RequestMapping(value = "auth/restaurant/signup", method = RequestMethod.POST)
     public ResponseEntity<String> restaurantSignUp(@RequestBody AuthRequest authenticationRequest) {
-        if (userDetailsService.createRestaurantUser(authenticationRequest, new Restaurant(), StringUtils.EMPTY)) {
+        if (userDetailsService.createRestaurantUser(authenticationRequest, new Restaurant())) {
             log.info("User created Successfully for Email Id " + authenticationRequest.getUserName());
             return ResponseEntity.ok("User Created Successfully");
         } else {

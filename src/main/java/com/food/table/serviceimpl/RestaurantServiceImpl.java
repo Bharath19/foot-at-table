@@ -88,7 +88,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 					ApplicationErrors.ADD_RESTAURANT_FAILED);
 		}
         AuthRequest authRequest = AuthRequest.builder().userName(restaurantModel.getEmailId()).password(restaurantModel.getPassword()).build();
-        userDetailsService.createRestaurantUser(authRequest, savedRestaurant, restaurantModel.getUserType());
+        userDetailsService.createRestaurantUser(authRequest, savedRestaurant);
 		log.info("Exiting add new restaurant is success for : "+restaurantModel.getRestaurantName());
 	}
 

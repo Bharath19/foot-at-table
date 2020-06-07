@@ -63,8 +63,6 @@ public class RestaurantModel {
 	private List<TimingModel> timings;
 
     private String password;
-
-	private String userType;
     
     private double cgst = 9;
     
