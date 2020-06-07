@@ -85,9 +85,6 @@ public class UserAccount implements Serializable, UserDetails {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
-    @OneToOne(mappedBy = "user")
-    private RestaurantEmployee restaurantEmployee;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream().map(role ->
