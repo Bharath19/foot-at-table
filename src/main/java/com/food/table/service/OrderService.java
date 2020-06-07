@@ -41,7 +41,7 @@ public interface OrderService {
 
 	Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId);
 
-	void updateOrderStateAfterPayment(int orderId, PaymentStatusEnum paymrntState);
+	void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState);
 
 	PaymentDetail initiatePayment(int orderId, String couponCode);
 

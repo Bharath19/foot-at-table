@@ -6,9 +6,11 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
@@ -38,7 +40,8 @@ public class Payment {
 	    
 	    private Double amount;
 	    
-	    @OneToOne(cascade = CascadeType.ALL)
+	    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	    @JoinColumn(name = "order_id", referencedColumnName = "id")
 	    private Order order;
 	    
 	    @Enumerated(EnumType.STRING)

@@ -51,7 +51,7 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setMode(paymentResponse.getMode());
             paymentRepository.save(payment);
         }
-        orderService.updateOrderStateAfterPayment(payment.getOrder().getId(), paymentStatusEnum);
+        orderService.updateOrderStateAfterPayment(payment.getOrder(), paymentStatusEnum);
         return paymentStatusEnum.toString();
     }
 
@@ -65,7 +65,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPhone(paymentDetail.getPhone());
         payment.setProductInfo(paymentDetail.getProductInfo());
         payment.setTxnId(paymentDetail.getTxnId());
-        payment.setOrder(payment.getOrder());
+        payment.setOrder(paymentDetail.getOrder());
         paymentRepository.save(payment);
     }
 

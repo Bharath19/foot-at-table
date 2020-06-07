@@ -186,4 +186,10 @@ public class ApplicationErrors {
 
 	public static final String INVALID_FOOD_OPTIONS_STATUS = "Invalid food option status";
 
+	public static final String ALREADY_PAYMENT_COMPLETED = "Payment already completed";
+
+	public static final String ALREADY_ORDER_CLOSED = "Order already closed";
+
+	public static final String PAYMENT_PENDING = "Paymnet not yet completed. unable to proceed further";
+
 }

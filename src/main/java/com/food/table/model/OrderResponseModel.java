@@ -22,10 +22,8 @@ public class OrderResponseModel {
 	private String orderTypeName;
 	@ApiModelProperty(value = "Total order price with GST price")
 	private double totalPrice;
-	@ApiModelProperty(value = "User paied price")
-	private double paidPrice;
 	@ApiModelProperty(value = "Total order price with GST price and offer price")
-	private double paymentPrice;
+	private double paidPrice;
 	private Timestamp orderDate;
 	private String offerCode;
 	private double offerPrice;

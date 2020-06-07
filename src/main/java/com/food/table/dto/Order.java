@@ -16,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -53,12 +54,9 @@ public class Order {
 	@Column(name = "total_price", nullable = false)
 	private Double totalPrice;
 
+//	Total (cart price + cgst + sgst) - offerPrice
 	@Column(name = "paid_price")
 	private Double paidPrice;
-	
-//	Total (cart price + cgst + sgst) - offerPrice
-	@Column(name = "payment_price", nullable = true)
-	private Double paymentPrice;
 	
 	@Column(name = "cgst", nullable = true)
 	private Double cgst;
@@ -91,4 +89,18 @@ public class Order {
 	@JoinColumn(name = "order_id", referencedColumnName = "id")
 	private List<Cart> carts = new ArrayList<Cart>();
 
+	@OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
+    private Payment payment;
+
+	public boolean isCompletedState() {
+		return OrderStateEnum.COMPLETED.equals(this.getState());
+	}
+	
+	public boolean isCancelledState() {
+		return OrderStateEnum.CANCELLED.equals(this.getState());
+	}
+
+	public boolean isClosedState() {
+		return isCompletedState() && isCancelledState();
+	}
 }

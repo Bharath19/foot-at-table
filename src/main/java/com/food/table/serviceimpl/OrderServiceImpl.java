@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.persistence.EntityNotFoundException;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -54,7 +52,6 @@ import com.food.table.model.RestaurantBasicGetModel;
 import com.food.table.model.RevenueDetailsModel;
 import com.food.table.model.ValidateCouponRequest;
 import com.food.table.model.ValidateCouponResponse;
-import com.food.table.repo.CartRepository;
 import com.food.table.repo.FoodOptionsRepository;
 import com.food.table.repo.FoodRepository;
 import com.food.table.repo.OrderRepository;
@@ -156,7 +153,6 @@ public class OrderServiceImpl implements OrderService {
 		inProgressOrder.setTotalPrice(totalPrice);
 		inProgressOrder.setCgst(cgstPrice);
 		inProgressOrder.setSgst(sgstPrice);
-		inProgressOrder.setPaymentPrice(totalPrice);
 		
 		orderRepository.save(inProgressOrder);
 		return order.get();
@@ -164,20 +160,27 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
-		Order order = orderRepository.getOne(orderId);
-		if(Objects.isNull(order)) {
+		Order order = orderRepository.findById(orderId).orElse(null);
+		if(Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-		}
-		if(order.getType().equals(OrderStateEnum.BILL_REQUESTED)) {
+		if(orderStateModel.getState().equals(OrderStateEnum.BILL_REQUESTED))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_BILL_REQUEST_STATUS);
-		}
+		if (order.isClosedState())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);
+		if (orderStateModel.getState().equals(OrderStateEnum.COMPLETED) && !hasPaymentCompleted(order))
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.PAYMENT_PENDING);
 		return orderRepository.save(updateState(orderStateModel, order));
 	}
 	
 	@Override
 	public PaymentDetail initiatePayment(int orderId, String couponCode) {
 		Order order =  orderRepository.getOne(orderId); 
-
+		
+		if (hasPaymentCompleted(order))
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_PAYMENT_COMPLETED);
+		if (order.isClosedState())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);
+		
 		order.setState(OrderStateEnum.BILL_REQUESTED);
 		double offerAmount = 0;
 		ValidateCouponResponse validateCouponResponse = getOfferAmount(couponCode, order);
@@ -195,30 +198,31 @@ public class OrderServiceImpl implements OrderService {
 		order.setTotalPrice(totalPrice);
 		order.setCgst(cgstPrice);
 		order.setSgst(sgstPrice);
-		order.setPaymentPrice(paymentPrice);
+		order.setPaidPrice(paymentPrice);
 
 		UserAccount userAccount = order.getUserAccount();
 		PaymentDetail paymentDetail = PaymentDetail.builder().name(userAccount.getName()).email(userAccount.getEmail())
-				.phone(userAccount.getPhoneNo().toString()).productInfo(order.getId()+"")
-				.amount(order.getPaymentPrice()+"").order(order).build();
+				.phone(userAccount.getPhoneNo() == null ? null : userAccount.getPhoneNo()+"").productInfo(order.getId()+"")
+				.amount(order.getPaidPrice()+"").order(order).build();
 		return paymentService.proceedPayment(paymentDetail);
 	}
 
+	private boolean hasPaymentCompleted(Order order) {
+		return (order.getPaidPrice() != null) && (Objects.nonNull(order.getPayment()));
+	}
+
 	@Override
-	public void updateOrderStateAfterPayment(int orderId, PaymentStatusEnum paymrntState) {
-		Optional<Order> order = orderRepository.findById(orderId);
-		if (!order.isPresent())
+	public void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState) {
+		if (Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-		String orderType = order.get().getType().getName();
+		String orderType = order.getType().getName();
+		OrderStateModel orderStateModel = new OrderStateModel();
 		if(orderType.equals(ApplicationConstants.dineInTypeText) || orderType.equals(ApplicationConstants.selfServiceTypeText)) {
-			OrderStateModel orderStateModel = new OrderStateModel();
 			orderStateModel.setState(OrderStateEnum.COMPLETED);
-			updateOrderState(orderStateModel, orderId);
 		}else {
-			OrderStateModel orderStateModel = new OrderStateModel();
 			orderStateModel.setState(OrderStateEnum.REQUESTED);
-			updateOrderState(orderStateModel, orderId);	
 		}
+		updateOrderState(orderStateModel, order.getId());
 	}
 	
 	@Override
@@ -377,7 +381,6 @@ public class OrderServiceImpl implements OrderService {
 	 * @return order entity object
 	 */
 	private Order updateState(OrderStateModel orderStateModel, Order order) {
-		
 		validateOrderAlreadyClosed(order);
 		
 		if(orderStateModel.getState() != null)
@@ -416,11 +419,11 @@ public class OrderServiceImpl implements OrderService {
 	
 
 	private void validateOrderAlreadyClosed(Order order) {
-		if(order.getState().equals(OrderStateEnum.COMPLETED)) {
+		if(order.isCompletedState()) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_COMPLETED_ORDER_STATE);
 		}
 		
-		if(order.getState().equals(OrderStateEnum.CANCELLED)) {
+		if(order.isCancelledState()) {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_CANCELLED_ORDER_STATE);
 		}
 	}
@@ -552,7 +555,6 @@ public class OrderServiceImpl implements OrderService {
 		order.setTotalPrice(totalPrice);
 		order.setCgst(cgstPrice);
 		order.setSgst(sgstPrice);
-		order.setPaymentPrice(totalPrice);
 		return order;
 	}
 
@@ -732,7 +734,6 @@ public class OrderServiceImpl implements OrderService {
 		orderResponseModel.setOrderDate(order.getCreatedAt());
 		orderResponseModel.setOfferCode(order.getOfferCode());
 		orderResponseModel.setOfferPrice(ObjectUtils.defaultIfNull(order.getOfferPrice(), 0.0d));
-		orderResponseModel.setPaymentPrice(ObjectUtils.defaultIfNull(order.getPaymentPrice(), 0.0d));
 		orderResponseModel.setCgst(order.getCgst());
 		orderResponseModel.setSgst(order.getSgst());
 
