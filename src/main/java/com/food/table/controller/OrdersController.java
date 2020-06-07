@@ -81,17 +81,12 @@ public class OrdersController {
 	@ApiOperation(value = "Here we can update order and cart<one or more> state. If we need to update order state as COMPLETED, SERVED or CANCELLED, respect all the cart states are updated automatically. Otherwise need to update order and cart state separately", authorizations = {@Authorization(value = "accessToken") })
 	@PutMapping("/updateState/{orderId}")
 	@ResponseBody
-	public ResponseEntity<Map<String, Object>> updateOrderState(@PathVariable int orderId, @RequestBody OrderStateModel orderStateModel) {
+	public ResponseEntity<Map<String, Integer>> updateOrderState(@PathVariable int orderId, @RequestBody OrderStateModel orderStateModel) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering update order and cart state starttime : "+startTime);
-		Object object = orderService.updateOrderState(orderStateModel, orderId);
-		Map<String, Object> responseObject = null;
-		if(object instanceof Order) {
-			responseObject = Collections.singletonMap("OrderId", ((Order)object).getId());
-		}else if (object instanceof PaymentDetail) {
-			responseObject = Collections.singletonMap("paymentDetails", ((PaymentDetail)object));
-		}
-		ResponseEntity<Map<String, Object>> response = new ResponseEntity<Map<String, Object>>(responseObject, HttpStatus.OK);
+		Order order = orderService.updateOrderState(orderStateModel, orderId);
+		Map<String, Integer> responseObject = Collections.singletonMap("OrderId", order.getId());;
+		ResponseEntity<Map<String, Integer>> response = new ResponseEntity<Map<String, Integer>>(responseObject, HttpStatus.OK);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting update order and cart state is success and timetaken : "+(endTime-startTime));
 		return response;
@@ -100,17 +95,12 @@ public class OrdersController {
 	@ApiOperation(value = "Initiate Bil Request for order. Here, order automatically moved to BIL_REQUESTED state", authorizations = {@Authorization(value = "accessToken") })
 	@PutMapping("/initiatePayment/{orderId}")
 	@ResponseBody
-	public ResponseEntity<Map<String, Object>> billRequest(@PathVariable int orderId,  @RequestParam(value = "couponCode", required = false) String couponCode) {
+	public ResponseEntity<Map<String, PaymentDetail>> billRequest(@PathVariable int orderId,  @RequestParam(value = "couponCode", required = false) String couponCode) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering initiate bill request starttime : "+startTime);
-		Object object = orderService.initiatePayment(orderId, couponCode);
-		Map<String, Object> responseObject = null;
-		if(object instanceof Order) {
-			responseObject = Collections.singletonMap("OrderId", ((Order)object).getId());
-		}else if (object instanceof PaymentDetail) {
-			responseObject = Collections.singletonMap("paymentDetails", ((PaymentDetail)object));
-		}
-		ResponseEntity<Map<String, Object>> response = new ResponseEntity<Map<String, Object>>(responseObject, HttpStatus.OK);
+		PaymentDetail paymentDeatil = orderService.initiatePayment(orderId, couponCode);
+		Map<String, PaymentDetail> responseObject = Collections.singletonMap("paymentDetails", paymentDeatil);
+		ResponseEntity<Map<String, PaymentDetail>> response = new ResponseEntity<Map<String, PaymentDetail>>(responseObject, HttpStatus.OK);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting initiate bill request is success and timetaken : "+(endTime-startTime));
 		return response;

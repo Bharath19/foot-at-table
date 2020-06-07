@@ -9,25 +9,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.food.table.model.PaymentDetail;
 
-@Service
+@Component
 public class PaymentUtil {
 		
 	private static final String paymentKey = "as1JZtHP";
 
     private static final String paymentSalt = "bACZe3KkHX";
     
-//    @Value("${hostname}")
-    String hostname = "http://countrybroot.com/api";
+    @Value("${hostname}")
+    private String hostname;
     
-    String sUrl = hostname+"/payment/payment-response";
+    private String sUrl = "/payment/payment-response";
 
-    String fUrl = hostname+"/payment/payment-response";
+    private String fUrl = "/payment/payment-response";
 
-    public PaymentDetail populatePaymentDetail(PaymentDetail paymentDetail){
+	public PaymentDetail populatePaymentDetail(PaymentDetail paymentDetail){
         String hashString = "";
         Random rand = new Random();
         String randomId = Integer.toString(rand.nextInt()) + (System.currentTimeMillis() / 1000L);
@@ -48,8 +49,8 @@ public class PaymentUtil {
 
         hash = hashCal("SHA-512", hashString);
         paymentDetail.setHash(hash);
-        paymentDetail.setFUrl(fUrl);
-        paymentDetail.setSUrl(sUrl);
+        paymentDetail.setFUrl(getfUrl());
+        paymentDetail.setSUrl(getsUrl());
         paymentDetail.setKey(paymentKey);
         return paymentDetail;
     }
@@ -75,5 +76,11 @@ public class PaymentUtil {
         return hexString.toString();
     }
 
+    private String getsUrl() {
+    	return hostname+sUrl;
+    }
 
+    private String getfUrl() {
+    	return hostname+fUrl;
+    }
 }

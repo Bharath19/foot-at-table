@@ -23,10 +23,11 @@ public class PaymentServiceImpl implements PaymentService {
     private PaymentRepository paymentRepository;
 	@Autowired
 	private OrderService orderService;
+	@Autowired
+	private PaymentUtil paymentUtil;
 
     @Override
     public PaymentDetail proceedPayment(PaymentDetail paymentDetail) {
-        PaymentUtil paymentUtil = new PaymentUtil();
         paymentDetail = paymentUtil.populatePaymentDetail(paymentDetail);
         savePaymentDetail(paymentDetail);
         return paymentDetail;
