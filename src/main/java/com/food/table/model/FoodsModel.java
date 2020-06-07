@@ -3,6 +3,8 @@ package com.food.table.model;
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodTag;
 import com.food.table.dto.Foods;
+
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +27,8 @@ public class FoodsModel {
     private String endTime;
     private String startTime;
     private Integer sortNo;
-    private String status;
+    @ApiModelProperty(value = "Food status should be active or inactive")
+    private String status = "active";
     private List<FoodOptionMetaModel> extras;
     private List<Integer> tags;
 

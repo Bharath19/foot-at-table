@@ -106,8 +106,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     @Override
     public void checkAndCreateCustomerUser(CustomerAuthRequest authenticationRequest) {
-        UserAccount userAccount = userRepository.findUserByPhoneNo(authenticationRequest.getPhoneNo());
-
+    	UserAccount userAccount = userRepository.findUserByPhoneNo(authenticationRequest.getPhoneNo());        
         if (Objects.isNull(userAccount)) {
             UserRole userRole = userRoleRepository.findRoleByName("CUSTOMER");
             List userRoleList = new LinkedList<>();
@@ -121,11 +120,9 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                     .roles(userRoleList)
                     .build());
             savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
-            UserAccount userAccountresponse = userRepository.save(savedUserAccount);
-            if (Objects.isNull(userAccountresponse))
-                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
-
-        }
+            userAccount = userRepository.save(savedUserAccount);
+            if (Objects.isNull(userAccount))
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);        }
         generateOtp(authenticationRequest.getPhoneNo(), userAccount.getId());
     }
 

@@ -2,6 +2,8 @@ package com.food.table.model;
 
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodOptions;
+
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
@@ -10,7 +12,8 @@ public class FoodOptionsModel {
     public String name;
     public String description;
     public String imageUrl;
-    public String status;
+    @ApiModelProperty(value = "Food Option stauts should be active or inactive")
+    public String status = "active";
     public Integer sortNo;
 
     public static FoodOptionsModel convertDtoToModel(FoodOptions foodOptions) {

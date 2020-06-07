@@ -178,4 +178,12 @@ public class ApplicationErrors {
 
 	public static final String INVALID_BILL_REQUEST_STATUS = "BILL_REQUEST state not alllowed here";
 
+	public static final String INVALID_FOOD_STATUS = "Invalid Food status";
+
+	public static final String INVALID_FOOD_OPTION_META_TYPE = "Invalid extra/foodOptionMetaModels type";
+
+	public static final String INVALID_FOOD_OPTION_META_STATUS = "Invalid extra/foodOptionMetaModels status";
+
+	public static final String INVALID_FOOD_OPTIONS_STATUS = "Invalid food option status";
+
 }

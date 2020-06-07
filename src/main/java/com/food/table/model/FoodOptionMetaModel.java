@@ -3,6 +3,8 @@ package com.food.table.model;
 import com.food.table.constant.FoodOptionType;
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodOptionMeta;
+
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Collections;
@@ -12,12 +14,14 @@ import java.util.stream.Collectors;
 
 @Data
 public class FoodOptionMetaModel {
-    public String type;
-    public String name;
-    public int id;
-    public String description;
-    public String status;
-    public List<FoodOptionsModel> foodOptionsModels;
+    @ApiModelProperty(value = "Food Option Meta type should be single or multiple")
+    private String type = "multiple";
+    private String name;
+    private int id;
+    private String description;
+    @ApiModelProperty(value = "Food Option Meta status should be active or inactive")
+    private String status = "active";
+    private List<FoodOptionsModel> foodOptionsModels;
 
     public static FoodOptionMetaModel convertDtoToModel(FoodOptionMeta foodOptionMeta) {
         Comparator<FoodOptionsModel> compareBySortNo = (FoodOptionsModel foodsModel1, FoodOptionsModel foodsModel2) -> foodsModel1.getSortNo().compareTo(foodsModel2.getSortNo());

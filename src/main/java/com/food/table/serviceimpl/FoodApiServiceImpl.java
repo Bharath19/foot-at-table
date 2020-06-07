@@ -1,5 +1,6 @@
 package com.food.table.serviceimpl;
 
+import com.food.table.constant.FoodOptionType;
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.*;
 import com.food.table.exception.ApplicationErrors;
@@ -137,6 +138,25 @@ public class FoodApiServiceImpl implements FoodApiService {
         List<FoodTag> foodTags = foodTagRepository.findAllById(foodsModel.getTags());
         if (CollectionUtils.isEmpty(foodTags))
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_FOOD_TAGS_ID);
+        if (FoodStatusEnum.getValue(foodsModel.getStatus()) == 0)
+        	throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_STATUS);
+        
+        if (Objects.nonNull(foodsModel.getExtras())) {
+            foodsModel.getExtras().forEach(foodOptionMetaModel -> {
+            	if (FoodOptionType.getValue(foodOptionMetaModel.getType()) == 0) {
+            		throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_META_TYPE);
+            	}
+            	if (FoodStatusEnum.getValue(foodOptionMetaModel.getStatus()) == 0) {
+            		throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTION_META_STATUS);
+            	}
+            	foodOptionMetaModel.getFoodOptionsModels().forEach(foodoption ->{
+            		if (FoodStatusEnum.getValue(foodoption.getStatus()) == 0) {
+                		throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_FOOD_OPTIONS_STATUS);
+                	}
+            	});
+            });
+        }
+
         List<FoodOptionMeta> foodOptionMetaList = foodsModel.getExtras().stream()
                 .map(foodOptionMeta -> FoodOptionMeta.convertModelToDto(foodOptionMeta))
                 .collect(Collectors.toList());
