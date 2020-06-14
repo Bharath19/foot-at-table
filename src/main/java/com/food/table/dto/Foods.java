@@ -21,16 +21,16 @@ public class Foods implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Restaurant restaurant;
     private String name;
     private String description;
     private String imageUrl;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Diets diets;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Cuisines cuisines;
 
     @ManyToMany(cascade = CascadeType.ALL)
@@ -38,7 +38,7 @@ public class Foods implements Serializable {
             , inverseJoinColumns = {@JoinColumn(name = "food_tag_id", referencedColumnName = "id")})
     private List<FoodTag> foodTags;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private FoodCategory foodCategories;
     private double price;
     private String endTime;

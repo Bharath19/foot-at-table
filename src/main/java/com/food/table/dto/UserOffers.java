@@ -3,6 +3,7 @@ package com.food.table.dto;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -34,11 +35,11 @@ public class UserOffers {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private long id;	
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", referencedColumnName = "id")
 	private UserAccount useraccount;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "offers_id", referencedColumnName = "id")
 	private Offers offers;	
 	

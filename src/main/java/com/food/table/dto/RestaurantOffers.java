@@ -35,17 +35,17 @@ public class RestaurantOffers {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private long id;	
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "restaurant_id", referencedColumnName = "id")
 	private Restaurant restaurant;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "offers_id", referencedColumnName = "id")
 	private Offers offers;	
 	
 	private boolean allUsers;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", referencedColumnName = "id")
 	private UserAccount useraccount;
 	

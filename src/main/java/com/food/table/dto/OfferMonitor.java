@@ -3,6 +3,7 @@ package com.food.table.dto;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,19 +33,19 @@ public class OfferMonitor {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private long id;	
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", referencedColumnName = "id")
 	private UserAccount useraccount;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "offers_id", referencedColumnName = "id")
 	private Offers offers;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "restaurant_id", referencedColumnName = "id")
 	private Restaurant restaurant;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "order_id", referencedColumnName = "id")
 	private Order order;
 	

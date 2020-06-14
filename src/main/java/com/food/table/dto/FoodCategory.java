@@ -29,7 +29,7 @@ public class FoodCategory {
 
 	private Integer sortOrder;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Restaurant restaurant;
 	
 	@CreationTimestamp
