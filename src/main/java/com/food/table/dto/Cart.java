@@ -26,6 +26,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.food.table.constant.CartOrderStatus;
 import com.food.table.constant.CartStateEnum;
+import com.food.table.constant.OrderStateEnum;
 
 import lombok.Getter;
 
@@ -74,4 +75,8 @@ public class Cart {
     @Column(name = "order_status", length = 25)
     @Enumerated(EnumType.STRING)
     private CartOrderStatus  OrderStatus = CartOrderStatus.WORK_IN_PROCESS;
+
+	public boolean isCancelledState() {
+		return CartStateEnum.CANCELLED.equals(this.getState());
+	}
 }

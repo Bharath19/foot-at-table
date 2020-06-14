@@ -163,12 +163,14 @@ public class OrderServiceImpl implements OrderService {
 		Order order = orderRepository.findById(orderId).orElse(null);
 		if(Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-		if(orderStateModel.getState().equals(OrderStateEnum.BILL_REQUESTED))
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_BILL_REQUEST_STATUS);
+		if(Objects.nonNull(orderStateModel.getState())) {
+			if( orderStateModel.getState().equals(OrderStateEnum.BILL_REQUESTED))
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_BILL_REQUEST_STATUS);
+			if (orderStateModel.getState().equals(OrderStateEnum.COMPLETED) && !hasPaymentCompleted(order))
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.PAYMENT_PENDING);
+		}
 		if (order.isClosedState())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);
-		if (orderStateModel.getState().equals(OrderStateEnum.COMPLETED) && !hasPaymentCompleted(order))
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.PAYMENT_PENDING);
 		return orderRepository.save(updateState(orderStateModel, order));
 	}
 	
@@ -386,15 +388,17 @@ public class OrderServiceImpl implements OrderService {
 		if(orderStateModel.getState() != null)
 			order.setState(orderStateModel.getState());
 
-		if (orderCartStateMap.containsKey(orderStateModel.getState())) {
+		if (Objects.nonNull(orderStateModel.getState()) && orderCartStateMap.containsKey(orderStateModel.getState())) {
 			HashMap<Integer, Cart> cartMap = new HashMap<Integer, Cart>();
 			order.getCarts().forEach(cart -> cartMap.put(cart.getId(), cart));
 
 			order.getCarts().forEach(cart -> {
-				cart.setState(orderCartStateMap.get(orderStateModel.getState()));
-				if (cartOrderStatusMap.containsKey(orderStateModel.getState())) {
+//				update all the cart state
+				if (!cart.isCancelledState())
+					cart.setState(orderCartStateMap.get(orderStateModel.getState()));
+//				update order state in cart table
+				if (cartOrderStatusMap.containsKey(orderStateModel.getState()) && !cart.isCancelledState())
 					cart.setOrderStatus(cartOrderStatusMap.get(orderStateModel.getState()));
-				}
 				cartMap.put(cart.getId(), cart);
 			});
 
@@ -660,7 +664,7 @@ public class OrderServiceImpl implements OrderService {
 	private double getTotalOrderPrice(List<Cart> carts) {
 		double totalPrice = 0;
 		for (Cart cart : carts) {
-			if (!(cart.getState().equals(CartStateEnum.CANCELLED))) {
+			if (!cart.isCancelledState()) {
 				totalPrice += cart.getPrice();
 				if(cart.getCartFoodOptions() != null)
 					for(CartFoodOptions cartFoodOption: cart.getCartFoodOptions()) {
