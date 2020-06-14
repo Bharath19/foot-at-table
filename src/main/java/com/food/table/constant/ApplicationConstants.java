@@ -1,10 +1,7 @@
 package com.food.table.constant;
 
-import static java.util.Map.entry;
-
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class ApplicationConstants {
 

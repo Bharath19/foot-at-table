@@ -1,5 +1,6 @@
 package com.food.table.serviceimpl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
 		UserAccount currentUser = userUtil.getCurrentUserId();
 		List<Restaurant> favoriteRestaurants = currentUser.getFavoriteRestaurants();
 		if (favoriteRestaurants == null) {
-			favoriteRestaurants = List.of(restaurant.get());
+			favoriteRestaurants = Collections.singletonList(restaurant.get());
 		}
 		favoriteRestaurants.add(restaurant.get());
 		currentUser.setFavoriteRestaurants(favoriteRestaurants);

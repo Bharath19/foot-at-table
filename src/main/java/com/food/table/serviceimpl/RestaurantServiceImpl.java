@@ -15,6 +15,9 @@ import com.food.table.service.RestaurantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.util.SloppyMath;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,6 +80,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 
 	@Override
+	@Caching( evict = {
+			@CacheEvict("allConfirmedRestaurant"),
+			@CacheEvict("allDraftedRestaurant"),
+			@CacheEvict("getRestaurantTimings")
+	})
 	public void addRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering add new restaurant for : "+restaurantModel.getRestaurantName());
 		Restaurant restaurant = parseRestaurantValue(restaurantModel);
@@ -94,6 +102,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Caching( evict = {
+			@CacheEvict("allConfirmedRestaurant"),
+			@CacheEvict("allDraftedRestaurant"),
+			@CacheEvict("getRestaurantTimings")
+	})
 	public void deleteRestaurant(int id) {
 		log.info("Entering delete restaurant for : "+id);
 		Optional<Restaurant> restaurant = restaurantepository.findById(id);
@@ -112,6 +125,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "allConfirmedRestaurant")
 	public List<RestaurantGetModel> getAllRestaurant(int from, int limit, String latitude, String longitude,
 			String km) {
 		log.info("Entering get all confirmed restaurant from: "+from +" limit : "+limit);
@@ -136,6 +150,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "allDraftedRestaurant")
 	public List<RestaurantGetModel> getAllDraftedRestaurant(int from, int limit) {
 		log.info("Entering get all drafted restaurant from: "+from +" limit : "+limit);
 		Page<Restaurant> restaurants = null;
@@ -146,6 +161,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Caching( evict = {
+			@CacheEvict("allConfirmedRestaurant"),
+			@CacheEvict("allDraftedRestaurant"),
+			@CacheEvict("defaultTableValues")
+	})
 	public void updateRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering update restaurant for : "+restaurantModel.getId());
 		int id = restaurantModel.getId();
@@ -166,6 +186,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "restaurantByName", key = "restaurantName")
 	public List<RestaurantGetModel> getRestaurantByRestaurantName(String restaurantName, int from, int limit,
 			String latitude, String longitude) {
 		log.info("Entering get restaurant by name : "+restaurantName);
@@ -234,6 +255,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "defaultTableValues")
 	public DefaultValuesResponse getDefaultTableValues() {
 		log.info("Entering get default values for all restaurant ");
 		DefaultValuesResponse defaultValuesResponse = new DefaultValuesResponse();
@@ -517,6 +539,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Caching( evict = {
+			@CacheEvict("allConfirmedRestaurant"),
+			@CacheEvict("allDraftedRestaurant"),
+			@CacheEvict("getRestaurantTimings")
+	})
 	public void updateStateAndStatus(int id, RestaurantUpdateRequest restaurantUpdateRequest) {
 		Optional<Restaurant> restaurant = restaurantepository.findById(id);
 		if (restaurant.isPresent()) {
@@ -548,6 +575,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getRestaurantTimings", key = "restaurantId")
 	public List<TimingModel> getRestaurantTimings(int restaurantId) {
 		Optional<Restaurant> restaurant = restaurantepository.findById(restaurantId);
 		List<TimingModel> timingsModel = new ArrayList<TimingModel>();
