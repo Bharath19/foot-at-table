@@ -35,4 +35,6 @@ public interface RestaurantService {
 	public void updateStateAndStatus(int id, RestaurantUpdateRequest restaurantUpdateRequest);
 
 	public List<TimingModel> getRestaurantTimings(int restaurantId);
+	
+	public RestaurantGetModel getRestaurantById(int restaurantId);
 }

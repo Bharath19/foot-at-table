@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -558,6 +559,20 @@ public class RestaurantServiceImpl implements RestaurantService {
 			timingsModel=timings.parallelStream().map(data -> new TimingModel(data.getDay(), data.getOpeningTime(), data.getClosingTime())).collect(Collectors.toList());
 		}
 		return timingsModel;
+	}
+
+	@Override
+	public RestaurantGetModel getRestaurantById(int restaurantId) {
+		RestaurantGetModel restaurantGetModel = null;
+		Optional<Restaurant> restaurant = restaurantepository.findById(restaurantId);
+		if(restaurant.isPresent()) {
+			List<RestaurantGetModel> restaurantGetModels =parseGetAllRestaurant(Arrays.asList(restaurant.get()), null, null);
+			restaurantGetModel=restaurantGetModels.get(0);
+		}else {
+			log.error("Invalid restaurant id for get restaurant details" + restaurantId);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
+		}
+		return restaurantGetModel;
 	}
 
 }

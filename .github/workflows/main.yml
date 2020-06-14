@@ -23,6 +23,19 @@ jobs:
           java-version: "11"
       - name: Build Docker Image
         run: mvn package
+        env:
+          DATASOURCE_URL: ${{ secrets.DEV_DATASOURCE_URL }}
+          DATASOURCE_USERNAME: ${{ secrets.DEV_DATASOURCE_USERNAME }}
+          DATASOURCE_PASSWORD: ${{ secrets.DEV_DATASOURCE_PASSWORD }}
+          AWS_ACCESS_KEY: ${{ secrets.DEV_AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.DEV_AWS_SECRET_KEY }}
+          S3_BUCKET_NAME: ${{ secrets.DEV_S3_BUCKET_NAME }}
+          AWS_REGION: ${{ secrets.DEV_AWS_REGION }}
+          MAIL_USERNAME: ${{ secrets.DEV_MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.DEV_MAIL_PASSWORD }}
+          SNS_TOPIC_ARN: ${{ secrets.DEV_SNS_TOPIC_ARN }}
+          SNS_ENDPOINT_ARN: ${{ secrets.DEV_SNS_ENDPOINT_ARN }}
+          APP_SECRET_KEY: ${{ secrets.DEV_APP_SECRET_KEY }}
       - name: Publish to Docker Hub
         run: |
           docker login --username=${{ secrets.TREESCALE_USERNAME }} --password=${{ secrets.TREESCALE_PASSWORD }}
