@@ -8,6 +8,10 @@ import com.food.table.repo.TiersRepository;
 import com.food.table.service.TierApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +27,7 @@ public class TierApiServiceImpl implements TierApiService {
     final TiersRepository  tiersRepository;
 
     @Override
+    @Cacheable(cacheNames = "getAllTiers")
     public List<TiersModel> getAll() {
          return tiersRepository.findAll().stream().map(tier->{
             return TiersModel.convertDtoToModel(tier);
@@ -30,6 +35,7 @@ public class TierApiServiceImpl implements TierApiService {
     }
 
     @Override
+    @Cacheable(cacheNames = "getTierById",key = "#id")
     public TiersModel getById(long id) {
         Optional<Tiers> tiers = tiersRepository.findById(id);
         checkExistence(tiers);
@@ -37,6 +43,7 @@ public class TierApiServiceImpl implements TierApiService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "getAllTiers" )
     public TiersModel insertTier(TiersModel tiersModel) {
         Tiers tiers = tiersRepository.save(Tiers.convertModelToDto(tiersModel));
         if (Objects.isNull(tiers))
@@ -45,6 +52,10 @@ public class TierApiServiceImpl implements TierApiService {
     }
 
     @Override
+    @Caching(put = {
+    		@CachePut(cacheNames = "getAllTiers" , key ="#tiersModel.id"),
+    		@CachePut(cacheNames = "getTierById" , key ="#tiersModel.id")
+    })
     public TiersModel updateTierById(long id, TiersModel tiersModel) {
         Optional<Tiers> tiers = tiersRepository.findById(id);
         checkExistence(tiers);

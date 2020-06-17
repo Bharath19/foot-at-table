@@ -5,6 +5,7 @@ import com.food.table.repo.FoodTagRepository;
 import com.food.table.service.FoodTagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class FoodTagServiceImpl implements FoodTagService {
     final FoodTagRepository foodTagRepository;
 
     @Override
+    @Cacheable(cacheNames = "getAllFoodTagModel")
     public List<FoodTagModel> getAll() {
         return foodTagRepository.findAll().stream().map(FoodTagModel::convertDtoToModel).collect(Collectors.toList());
     }

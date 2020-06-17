@@ -11,6 +11,10 @@ import com.food.table.repo.RestaurantRepository;
 import com.food.table.service.FoodCategoriesService;
 import com.food.table.util.AuthorityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,7 @@ public class FoodCategoriesServiceImpl implements FoodCategoriesService{
 	AuthorityUtil authorityUtil;
 
 	@Override
+	@Cacheable(cacheNames = "getFoodCategories")
 	public List<FoodCategoriesModel> getFoodCategories() {
 		List<FoodCategoriesModel> foodCategoryResponse = new ArrayList<FoodCategoriesModel>();
 		List<FoodCategory> foodCategories = foodCategoryRepository.findAll();
@@ -44,6 +49,7 @@ public class FoodCategoriesServiceImpl implements FoodCategoriesService{
 	}
 
 	@Override
+	@CacheEvict(cacheNames = "getFoodCategories")
 	public FoodCategoriesModel addNewFoodCategories(FoodCategoriesModel newFoodCategory) {
 		Optional<Restaurant> restaurant = restaurantRepository.findById(newFoodCategory.getRestaurantId());
 		if (!restaurant.isPresent())
@@ -60,6 +66,7 @@ public class FoodCategoriesServiceImpl implements FoodCategoriesService{
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getFoodCategoryById", key = "#foodCategoryId")
 	public FoodCategoriesModel getFoodCategoryById(int foodCategoryId) {
 		Optional<FoodCategory> foodCategory = foodCategoryRepository.findById(foodCategoryId);
 		Optional<Restaurant> restaurant = restaurantRepository.findById(foodCategory.get().getRestaurant().getId());
@@ -74,6 +81,10 @@ public class FoodCategoriesServiceImpl implements FoodCategoriesService{
 	}
 
 	@Override
+	@Caching(put = {
+			@CachePut(cacheNames = "getFoodCategoryById", key = "#foodCategoryId"),
+			@CachePut(cacheNames = "getFoodCategories", key = "foodCategoriesModel.foodCategoryId")
+	})
 	public FoodCategoriesModel updateFoodCategoryById(int foodCategoryId, FoodCategoriesModel foodCategoryRequest) {
 		Optional<Restaurant> restaurant = restaurantRepository.findById(foodCategoryRequest.getRestaurantId());
 		if (!restaurant.isPresent())

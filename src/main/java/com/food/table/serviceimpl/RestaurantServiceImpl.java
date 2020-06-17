@@ -1,21 +1,16 @@
 package com.food.table.serviceimpl;
 
-import com.food.table.constant.ApplicationConstants;
-import com.food.table.constant.RestaurantStateEnum;
-import com.food.table.constant.RestaurantStatusEnum;
-import com.food.table.dto.*;
-import com.food.table.email.EmailModel;
-import com.food.table.email.EmailService;
-import com.food.table.exception.ApplicationErrors;
-import com.food.table.exception.ApplicationException;
-import com.food.table.model.*;
-import com.food.table.repo.*;
-import com.food.table.service.CustomUserDetailsService;
-import com.food.table.service.RestaurantService;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.lucene.util.SloppyMath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -24,12 +19,49 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.food.table.constant.ApplicationConstants;
+import com.food.table.constant.RestaurantStateEnum;
+import com.food.table.constant.RestaurantStatusEnum;
+import com.food.table.dto.Account;
+import com.food.table.dto.Address;
+import com.food.table.dto.Cuisines;
+import com.food.table.dto.Diets;
+import com.food.table.dto.Payments;
+import com.food.table.dto.Restaurant;
+import com.food.table.dto.SearchType;
+import com.food.table.dto.Seatings;
+import com.food.table.dto.Services;
+import com.food.table.dto.Tiers;
+import com.food.table.dto.Timings;
+import com.food.table.dto.Types;
+import com.food.table.email.EmailModel;
+import com.food.table.email.EmailService;
+import com.food.table.exception.ApplicationErrors;
+import com.food.table.exception.ApplicationException;
+import com.food.table.model.AddressModel;
+import com.food.table.model.AuthRequest;
+import com.food.table.model.BaseModel;
+import com.food.table.model.DefaultValuesResponse;
+import com.food.table.model.RestaurantGetModel;
+import com.food.table.model.RestaurantModel;
+import com.food.table.model.RestaurantUpdateRequest;
+import com.food.table.model.TimingModel;
+import com.food.table.repo.AccountRepository;
+import com.food.table.repo.AddressRepository;
+import com.food.table.repo.CuisinesRepository;
+import com.food.table.repo.DietRepository;
+import com.food.table.repo.PaymentsRepository;
+import com.food.table.repo.RestaurantRepository;
+import com.food.table.repo.SearchTypeRepository;
+import com.food.table.repo.SeatingsRepository;
+import com.food.table.repo.ServiceRepository;
+import com.food.table.repo.TiersRepository;
+import com.food.table.repo.TimingRepository;
+import com.food.table.repo.TypesRepository;
+import com.food.table.service.CustomUserDetailsService;
+import com.food.table.service.RestaurantService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -79,12 +111,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 
 
-	@Override
-	@Caching( evict = {
-			@CacheEvict("allConfirmedRestaurant"),
-			@CacheEvict("allDraftedRestaurant"),
-			@CacheEvict("getRestaurantTimings")
-	})
+	@Override	
 	public void addRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering add new restaurant for : "+restaurantModel.getRestaurantName());
 		Restaurant restaurant = parseRestaurantValue(restaurantModel);
@@ -103,9 +130,10 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Override
 	@Caching( evict = {
-			@CacheEvict("allConfirmedRestaurant"),
-			@CacheEvict("allDraftedRestaurant"),
-			@CacheEvict("getRestaurantTimings")
+			@CacheEvict(cacheNames = "allConfirmedRestaurant",allEntries = true),
+			@CacheEvict(cacheNames = "allDraftedRestaurant",allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantTimings",allEntries = true),
+			@CacheEvict(cacheNames = "restaurantByName",allEntries = true)
 	})
 	public void deleteRestaurant(int id) {
 		log.info("Entering delete restaurant for : "+id);
@@ -161,10 +189,12 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	@Caching( evict = {
-			@CacheEvict("allConfirmedRestaurant"),
-			@CacheEvict("allDraftedRestaurant"),
-			@CacheEvict("defaultTableValues")
+	@Caching(put = {
+			@CachePut(cacheNames = "allDraftedRestaurant", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "allConfirmedRestaurant", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "getRestaurantTimings", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "getRestaurantById", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "restaurantByName", key ="#restaurantModel.id")
 	})
 	public void updateRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering update restaurant for : "+restaurantModel.getId());
@@ -186,7 +216,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "restaurantByName", key = "restaurantName")
+	@Cacheable(cacheNames = "restaurantByName", key = "#restaurantName")
 	public List<RestaurantGetModel> getRestaurantByRestaurantName(String restaurantName, int from, int limit,
 			String latitude, String longitude) {
 		log.info("Entering get restaurant by name : "+restaurantName);
@@ -539,11 +569,12 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	@Caching( evict = {
-			@CacheEvict("allConfirmedRestaurant"),
-			@CacheEvict("allDraftedRestaurant"),
-			@CacheEvict("getRestaurantTimings")
-	})
+	@Caching(put = {
+			@CachePut(cacheNames = "allDraftedRestaurant", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "allConfirmedRestaurant", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "getRestaurantById", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "restaurantByName", key ="#restaurantModel.id")
+	})	
 	public void updateStateAndStatus(int id, RestaurantUpdateRequest restaurantUpdateRequest) {
 		Optional<Restaurant> restaurant = restaurantepository.findById(id);
 		if (restaurant.isPresent()) {
@@ -575,7 +606,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	@Cacheable(cacheNames = "getRestaurantTimings", key = "restaurantId")
+	@Cacheable(cacheNames = "getRestaurantTimings", key = "#restaurantId")
 	public List<TimingModel> getRestaurantTimings(int restaurantId) {
 		Optional<Restaurant> restaurant = restaurantepository.findById(restaurantId);
 		List<TimingModel> timingsModel = new ArrayList<TimingModel>();
@@ -590,6 +621,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getRestaurantById", key = "#restaurantId")
 	public RestaurantGetModel getRestaurantById(int restaurantId) {
 		RestaurantGetModel restaurantGetModel = null;
 		Optional<Restaurant> restaurant = restaurantepository.findById(restaurantId);

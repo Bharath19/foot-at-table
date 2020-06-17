@@ -158,12 +158,12 @@ public class RestaurantController {
 	}
 	
 	@ApiOperation(value = "Get restaurant details", authorizations = {@Authorization(value = "accessToken")})
-	@PutMapping("/restaurant/{id}")
-	public ResponseEntity<RestaurantGetModel> getRestaurantById(@PathVariable(required = true) int id) {
+	@GetMapping("/{restaurantId}")
+	public ResponseEntity<RestaurantGetModel> getRestaurantById(@PathVariable(required = true) int restaurantId) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering get timings for restaurant starttime : "+startTime);
 		long endTime=System.currentTimeMillis();
-		RestaurantGetModel restaurantGetModel = restaurantService.getRestaurantById(id);
+		RestaurantGetModel restaurantGetModel = restaurantService.getRestaurantById(restaurantId);
 		log.info("Exiting  get timings for restaurant is success and timetaken : "+(endTime-startTime));
 		return ResponseEntity.ok(restaurantGetModel);
 		

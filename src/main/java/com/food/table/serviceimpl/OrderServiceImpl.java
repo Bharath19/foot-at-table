@@ -13,6 +13,10 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -125,6 +129,13 @@ public class OrderServiceImpl implements OrderService {
 //	}
 
 	@Override
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (!order.isPresent())
@@ -159,6 +170,13 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
 		Order order = orderRepository.findById(orderId).orElse(null);
 		if(Objects.isNull(order))
@@ -175,6 +193,13 @@ public class OrderServiceImpl implements OrderService {
 	}
 	
 	@Override
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public PaymentDetail initiatePayment(int orderId, String couponCode) {
 		Order order =  orderRepository.getOne(orderId); 
 		
@@ -214,6 +239,13 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState) {
 		if (Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
@@ -228,6 +260,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 	
 	@Override
+	@Cacheable(cacheNames = "getOrderById" , key = "#orderId")
 	public OrderResponseModel getOrderById(int orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (!order.isPresent())
@@ -236,6 +269,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getOrderByUserId", key = "#userId")
 	public ArrayList<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from,
 			int limit) {
 		try {
@@ -266,6 +300,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getBasicRevenue", key = "#restaurantId")
 	public BasicRevenueModel getBasicRevenue(int restaurantId, Date orderDate) {
 		List<RevenueDetailsModel> revenueDetails = orderRepository.findRevenueDetais(restaurantId,
 				SimpleDateUtil.toDate(orderDate), OrderStateEnum.COMPLETED.toString());
@@ -277,6 +312,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getOrderByOrderTypeName")
 	public List<OrderResponseModel> getOrderByOrderTypeName(int restaurantId, List<String> orderTypes,
 			List<String> orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
@@ -310,6 +346,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getOrderByRestaurantTableIdAndType")
 	public List<OrderResponseModel> getOrderByRestaurantTableIdAndType(int restaurantId, int restaurantTableId,
 			String orderType, List<String> orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
@@ -344,6 +381,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = "getOrderByRestaurantId", key = "#restaurantId")
 	public List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, List<String> orderState, Date orderDate,
 			int from, int limit) {
 		Page<Order> orderlist = null;

@@ -13,6 +13,10 @@ import com.food.table.util.AuthorityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -49,12 +53,14 @@ public class FoodApiServiceImpl implements FoodApiService {
     }
 
     @Override
+    @Cacheable( cacheNames = "getAllFoods")
     public List<FoodsModel> getAll() {
         List<FoodsModel> foodList = foodRepository.findAllFood().stream().map(FoodsModel::convertDtoToModel).collect(Collectors.toList());
         return foodList;
     }
 
     @Override
+    @Cacheable( cacheNames = "getFoodById" , key ="#id")
     public FoodsModel getById(int id) {
         Foods food = foodRepository.findFoodById(id);
         checkRecordNotFoundException(food);
@@ -72,7 +78,9 @@ public class FoodApiServiceImpl implements FoodApiService {
         return true;
     }
 
-    @Override
+    @Override    
+    @CachePut(cacheNames = "getFoodById" , key = "#id")
+    @CacheEvict(cacheNames = "getAllFoods" ,allEntries = true)    
     public FoodsModel updateById(int id, FoodsModel foodsModel) {
         Foods foods = foodRepository.findFoodById(id);
         checkRecordNotFoundException(foods);
@@ -81,6 +89,7 @@ public class FoodApiServiceImpl implements FoodApiService {
     }
 
     @Override
+    @Cacheable(cacheNames = "getFoodsByRestaurantId" , key = "#restaurantId")
     public List<FoodsRestaurantModel> getFoodsByRestaurantId(int restaurantId) {
         List<Foods> foodsList = foodRepository.findFoodsByRestaurantId(restaurantId);
         if (CollectionUtils.isEmpty(foodsList))
@@ -108,6 +117,11 @@ public class FoodApiServiceImpl implements FoodApiService {
     }
 
 	@Override
+	@CachePut(cacheNames = "getFoodById" , key = "#id")
+	@Caching( evict = {
+			 @CacheEvict(cacheNames = "getAllFoods" ,allEntries = true) ,
+			 @CacheEvict(cacheNames = "getFoodsByRestaurantId" ,allEntries = true) 
+	})   
 	public boolean updateStatus(int id, String status) {
 		try {
 	        Foods food = foodRepository.findFoodById(id);

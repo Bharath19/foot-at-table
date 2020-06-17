@@ -8,6 +8,9 @@ import com.food.table.repo.CuisinesRepository;
 import com.food.table.service.CuisinesApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +26,13 @@ public class CuisinesApiServiceImpl implements CuisinesApiService {
     final CuisinesRepository cusinesRepository;
 
     @Override
+    @Cacheable(cacheNames = "getAllCuisines")
     public List<CuisinesModel> getAll() {
         return  cusinesRepository.findAll().stream().map(CuisinesModel::convertDtoToModel).collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(cacheNames = "getByCuisineId", key = "#id")
     public CuisinesModel getById(int id) {
         Optional<Cuisines> cuisine = cusinesRepository.findById(id);
         if (!cuisine.isPresent())
@@ -36,6 +41,10 @@ public class CuisinesApiServiceImpl implements CuisinesApiService {
     }
 
     @Override
+    @Caching(evict = {
+			@CacheEvict( cacheNames = "defaultTableValues" , allEntries = true),
+			@CacheEvict( cacheNames = "getAllCuisines" , allEntries = true)
+	})	
     public CuisinesModel insertCuisine(CuisinesModel cuisinesModel) {
         Cuisines cuisine = cusinesRepository.save(Cuisines.convertModelToDto(cuisinesModel));
         if (Objects.isNull(cuisine))
@@ -44,6 +53,12 @@ public class CuisinesApiServiceImpl implements CuisinesApiService {
     }
 
     @Override
+    @Caching(evict = {
+			@CacheEvict( cacheNames = "defaultTableValues" , allEntries = true),
+			@CacheEvict( cacheNames = "getAllCuisines" , allEntries = true),
+			@CacheEvict( cacheNames = "getByCuisineId" , allEntries = true)
+			
+	})	
     public CuisinesModel updateCuisineById(int id, CuisinesModel cuisinesModel) {
         Optional<Cuisines> cuisines = cusinesRepository.findById(id);
         if (!cuisines.isPresent())

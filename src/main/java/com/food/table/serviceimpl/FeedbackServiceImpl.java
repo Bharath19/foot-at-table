@@ -13,6 +13,8 @@ import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +73,14 @@ public class FeedbackServiceImpl implements FeedbackService {
 		restaurantFeedback.setRating(feedbackModel.getRating());
 		return restaurantFeedback;
 	}
-
+	
+	@Caching(put = {
+			@CachePut(cacheNames = "allDraftedRestaurant", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "allConfirmedRestaurant", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "getRestaurantTimings", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "getRestaurantById", key ="#restaurantModel.id"),
+			@CachePut(cacheNames = "restaurantByName", key ="#restaurantModel.id")
+	})
 	private boolean updateRestauarntRating(FeedbackModel feedbackModel, int restaurantId) {
 		boolean check = false;
 		Optional<Restaurant> restaurantOp = restaurantRepository.findById(restaurantId);

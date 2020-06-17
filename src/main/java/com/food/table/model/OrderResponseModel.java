@@ -1,5 +1,6 @@
 package com.food.table.model;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -13,8 +14,9 @@ import javax.persistence.Enumerated;
 import lombok.Data;
 
 @Data
-public class OrderResponseModel {
+public class OrderResponseModel implements Serializable {
 
+	private static final long serialVersionUID = 1L;
 	private int id;
 	private RestaurantBasicGetModel restaurant;
 	private BasicUserResponseModel userAccount;
