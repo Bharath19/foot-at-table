@@ -1,5 +1,7 @@
 package com.food.table.model;
 
+import java.io.Serializable;
+
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.FoodOptions;
 
@@ -7,7 +9,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-public class FoodOptionsModel {
+public class FoodOptionsModel implements Serializable{
     public int id;
     public String name;
     public String description;
@@ -15,6 +17,7 @@ public class FoodOptionsModel {
     @ApiModelProperty(value = "Food Option stauts should be active or inactive")
     public String status = "active";
     public Integer sortNo;
+    public double price;
 
     public static FoodOptionsModel convertDtoToModel(FoodOptions foodOptions) {
         FoodOptionsModel foodOptionsModel = new FoodOptionsModel();
@@ -24,6 +27,7 @@ public class FoodOptionsModel {
         foodOptionsModel.setImageUrl(foodOptions.getImageUrl());
         foodOptionsModel.setStatus(FoodStatusEnum.getName(foodOptions.getStatus()));
         foodOptionsModel.setSortNo(foodOptions.getSortNo());
+        foodOptions.setPrice(foodOptions.getPrice());
         return foodOptionsModel;
     }
 }

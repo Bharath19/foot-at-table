@@ -7,13 +7,14 @@ import com.food.table.dto.FoodOptionMeta;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
-public class FoodOptionMetaModel {
+public class FoodOptionMetaModel implements Serializable{
     @ApiModelProperty(value = "Food Option Meta type should be single or multiple")
     private String type = "multiple";
     private String name;

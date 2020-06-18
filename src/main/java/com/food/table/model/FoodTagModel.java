@@ -1,10 +1,12 @@
 package com.food.table.model;
 
+import java.io.Serializable;
+
 import com.food.table.dto.FoodTag;
 import lombok.Data;
 
 @Data
-public class FoodTagModel {
+public class FoodTagModel implements Serializable{
 
     int id;
     String name;
