@@ -1,5 +1,6 @@
 package com.food.table.model;
 
+import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.EnumType;
@@ -11,7 +12,7 @@ import lombok.Data;
 
 
 @Data
-public class CartResponseModel{
+public class CartResponseModel  implements Serializable{
 
 	private int id;
 	private FoodResponseModel food;
