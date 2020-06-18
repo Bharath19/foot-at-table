@@ -140,6 +140,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                 log.error("Create Customer user failed for phoneNo" + authenticationRequest.getPhoneNo());
                 throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
             }
+            generateOtp(authenticationRequest.getPhoneNo(), userAccountresponse.getId());
 
         } else {
             List<UserRole> userRoleList = userAccount.getRoles();
@@ -149,10 +150,9 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                 userRoleList.add(customerRole);
                 userAccount.setRoles(userRoleList);
                 userRepository.save(userAccount);
-
             }
+            generateOtp(authenticationRequest.getPhoneNo(), userAccount.getId());
         }
-        generateOtp(authenticationRequest.getPhoneNo(), userAccount.getId());
     }
 
     @Override
