@@ -129,12 +129,12 @@ public class OrderServiceImpl implements OrderService {
 //	}
 
 	@Override
-	@Caching(evict = {
-			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-	})
+//	@Caching(evict = {
+//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+//	})
 	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
@@ -170,12 +170,12 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	@Caching(evict = {
-			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-	})
+//	@Caching(evict = {
+//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+//	})
 	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
 		Order order = orderRepository.findById(orderId).orElse(null);
@@ -193,12 +193,12 @@ public class OrderServiceImpl implements OrderService {
 	}
 	
 	@Override
-	@Caching(evict = {
-			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-	})
+//	@Caching(evict = {
+//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+//	})
 	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public PaymentDetail initiatePayment(int orderId, String couponCode) {
 		Order order =  orderRepository.getOne(orderId); 
@@ -239,12 +239,12 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	@Caching(evict = {
-			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-	})
+//	@Caching(evict = {
+//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+//	})
 	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState) {
 		if (Objects.isNull(order))
