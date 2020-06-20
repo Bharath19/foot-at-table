@@ -135,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
 //			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
 //			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
 //	})
-	@CachePut(cacheNames = "getOrderById" , key = "order.id")
+//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (!order.isPresent())
@@ -176,7 +176,7 @@ public class OrderServiceImpl implements OrderService {
 //			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
 //			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
 //	})
-	@CachePut(cacheNames = "getOrderById" , key = "order.id")
+//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
 		Order order = orderRepository.findById(orderId).orElse(null);
 		if(Objects.isNull(order))
@@ -199,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
 //			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
 //			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
 //	})
-	@CachePut(cacheNames = "getOrderById" , key = "order.id")
+//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public PaymentDetail initiatePayment(int orderId, String couponCode) {
 		Order order =  orderRepository.getOne(orderId); 
 		
@@ -245,7 +245,7 @@ public class OrderServiceImpl implements OrderService {
 //			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
 //			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
 //	})
-	@CachePut(cacheNames = "getOrderById" , key = "order.id")
+//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
 	public void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState) {
 		if (Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
