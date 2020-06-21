@@ -59,6 +59,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/auth/customer/login",
                         "/auth/restaurant/login",
+                        "/auth/customer/apple/login",
                         "/auth/maintenance/signup",
                         "/restaurant/add",
                         "/restaurant/getStaticValues/",

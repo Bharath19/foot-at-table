@@ -6,15 +6,13 @@ import com.food.table.dto.UserAccount;
 import com.food.table.dto.UserRole;
 import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
-import com.food.table.model.AuthRequest;
-import com.food.table.model.CustomerAuthRequest;
-import com.food.table.model.NotificationModel;
-import com.food.table.model.RestaurantEmployeeRequestModel;
+import com.food.table.model.*;
 import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.repo.UserRoleRepository;
 import com.food.table.service.CustomUserDetailsService;
 import com.food.table.service.NotificationService;
+import com.food.table.util.JwtUtil;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -50,6 +48,8 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     final NotificationService notificationService;
 
     private LoadingCache<Long, Integer> otpCache;
+
+    private final JwtUtil jwtUtil;
 
     private final RestaurantRepository restaurantRepository;
 
@@ -156,6 +156,43 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     @Override
+    public void checkAndCreateCustomerUserByEmail(String emailId) {
+        log.info("Entering checkAndCreateCustomerUser method  for email " + emailId);
+        UserAccount userAccount = userRepository.findUserByEmailId(emailId);
+        if (Objects.isNull(userAccount)) {
+            log.info("No User found.Creating new user for Email" + emailId);
+            UserRole userRole = userRoleRepository.findRoleByName("CUSTOMER");
+            List userRoleList = new LinkedList<>();
+            userRoleList.add(userRole);
+            UserAccount savedUserAccount = userRepository.save(UserAccount.builder()
+                    .email(emailId)
+                    .isAccountNonExpired(true)
+                    .isAccountNonLocked(true)
+                    .isCredentialsNonExpired(true)
+                    .isEnabled(true)
+                    .roles(userRoleList)
+                    .build());
+            savedUserAccount.setUserId("CBUSER_" + savedUserAccount.getId());
+            UserAccount userAccountresponse = userRepository.save(savedUserAccount);
+            if (Objects.isNull(userAccountresponse)) {
+                log.error("Create Customer user failed for email" + emailId);
+                throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
+            }
+
+        } else {
+            List<UserRole> userRoleList = userAccount.getRoles();
+            List<String> userRoleNameList = userRoleList.stream().map(UserRole::getRoleName).collect(Collectors.toList());
+            if (!userRoleNameList.contains("CUSTOMER")) {
+                log.info("Create Customer user failed for email" + emailId);
+                UserRole customerRole = userRoleRepository.findRoleByName("CUSTOMER");
+                userRoleList.add(customerRole);
+                userAccount.setRoles(userRoleList);
+                userRepository.save(userAccount);
+            }
+        }
+    }
+
+    @Override
     public boolean createRestaurantUser(AuthRequest authRequest, Restaurant restaurant, String userType) {
         List<Restaurant> restaurantList = new ArrayList<>();
         restaurantList.add(restaurant);
@@ -194,11 +231,24 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     @Override
-    public long getUserNameByRefreshToken(String refreshToken) {
+    public String createRefreshTokenByEmail(String email) {
+        UserAccount userAccount = userRepository.findUserByEmailId(email);
+        userAccount.setRefreshToken(String.valueOf(UUID.randomUUID()));
+        return userRepository.save(userAccount).getRefreshToken();
+    }
+
+    @Override
+    public AuthResponse getUserNameByRefreshToken(String refreshToken) {
+        log.info("Entering getUserNameByRefreshToken method");
         UserAccount userAccount = userRepository.findUserByRefreshToken(refreshToken);
-        if (Objects.isNull(userAccount))
+        if (Objects.isNull(userAccount)) {
+            log.error("No User found for refresh token: " + refreshToken);
             throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_REFRESH_TOKEN);
-        return userAccount.getPhoneNo();
+        }
+        if(Objects.isNull(userAccount.getPhoneNo())){
+            return new AuthResponse(jwtUtil.generateToken(String.valueOf(userAccount.getEmail())), createRefreshTokenByEmail(userAccount.getEmail()));
+        }
+        return new AuthResponse(jwtUtil.generateToken(String.valueOf(userAccount.getPhoneNo())), createRefreshToken(userAccount.getPhoneNo()));
     }
 
     @Override

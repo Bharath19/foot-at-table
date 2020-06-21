@@ -15,10 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
@@ -97,9 +94,16 @@ public class AuthController {
     @ApiOperation(value = "Validates user using refresh token")
     @RequestMapping(value = "auth/customer/refreshtoken", method = RequestMethod.POST)
     public ResponseEntity<AuthResponse> verifyRefreshToken(@RequestBody RefreshAuthRequest refreshAuthRequest) throws Exception {
-        Long phoneNo = userDetailsService.getUserNameByRefreshToken(refreshAuthRequest.getToken());
-        final String jwt = jwtUtil.generateToken(String.valueOf(phoneNo));
-        return ResponseEntity.ok(new AuthResponse(jwt, userDetailsService.createRefreshToken(phoneNo)));
+        return ResponseEntity.ok(userDetailsService.getUserNameByRefreshToken(refreshAuthRequest.getToken()));
+
+    }
+
+    @ApiOperation(value = "Verifies Customer apple email id for login")
+    @RequestMapping(value = "auth/customer/apple/login", method = RequestMethod.POST)
+    public ResponseEntity<AuthResponse> customerAppleLogin(@RequestParam(value = "email", required = false) String email) throws Exception {
+        userDetailsService.checkAndCreateCustomerUserByEmail(email);
+        final String jwt = jwtUtil.generateToken(String.valueOf(email));
+        return ResponseEntity.ok(new AuthResponse(jwt, userDetailsService.createRefreshTokenByEmail(email)));
 
     }
 }
