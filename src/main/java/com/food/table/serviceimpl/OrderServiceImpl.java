@@ -115,6 +115,12 @@ public class OrderServiceImpl implements OrderService {
 	private static final OrderStateEnum[] addMoreCartOrderState = { OrderStateEnum.INPROGRESS, OrderStateEnum.SERVED };
 
 	@Override
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
 	public Order createOrder(OrderModel orderModel) {
 		return orderRepository.save(convertToDto(orderModel));
 	}
