@@ -8,7 +8,9 @@ import lombok.Data;
 @Data
 public class FoodTagModel implements Serializable{
 
-    int id;
+	private static final long serialVersionUID = 1L;
+	
+	int id;
     String name;
     String description;
 

@@ -1,13 +1,17 @@
 package com.food.table.model;
 
+import java.io.Serializable;
+
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.RestaurantTable;
 import lombok.Data;
 
 @Data
-public class RestaurantTableModel {
+public class RestaurantTableModel  implements Serializable  {
 
-    private int id;
+	private static final long serialVersionUID = 1L;
+
+	private int id;
 
     private int restaurantId;
 

@@ -10,7 +10,9 @@ import java.util.List;
 @NoArgsConstructor
 public class FoodsRestaurantModel implements Serializable{
 
-    private int foodCategoryId;
+	private static final long serialVersionUID = 1L;
+
+	private int foodCategoryId;
 
     private String foodCategoryName;
 

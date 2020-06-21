@@ -10,6 +10,8 @@ import lombok.Setter;
 @Setter
 public class BasicRevenueModel  implements Serializable{
 
+	private static final long serialVersionUID = 1L;
+
 	List<RevenueDetailsModel> revenueDetails;
 
 	double totalPrice;

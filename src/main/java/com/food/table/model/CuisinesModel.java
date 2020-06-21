@@ -1,11 +1,16 @@
 package com.food.table.model;
 
+import java.io.Serializable;
+
 import com.food.table.dto.Cuisines;
 import lombok.Data;
 
 @Data
-public class CuisinesModel {
-    int id;
+public class CuisinesModel implements Serializable {
+  
+	private static final long serialVersionUID = 1L;
+
+	int id;
 
     String name;
 

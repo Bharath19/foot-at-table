@@ -1,13 +1,17 @@
 package com.food.table.model;
 
+import java.io.Serializable;
+
 import com.food.table.dto.SearchType;
 
 import lombok.Data;
 
 @Data
-public class SearchTagModel {
+public class SearchTagModel implements Serializable  {
 
-    int id;
+	private static final long serialVersionUID = 1L;
+
+	int id;
 
     String name;
 

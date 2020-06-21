@@ -1,5 +1,7 @@
 package com.food.table.model;
 
+import java.io.Serializable;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,9 +9,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class RestaurantEmployeeResponseModel {
+public class RestaurantEmployeeResponseModel  implements Serializable {
 
-    private int id;
+	private static final long serialVersionUID = 1L;
+
+	private int id;
 
     private String employeeId;
 
