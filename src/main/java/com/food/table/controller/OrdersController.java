@@ -8,22 +8,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.food.table.service.CartService;
-import com.food.table.service.OrderService;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
-import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.food.table.constant.ApplicationConstants;
 import com.food.table.constant.CartStateEnum;
 import com.food.table.constant.OrderStateEnum;
-import com.food.table.dto.Order;
 import com.food.table.model.BasicRevenueModel;
 import com.food.table.model.CartModel;
 import com.food.table.model.FoodHistoryProjectionModel;
@@ -31,6 +32,12 @@ import com.food.table.model.OrderModel;
 import com.food.table.model.OrderResponseModel;
 import com.food.table.model.OrderStateModel;
 import com.food.table.model.PaymentDetail;
+import com.food.table.service.CartService;
+import com.food.table.service.OrderService;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/orders")
@@ -59,10 +66,10 @@ public class OrdersController {
 	public ResponseEntity<Map<String, Integer>> addMoreFoods(@PathVariable int orderId, @RequestBody ArrayList<CartModel> cartModels) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering add more food starttime : "+startTime);
-		ResponseEntity<Map<String, Integer>> response = new ResponseEntity<Map<String, Integer>>(Collections.singletonMap("OrderId", orderService.addMoreFoods(cartModels, orderId).getId()), HttpStatus.OK);
+		Map<String, Integer> response = orderService.addMoreFoods(cartModels, orderId);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting add more food is success and timetaken : "+(endTime-startTime));
-		return response;
+		return ResponseEntity.ok(response);
 	}
 
 //	TODO - handle failure case / exceptional case for support team
@@ -84,8 +91,7 @@ public class OrdersController {
 	public ResponseEntity<Map<String, Integer>> updateOrderState(@PathVariable int orderId, @RequestBody OrderStateModel orderStateModel) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering update order and cart state starttime : "+startTime);
-		Order order = orderService.updateOrderState(orderStateModel, orderId);
-		Map<String, Integer> responseObject = Collections.singletonMap("OrderId", order.getId());;
+		Map<String, Integer> responseObject= orderService.updateOrderState(orderStateModel, orderId);
 		ResponseEntity<Map<String, Integer>> response = new ResponseEntity<Map<String, Integer>>(responseObject, HttpStatus.OK);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting update order and cart state is success and timetaken : "+(endTime-startTime));

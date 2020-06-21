@@ -3,6 +3,7 @@ package com.food.table.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public interface OrderService {
 
 //	Order updateOrder(OrderModel orderModel, int orderId);
 
-	Order updateOrderState(OrderStateModel orderModel, int orderId);
+	Map<String, Integer> updateOrderState(OrderStateModel orderModel, int orderId);
 
 	List<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from, int limit);
 
@@ -39,7 +40,7 @@ public interface OrderService {
 	List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, List<String> orderState, Date orderDate, int from,
 			int limit);
 
-	Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId);
+	Map<String, Integer> addMoreFoods(ArrayList<CartModel> cartModels, int orderId);
 
 	void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState);
 

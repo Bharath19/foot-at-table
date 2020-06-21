@@ -4,6 +4,7 @@ package com.food.table.serviceimpl;
 import static java.util.Map.entry;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.food.table.constant.ApplicationConstants;
@@ -135,14 +137,14 @@ public class OrderServiceImpl implements OrderService {
 //	}
 
 	@Override
-//	@Caching(evict = {
-//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-//	})
-//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
-	public Order addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "#orderId")
+	public Map<String, Integer> addMoreFoods(ArrayList<CartModel> cartModels, int orderId) {
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (!order.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
@@ -172,18 +174,19 @@ public class OrderServiceImpl implements OrderService {
 		inProgressOrder.setSgst(sgstPrice);
 		
 		orderRepository.save(inProgressOrder);
-		return order.get();
+		Map<String, Integer> response = Collections.singletonMap("OrderId", order.get().getId());
+		return response;
 	}
 
 	@Override
-//	@Caching(evict = {
-//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-//	})
-//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
-	public Order updateOrderState(OrderStateModel orderStateModel, int orderId) {
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "#orderId")
+	public Map<String, Integer> updateOrderState(OrderStateModel orderStateModel, int orderId) {
 		Order order = orderRepository.findById(orderId).orElse(null);
 		if(Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
@@ -195,17 +198,19 @@ public class OrderServiceImpl implements OrderService {
 		}
 		if (order.isClosedState())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);
-		return orderRepository.save(updateState(orderStateModel, order));
+		Order orderRes = orderRepository.save(updateState(orderStateModel, order));
+		Map<String, Integer> responseObject = Collections.singletonMap("OrderId", orderRes.getId());
+		return responseObject;
 	}
 	
 	@Override
-//	@Caching(evict = {
-//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-//	})
-//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "#orderId")
 	public PaymentDetail initiatePayment(int orderId, String couponCode) {
 		Order order =  orderRepository.getOne(orderId); 
 		
@@ -245,13 +250,13 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-//	@Caching(evict = {
-//			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
-//			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
-//	})
-//	@CachePut(cacheNames = "getOrderById" , key = "order.id")
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByOrderTypeName",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
+			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
+	})
+	@CachePut(cacheNames = "getOrderById" , key = "#order.id")
 	public void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState) {
 		if (Objects.isNull(order))
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
