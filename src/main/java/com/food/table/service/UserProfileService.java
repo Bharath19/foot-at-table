@@ -8,4 +8,6 @@ public interface UserProfileService {
     UserProfileResponseModel editProfile(long phoneNo, UserProfileRequestModel userProfileModel);
 
     UserProfileResponseModel getUserProfileByPhone(long phoneNo);
+
+    UserProfileResponseModel getUserProfileById(int id);
 }

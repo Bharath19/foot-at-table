@@ -7,13 +7,17 @@ import com.food.table.model.UserProfileRequestModel;
 import com.food.table.model.UserProfileResponseModel;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.UserProfileService;
+
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -42,11 +46,19 @@ public class UserProfileServiceImpl implements UserProfileService {
         return buildUserProfile(userDetails);
     }
 
+	@Override
+	public UserProfileResponseModel getUserProfileById(int id) {
+        Optional<UserAccount> UserAccount = userRepository.findById(id);
+        if (!UserAccount.isPresent())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
+        return buildUserProfile(UserAccount.get());
+	}
+	
     private UserProfileResponseModel buildUserProfile(UserAccount userAccount) {
         return UserProfileResponseModel.builder()
                 .email(userAccount.getEmail())
                 .name(userAccount.getName())
-                .phoneNo(userAccount.getPhoneNo())
+                .phoneNo(ObjectUtils.defaultIfNull(userAccount.getPhoneNo(), 0L))
                 .imageUrl(userAccount.getImageUrl())
                 .build();
 
@@ -59,4 +71,5 @@ public class UserProfileServiceImpl implements UserProfileService {
         }
 
     }
+
 }
