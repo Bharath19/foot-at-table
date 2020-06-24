@@ -61,8 +61,7 @@ public class AuthController {
         } catch (BadCredentialsException b) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_LOGIN);
         }
-        final String jwt = jwtUtil.generateToken(authenticationRequest.getUserName());
-        return ResponseEntity.ok(new AuthResponse(jwt, userDetailsService.getRestaurantIdForUser(authenticationRequest.getUserName())));
+        return ResponseEntity.ok(userDetailsService.performRestaurantLogin(authenticationRequest));
 
     }
 

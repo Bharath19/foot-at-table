@@ -30,7 +30,10 @@ public interface CustomUserDetailsService extends UserDetailsService {
 
     boolean changeEmployeeUserStatus(String emailId, String status);
 
+    @Deprecated
     int getRestaurantIdForUser(String emailId);
+
+    AuthResponse performRestaurantLogin (AuthRequest authRequest);
 
 
 }

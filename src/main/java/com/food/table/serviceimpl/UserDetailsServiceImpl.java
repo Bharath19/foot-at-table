@@ -375,6 +375,18 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         return 0;
     }
 
+    @Override
+    public AuthResponse performRestaurantLogin (AuthRequest authRequest){
+        int restaurantId=0;
+        String jwt = jwtUtil.generateToken(authRequest.getUserName());
+        UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
+        if (CollectionUtils.isNotEmpty(userAccount.getRestaurants()))
+            restaurantId= userAccount.getRestaurants().get(0).getId();
+        return AuthResponse.builder().accessToken(jwt)
+                .restaurantId(restaurantId)
+                .userRole(userAccount.getRoles().stream().filter(role-> role.getRoleName()!="CUSTOMER").collect(Collectors.toList()).get(0).getRoleName()).build();
+    }
+
     private int getOtpFromCache(long phoneNo) {
         log.info("Entering getOtpFromCache method  for phoneNo " + phoneNo);
         try {
