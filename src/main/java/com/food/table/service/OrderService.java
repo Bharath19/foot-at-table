@@ -23,8 +23,6 @@ public interface OrderService {
 
 	OrderResponseModel getOrderById(int orderid);
 
-//	Order updateOrder(OrderModel orderModel, int orderId);
-
 	Map<String, Integer> updateOrderState(OrderStateModel orderModel, int orderId);
 
 	List<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from, int limit);
@@ -39,7 +37,10 @@ public interface OrderService {
 
 	List<OrderResponseModel> getOrderByRestaurantId(int restaurantId, List<String> orderState, Date orderDate, int from,
 			int limit);
-
+	
+	List<OrderResponseModel> getOrderByFiler(int restaurantId, int restaurantTableId, List<String> orderTypes,
+			List<String> orderState, Date orderDate, int from, int limit);
+	
 	Map<String, Integer> addMoreFoods(ArrayList<CartModel> cartModels, int orderId);
 
 	void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState);

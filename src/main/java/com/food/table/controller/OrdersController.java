@@ -3,6 +3,7 @@ package com.food.table.controller;
 import static java.util.Map.entry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -71,19 +72,6 @@ public class OrdersController {
 		log.info("Exiting add more food is success and timetaken : "+(endTime-startTime));
 		return ResponseEntity.ok(response);
 	}
-
-//	TODO - handle failure case / exceptional case for support team
-//	@ApiOperation(value = "Update a restaurantTableId, Food quantity and Cart status", authorizations = {@Authorization(value = "accessToken") })
-//	@PutMapping("/updateOrder/{orderId}")
-//	@ResponseBody
-//	public ResponseEntity<OrderResponseModel> updateOrder(@PathVariable int orderId, @RequestBody OrderModel orderModel) {
-//		long startTime=System.currentTimeMillis();
-//		log.info("Entering update order starttime : "+startTime);
-//		ResponseEntity<OrderResponseModel> response = new ResponseEntity<OrderResponseModel>(orderService.getOrderById(orderService.updateOrder(orderModel, orderId).getId()), HttpStatus.ACCEPTED);
-//		long endTime=System.currentTimeMillis();
-//		log.info("Exiting update order is success and timetaken : "+(endTime-startTime));
-//		return response;
-//	}
 
 	@ApiOperation(value = "Here we can update order and cart<one or more> state. If we need to update order state as COMPLETED, SERVED or CANCELLED, respect all the cart states are updated automatically. Otherwise need to update order and cart state separately", authorizations = {@Authorization(value = "accessToken") })
 	@PutMapping("/updateState/{orderId}")
@@ -157,6 +145,7 @@ public class OrdersController {
 		return basicRevenueModel;
 	}
 
+	@Deprecated
 	@ApiOperation(value = "Get order details by restaurantId, OrderTypes, orderState and orderDate. Here orderState, orderDate, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {@Authorization(value = "accessToken") })
 	@GetMapping("/getOrderByOrderTypeName/{restaurantId}")
 	public List<OrderResponseModel> getOrderByOrderTypeName(@PathVariable(required = true) int restaurantId, @RequestParam(value = "orderTypes", required = true) List<String> orderTypes, @RequestParam(value = "orderState", required = false) List<String> orderState,
@@ -167,6 +156,33 @@ public class OrdersController {
 		List<OrderResponseModel> responseList = orderService.getOrderByOrderTypeName(restaurantId, orderTypes, orderState, orderDate, from, limit);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting order details by restaurant is success and timetaken : "+(endTime-startTime));
+		return responseList;
+	}
+	
+	@ApiOperation(value = "Get completed order details by restaurantId, restaurantTableId, OrderTypes and orderDate. Here orderDate, restaurantTableId, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {@Authorization(value = "accessToken") })
+	@GetMapping("/getCompletedOrderByFiler/{restaurantId}")
+	public List<OrderResponseModel> getCompletedOrderByFiler(@PathVariable(required = true) int restaurantId, @RequestParam(value = "orderTypes", required = false) List<String> orderTypes,
+			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate, @RequestParam(value = "restaurantTableId", required = false, defaultValue="0") int restaurantTableId, 
+			@RequestParam(value = "from", required = false, defaultValue = "0") int from, @RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
+		long startTime=System.currentTimeMillis();
+		log.info("Entering completed order details by restaurant starttime : "+startTime);
+		List<String> orderState = Arrays.asList("COMPLETED");
+		List<OrderResponseModel> responseList = orderService.getOrderByFiler(restaurantId, restaurantTableId, orderTypes, orderState, orderDate, from, limit);
+		long endTime=System.currentTimeMillis();
+		log.info("Exiting completed order details by restaurant is success and timetaken : "+(endTime-startTime));
+		return responseList;
+	}
+	
+	@ApiOperation(value = "Get order details by restaurantId, restaurantTableId, OrderTypes, orderState and orderDate. Here orderState, orderDate, restaurantTableId, from and limit parameters are optional and orderDate should be yyyy-MM-dd format", authorizations = {@Authorization(value = "accessToken") })
+	@GetMapping("/getOrderByFiler/{restaurantId}")
+	public List<OrderResponseModel> getOrderByFiler(@PathVariable(required = true) int restaurantId, @RequestParam(value = "orderTypes", required = false) List<String> orderTypes, @RequestParam(value = "orderState", required = false) List<String> orderState,
+			@RequestParam(value = "orderDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date orderDate, @RequestParam(value = "restaurantTableId", required = false, defaultValue="0") int restaurantTableId, 
+			@RequestParam(value = "from", required = false, defaultValue = "0") int from, @RequestParam(value = "limit", required = false, defaultValue = "25") int limit) {
+		long startTime=System.currentTimeMillis();
+		log.info("Entering filter order details by restaurant starttime : "+startTime);
+		List<OrderResponseModel> responseList = orderService.getOrderByFiler(restaurantId, restaurantTableId, orderTypes, orderState, orderDate, from, limit);
+		long endTime=System.currentTimeMillis();
+		log.info("Exiting filter order details by restaurant is success and timetaken : "+(endTime-startTime));
 		return responseList;
 	}
 

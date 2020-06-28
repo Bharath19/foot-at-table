@@ -127,15 +127,6 @@ public class OrderServiceImpl implements OrderService {
 		return orderRepository.save(convertToDto(orderModel));
 	}
 
-//	@Override
-//	public Order updateOrder(OrderModel orderModel, int orderId) {
-//		try {
-//			return orderRepository.save(convertToDto(orderModel, orderRepository.getOne(orderId)));
-//		} catch (EntityNotFoundException e) {
-//			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-//		}
-//	}
-
 	@Override
 	@Caching(evict = {
 			@CacheEvict(cacheNames = "getOrderByUserId",allEntries = true),
@@ -193,8 +184,8 @@ public class OrderServiceImpl implements OrderService {
 		if(Objects.nonNull(orderStateModel.getState())) {
 			if( orderStateModel.getState().equals(OrderStateEnum.BILL_REQUESTED))
 				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_BILL_REQUEST_STATUS);
-			if (orderStateModel.getState().equals(OrderStateEnum.COMPLETED) && !hasPaymentCompleted(order))
-				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.PAYMENT_PENDING);
+//			if (orderStateModel.getState().equals(OrderStateEnum.COMPLETED) && !hasPaymentCompleted(order))
+//				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.PAYMENT_PENDING);
 		}
 		if (order.isClosedState())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);
@@ -283,12 +274,7 @@ public class OrderServiceImpl implements OrderService {
 	@Cacheable(cacheNames = "getOrderByUserId", key = "#userId")
 	public ArrayList<OrderResponseModel> getOrderByUserId(int userId, List<String> orderState, Date orderDate, int from,
 			int limit) {
-		try {
-			if (orderState != null) 
-				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
-		} catch (IllegalArgumentException e) {
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
-		}
+		validateOrderState(orderState);
 
 		if(userId == 0)
 			userId = userUtil.getCurrentUserId().getId();
@@ -297,11 +283,11 @@ public class OrderServiceImpl implements OrderService {
 		if (orderState == null && orderDate == null) {
 			orderlist = orderRepository.findByUserId(userId, pageable);
 		} else if (orderState == null) {
-			orderlist = orderRepository.findByUserIdAndCreatedAt(userId, SimpleDateUtil.toDate(orderDate), pageable);
+			orderlist = orderRepository.findByCreatedAtAndUserId(userId, SimpleDateUtil.toDate(orderDate), pageable);
 		} else if (orderDate == null) {
-			orderlist = orderRepository.findByUserIdAndStateIn(userId, orderState, pageable);
+			orderlist = orderRepository.findByStateInAndUserId(userId, orderState, pageable);
 		} else {
-			orderlist = orderRepository.findByUserIdAndStateInAndCreatedAt(userId, orderState,
+			orderlist = orderRepository.findByCreatedAtAndStateInAndUserId(userId, orderState,
 					SimpleDateUtil.toDate(orderDate), pageable);
 		}
 
@@ -313,7 +299,7 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	@Cacheable(cacheNames = "getBasicRevenue", key = "#restaurantId")
 	public BasicRevenueModel getBasicRevenue(int restaurantId, Date orderDate) {
-		List<RevenueDetailsModel> revenueDetails = orderRepository.findRevenueDetais(restaurantId,
+		List<RevenueDetailsModel> revenueDetails = orderRepository.findRevenueDetails(restaurantId,
 				SimpleDateUtil.toDate(orderDate), OrderStateEnum.COMPLETED.toString());
 		double totalPrice = 0;
 		for (RevenueDetailsModel revenueDetailsModel : revenueDetails) {
@@ -328,12 +314,7 @@ public class OrderServiceImpl implements OrderService {
 			List<String> orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
 		
-		try {
-			if (orderState != null)
-				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
-		} catch (IllegalArgumentException e) {
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
-		}
+		validateOrderState(orderState);
 
 		Pageable pageable = PageRequest.of(from, limit);
 
@@ -355,6 +336,57 @@ public class OrderServiceImpl implements OrderService {
 				.forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
+	
+
+	@Override
+	public List<OrderResponseModel> getOrderByFiler(int restaurantId, int restaurantTableId,
+			List<String> orderTypes, List<String> orderState, Date orderDate, int from, int limit) {
+		
+		if(restaurantId < 1)
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
+		
+		validateOrderState(orderState);
+		
+		Page<Order> orderlist = null;
+		Pageable pageable = PageRequest.of(from, limit);
+		
+		if (restaurantTableId != 0 && ObjectUtils.allNotNull(orderTypes, orderState, orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndRestaurantTableIdAndStateInAndTypeIn(orderDate, restaurantId, restaurantTableId, orderState, orderTypes, pageable);
+		
+		else if (ObjectUtils.allNotNull(orderTypes, orderState, orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndStateInAndTypeIn(orderDate, restaurantId, orderState, orderTypes, pageable);
+		else if (restaurantTableId != 0 && ObjectUtils.allNotNull(orderState, orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndRestaurantTableIdAndStateIn(orderDate, restaurantId, restaurantTableId, orderState, pageable);
+		else if (restaurantTableId != 0 && ObjectUtils.allNotNull(orderTypes, orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndRestaurantTableIdAndTypeIn(orderDate, restaurantId, restaurantTableId, orderTypes, pageable);
+		else if (restaurantTableId != 0 && ObjectUtils.allNotNull(orderTypes, orderState))
+			orderlist = orderRepository.findByRestaurantIdAndRestaurantTableIdAndStateInAndTypeIn(restaurantId, restaurantTableId, orderState, orderTypes, pageable);
+		
+		else if (ObjectUtils.allNotNull(orderState, orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndStateIn(orderDate, restaurantId, orderState, pageable);
+		else if (ObjectUtils.allNotNull(orderTypes, orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndTypeIn(orderDate, restaurantId, orderTypes, pageable);
+		else if (ObjectUtils.allNotNull(orderTypes, orderState))
+			orderlist = orderRepository.findByRestaurantIdAndStateInAndTypeIn(restaurantId, orderState, orderTypes, pageable);
+		else if (restaurantTableId != 0 && ObjectUtils.allNotNull(orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantIdAndRestaurantTableId(orderDate, restaurantId, restaurantTableId, pageable);
+		else if (restaurantTableId != 0 && ObjectUtils.allNotNull(orderState))
+			orderlist = orderRepository.findByRestaurantIdAndRestaurantTableIdAndStateIn(restaurantId, restaurantTableId, orderState, pageable);
+		
+		else if (Objects.nonNull(orderDate))
+			orderlist = orderRepository.findByCreatedAtAndRestaurantId(orderDate, restaurantId, pageable);
+		else if (Objects.nonNull(orderState))
+			orderlist = orderRepository.findByRestaurantIdAndStateIn(restaurantId, orderState, pageable);
+		else if (Objects.nonNull(orderTypes))
+			orderlist = orderRepository.findByRestaurantIdAndTypeIn(restaurantId, orderTypes, pageable);
+		else if (restaurantTableId != 0)
+			orderlist = orderRepository.findByRestaurantIdAndRestaurantTableId(restaurantId, restaurantTableId, pageable);
+		
+		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
+		if(Objects.nonNull(orderlist))
+			orderlist.getContent().forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+		return orderResponseModelList;
+	}
 
 	@Override
 	@Cacheable(cacheNames = "getOrderByRestaurantTableIdAndType")
@@ -362,12 +394,7 @@ public class OrderServiceImpl implements OrderService {
 			String orderType, List<String> orderState, Date orderDate, int from, int limit) {
 		Page<Order> orderlist = null;
 		
-		try {
-			if (orderState != null) 
-				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
-		} catch (IllegalArgumentException e) {
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
-		}
+		validateOrderState(orderState);
 
 		Pageable pageable = PageRequest.of(from, limit);
 
@@ -386,8 +413,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
-		orderlist.getContent()
-				.forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+		orderlist.getContent().forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
 
@@ -397,12 +423,7 @@ public class OrderServiceImpl implements OrderService {
 			int from, int limit) {
 		Page<Order> orderlist = null;
 		
-		try {
-			if (orderState != null) 
-				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
-		} catch (IllegalArgumentException e) {
-			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
-		}
+		validateOrderState(orderState);
 		
 		Pageable pageable = PageRequest.of(from, limit);
 
@@ -481,43 +502,6 @@ public class OrderServiceImpl implements OrderService {
 		}
 	}
 
-	/**
-	 * This method convert OrderModel(POJO) to Order(Entity) on update action
-	 * 
-	 * @param orderModel user given POJO object
-	 * @param order      existing order Entity object
-	 * @return order entity object
-	 */
-//	private Order convertToDto(OrderModel orderModel, Order order) {
-//		
-//		Optional<RestaurantTable> restaurantTable = restaurantTableRepository.findById(orderModel.getRestaurantTableId());
-//		if (!restaurantTable.isPresent())
-//			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_TABLE_ID);
-//		order.setRestaurantTable(restaurantTable.get());
-//
-//		HashMap<Integer, Cart> cartMap = new HashMap<Integer, Cart>();
-//		order.getCarts().forEach(cart -> cartMap.put(cart.getId(), cart));
-//
-//		orderModel.getCarts().forEach(cartModel -> {
-//			if (cartMap.containsKey(cartModel.getId())) {
-//				Cart cart = cartMap.get(cartModel.getId());
-//				if (cartModel.getQuantity() > 0) {
-//					cart.setQuantity(cartModel.getQuantity());
-//					cart.setPrice(cart.getFood().getPrice() * cart.getQuantity());
-//				}
-//				cart.setState(cartModel.getState());
-//				cartMap.put(cartModel.getId(), cart);
-//			} else {
-//				log.error("can not add more cart " + order.getId());
-//			}
-//		});
-//
-//		order.setCarts(new ArrayList<Cart>(cartMap.values()));
-//
-//		order.setTotalPrice(getTotalOrderPrice(order.getCarts()));
-//
-//		return order;
-//	}
 
 	/**
 	 * check whether we can add additional food on same order or not
@@ -755,6 +739,15 @@ public class OrderServiceImpl implements OrderService {
 //		TODO - finalize food start and end time format, add food availability at the time condition
 		return food;
 	}
+	
+	private void validateOrderState(List<String> orderState) {
+		try {
+			if (Objects.nonNull(orderState)) 
+				orderState.forEach(orderEnumState -> { OrderStateEnum.valueOf(orderEnumState); });
+		} catch (IllegalArgumentException e) {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_STATE);
+		}
+	}
 
 	private static OrderResponseModel convertToOrderResponse(Order order) {
 		if (order == null)
@@ -822,5 +815,5 @@ public class OrderServiceImpl implements OrderService {
 		orderResponseModel.setCarts(cartResponseList);
 		return orderResponseModel;
 	}
-
+	
 }
