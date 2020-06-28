@@ -63,7 +63,7 @@ public class FoodApiController {
     @ApiOperation(value = "Update the food status. it should be active/inactive", authorizations = {@Authorization(value = "accessToken")})
 	@PutMapping("/foods/updateStatus/{id}")
     @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
-	public boolean updateStatus(@RequestParam(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "inactive") String status) {
+	public boolean updateStatus(@PathVariable(required = true) int id, @RequestParam(value = "status", required = true, defaultValue = "inactive") String status) {
 		return foodApiService.updateStatus(id, status);
 	}
 
