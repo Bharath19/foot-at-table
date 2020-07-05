@@ -382,9 +382,11 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         UserAccount userAccount = userRepository.findUserByEmailId(authRequest.getUserName());
         if (CollectionUtils.isNotEmpty(userAccount.getRestaurants()))
             restaurantId= userAccount.getRestaurants().get(0).getId();
+        UserProfileResponseModel user = UserProfileResponseModel.builder().email(userAccount.getEmail()).name(userAccount.getName()).userId(userAccount.getId()).build();
         return AuthResponse.builder().accessToken(jwt)
                 .restaurantId(restaurantId)
-                .userRole(userAccount.getRoles().stream().filter(role-> role.getRoleName()!="CUSTOMER").collect(Collectors.toList()).get(0).getRoleName()).build();
+                .userRole(userAccount.getRoles().stream().filter(role-> role.getRoleName()!="CUSTOMER").collect(Collectors.toList()).get(0).getRoleName())
+                .user(user).build();
     }
 
     private int getOtpFromCache(long phoneNo) {

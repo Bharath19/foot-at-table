@@ -12,7 +12,10 @@ import com.food.table.repo.OrderRepository;
 import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.UserRepository;
 import com.food.table.service.FeedbackService;
+import com.food.table.util.UserUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,9 @@ public class FeedbackServiceImpl implements FeedbackService {
 
 	@Autowired
 	private FeedbackRepository feedbackRepository;
+	
+	@Autowired
+	private UserUtil userUtil;
 
 	@Autowired
 	private OrderRepository orderRepository;
@@ -63,9 +69,9 @@ public class FeedbackServiceImpl implements FeedbackService {
 		} else {
 			throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_ORDER_ID);
 		}
-		Optional<UserAccount> user = userRepository.findById(feedbackModel.getOrderId());
-		if (restaurant.isPresent()) {
-			restaurantFeedback.setUser(user.get());
+		UserAccount user = userUtil.getCurrentUserId();
+		if (user!=null) {
+			restaurantFeedback.setUser(user);
 		} else {
 			throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
 		}
@@ -74,12 +80,12 @@ public class FeedbackServiceImpl implements FeedbackService {
 		return restaurantFeedback;
 	}
 	
-	@Caching(put = {
-			@CachePut(cacheNames = "allDraftedRestaurant", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "allConfirmedRestaurant", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "getRestaurantTimings", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "getRestaurantById", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "restaurantByName", key ="#restaurantModel.id")
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "allDraftedRestaurant", allEntries = true),
+			@CacheEvict(cacheNames = "allConfirmedRestaurant", allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantTimings", allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantById", allEntries = true),
+			@CacheEvict(cacheNames = "restaurantByName", allEntries = true)
 	})
 	private boolean updateRestauarntRating(FeedbackModel feedbackModel, int restaurantId) {
 		boolean check = false;

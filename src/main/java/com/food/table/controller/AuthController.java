@@ -5,6 +5,7 @@ import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 import com.food.table.model.*;
 import com.food.table.service.CustomUserDetailsService;
+import com.food.table.service.UserProfileService;
 import com.food.table.util.JwtUtil;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,9 @@ public class AuthController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    
+    @Autowired
+    private UserProfileService userProfileService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -49,7 +53,8 @@ public class AuthController {
         }
         final String jwt = jwtUtil.generateToken(String.valueOf(authenticationRequest.getPhoneNo()));
         userDetailsService.invalidateOtp(authenticationRequest.getPhoneNo());
-        return ResponseEntity.ok(new AuthResponse(jwt, userDetailsService.createRefreshToken(authenticationRequest.getPhoneNo())));
+        UserProfileResponseModel user= userProfileService.getUserProfileByPhone(authenticationRequest.getPhoneNo());        
+        return ResponseEntity.ok(AuthResponse.builder().accessToken(jwt).refreshToken(userDetailsService.createRefreshToken(authenticationRequest.getPhoneNo())).user(user).build());
 
     }
 

@@ -60,6 +60,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .name(userAccount.getName())
                 .phoneNo(ObjectUtils.defaultIfNull(userAccount.getPhoneNo(), 0L))
                 .imageUrl(userAccount.getImageUrl())
+                .userId(userAccount.getId())
                 .build();
 
     }

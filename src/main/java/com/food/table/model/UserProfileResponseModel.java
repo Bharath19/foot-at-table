@@ -10,6 +10,10 @@ public class UserProfileResponseModel {
     private String name;
 
     private String email;
+    
+    private String userRole;
+    
+    private Integer userId;
 
     private long phoneNo;
 

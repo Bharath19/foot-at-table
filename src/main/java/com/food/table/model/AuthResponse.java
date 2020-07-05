@@ -12,6 +12,7 @@ public class AuthResponse {
     private String refreshToken;
     private int restaurantId;
     private String userRole;
+    private UserProfileResponseModel user;
 
     public AuthResponse(String accessToken, int restaurantId) {
         this.accessToken = accessToken;

@@ -111,7 +111,13 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 
 
-	@Override	
+	@Override
+	@Caching( evict = {
+			@CacheEvict(cacheNames = "allConfirmedRestaurant",allEntries = true),
+			@CacheEvict(cacheNames = "allDraftedRestaurant",allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantTimings",allEntries = true),
+			@CacheEvict(cacheNames = "restaurantByName",allEntries = true)
+	})
 	public void addRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering add new restaurant for : "+restaurantModel.getRestaurantName());
 		Restaurant restaurant = parseRestaurantValue(restaurantModel);
@@ -188,13 +194,13 @@ public class RestaurantServiceImpl implements RestaurantService {
 			return parseGetAllRestaurant(restaurants.getContent(), null, null);		
 	}
 
-	@Override
-	@Caching(put = {
-			@CachePut(cacheNames = "allDraftedRestaurant", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "allConfirmedRestaurant", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "getRestaurantTimings", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "getRestaurantById", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "restaurantByName", key ="#restaurantModel.id")
+	@Override	
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "allDraftedRestaurant", allEntries = true),
+			@CacheEvict(cacheNames = "allConfirmedRestaurant", allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantById", allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantTimings", allEntries = true),
+			@CacheEvict(cacheNames = "restaurantByName",  allEntries = true)
 	})
 	public void updateRestaurant(RestaurantModel restaurantModel) {
 		log.info("Entering update restaurant for : "+restaurantModel.getId());
@@ -569,11 +575,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	@Caching(put = {
-			@CachePut(cacheNames = "allDraftedRestaurant", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "allConfirmedRestaurant", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "getRestaurantById", key ="#restaurantModel.id"),
-			@CachePut(cacheNames = "restaurantByName", key ="#restaurantModel.id")
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "allDraftedRestaurant", allEntries = true),
+			@CacheEvict(cacheNames = "allConfirmedRestaurant", allEntries = true),
+			@CacheEvict(cacheNames = "getRestaurantById", allEntries = true),
+			@CacheEvict(cacheNames = "restaurantByName",  allEntries = true)
 	})	
 	public void updateStateAndStatus(int id, RestaurantUpdateRequest restaurantUpdateRequest) {
 		Optional<Restaurant> restaurant = restaurantepository.findById(id);

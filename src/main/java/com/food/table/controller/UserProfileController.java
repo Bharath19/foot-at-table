@@ -20,19 +20,19 @@ public class UserProfileController {
 
     @Deprecated
     @ApiOperation(value = "Get User Profile By Phone Number", authorizations = {@Authorization(value = "accessToken")})
-    @RequestMapping(value = "/profile/{phoneNo}", method = RequestMethod.GET)
+    @GetMapping("/profile/{phoneNo}")
     public ResponseEntity<UserProfileResponseModel> getUserProfileByPhoneNo(@PathVariable @NonNull long phoneNo) {
         return ResponseEntity.ok(userProfileService.getUserProfileByPhone(phoneNo));
     }
     
     @ApiOperation(value = "Get User Profile By ID", authorizations = {@Authorization(value = "accessToken")})
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @GetMapping("/{id}")
     public ResponseEntity<UserProfileResponseModel> getUserProfileById(@PathVariable @NonNull int id) {
         return ResponseEntity.ok(userProfileService.getUserProfileById(id));
     }
 
     @ApiOperation(value = "Edit User Profile", authorizations = {@Authorization(value = "accessToken")})
-    @RequestMapping(value = "/profile/{phoneNo}", method = RequestMethod.PUT)
+    @PutMapping("/profile/{phoneNo}")
     public ResponseEntity<UserProfileResponseModel> editUserProfile(@PathVariable @NonNull long phoneNo, @RequestBody UserProfileRequestModel userProfileRequestModel) {
         return ResponseEntity.ok(userProfileService.editProfile(phoneNo, userProfileRequestModel));
     }
