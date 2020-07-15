@@ -1,6 +1,7 @@
 package com.food.table.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +14,14 @@ public class RestaurantTableDetailsModel  implements Serializable {
 
 	int restaurantId;
 
-    int tableId;
+    int restuarantTableId;
+
+    String restaurantName;
+
+    List<String> restaurantType;
+
+	String imageUrl;
+
+
+
 }

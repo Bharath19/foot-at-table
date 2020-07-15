@@ -148,9 +148,15 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         RestaurantTable restaurantTable = restaurantTableRepository.findTableByQRCode(qrCode);
         if (Objects.isNull(restaurantTable))
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_QR_CODE);
+        Restaurant restaurant = restaurantRepository.findById(restaurantTable.getRestaurant().getId()).get();
         return RestaurantTableDetailsModel.builder()
                 .restaurantId(restaurantTable.getRestaurant().getId())
-                .tableId(restaurantTable.getId())
+                .restuarantTableId(restaurantTable.getId())
+                .restaurantName(restaurant.getRestaurantName())
+                .imageUrl(restaurant.getImageUrl())
+                .restaurantType(restaurant.getTypes().stream().map(res->{
+                  return res.getName();
+                }).collect(Collectors.toList()))
                 .build();
     }
 
