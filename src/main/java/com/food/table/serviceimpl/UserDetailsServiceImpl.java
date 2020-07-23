@@ -258,7 +258,9 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     private void generateOtp(long phoneNo ,Integer userId) {
         log.info("Entering generateOtp for phoneNo: " + phoneNo);
-        int otp = RandomUtils.nextInt(1001, 9999);
+        //TODO: Remove this once OTP issue is resolved
+        int otp = 1234;
+       // int otp = RandomUtils.nextInt(1001, 9999);
         otpCache = CacheBuilder.newBuilder().
                 expireAfterWrite(5, TimeUnit.MINUTES).build(new CacheLoader<Long, Integer>() {
             public Integer load(Long key) {
