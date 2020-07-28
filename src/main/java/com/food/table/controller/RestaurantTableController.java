@@ -6,6 +6,7 @@ import com.food.table.service.RestaurantTableService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +42,8 @@ public class RestaurantTableController {
     @ApiOperation(value = "View a list of restaurant table by restaurant id", authorizations = {@Authorization(value = "accessToken")})
     @RequestMapping(value = "/table/restaurant/{id}", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
-    public ResponseEntity<List<RestaurantTableModel>> getAllTableByRestaurantId(@NotNull @PathVariable int id) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return ResponseEntity.ok(restaurantTableService.getAllByRestaurantId(id));
+    public ResponseEntity<List<RestaurantTableModel>> getAllTableByRestaurantId(@NotNull @PathVariable int id , @RequestParam(defaultValue = StringUtils.EMPTY, required = false) String tableName) {
+        return ResponseEntity.ok(restaurantTableService.getAllByRestaurantId(id,tableName));
     }
 
     @ApiOperation(value = "View a list of all restaurant table", authorizations = {@Authorization(value = "accessToken")})

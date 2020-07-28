@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -14,6 +15,7 @@ import java.sql.Timestamp;
 @Table(name = "restaurant_table")
 @Data
 @Builder
+@Where(clause = "delete_flag = 0")
 @NoArgsConstructor
 @AllArgsConstructor
 public class RestaurantTable {

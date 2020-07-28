@@ -52,7 +52,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
-        if (Objects.nonNull(restaurantTableRepository.findTableByNameAndRestaurantId(restaurantTableModel.getName(), restaurantTableModel.getRestaurantId())))
+        if (Objects.nonNull(restaurantTableRepository.findByNameAndRestaurantId(restaurantTableModel.getName(), restaurantTableModel.getRestaurantId())))
             throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_TABLE_NAME);
         RestaurantTable restaurantTable = RestaurantTable.builder().restaurant(restaurant.get())
                 .name(restaurantTableModel.getName())
@@ -76,9 +76,9 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     }
 
     @Override
-    public List<RestaurantTableModel> getAllByRestaurantId(int restaurantId) {
+    public List<RestaurantTableModel> getAllByRestaurantId(int restaurantId,String tableName) {
         checkAuthority(restaurantId);
-        List<RestaurantTable> restaurantTableList = restaurantTableRepository.findTablesByRestaurantId(restaurantId);
+        List<RestaurantTable> restaurantTableList = restaurantTableRepository.findByRestaurantIdAndNameContainingIgnoreCase(restaurantId,tableName);
         if (CollectionUtils.isEmpty(restaurantTableList))
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
         return restaurantTableList.stream().map(RestaurantTableModel::convertDtoToModel).collect(Collectors.toList());
@@ -86,7 +86,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Override
     public List<RestaurantTableModel> getAllTable() {
-        return restaurantTableRepository.findAllTables().stream()
+        return restaurantTableRepository.findAll().stream()
                 .map(RestaurantTableModel::convertDtoToModel)
                 .collect(Collectors.toList());
     }
@@ -110,7 +110,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         if (!restaurant.isPresent())
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
         RestaurantTable restaurantTable = getTablebyId(tableId);
-        RestaurantTable fetchedRestaurantTable = restaurantTableRepository.findTableByNameAndRestaurantId(restaurantTableModel.getName(), restaurantTableModel.getRestaurantId());
+        RestaurantTable fetchedRestaurantTable = restaurantTableRepository.findByNameAndRestaurantId(restaurantTableModel.getName(), restaurantTableModel.getRestaurantId());
         if (Objects.nonNull(fetchedRestaurantTable) && fetchedRestaurantTable.getId() != tableId)
             throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.INVALID_TABLE_NAME);
         RestaurantTable savedRestaurantTable = restaurantTableRepository.save(RestaurantTable.builder()
@@ -145,7 +145,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Override
     public RestaurantTableDetailsModel getTableDetailsByQRCode(String qrCode) {
-        RestaurantTable restaurantTable = restaurantTableRepository.findTableByQRCode(qrCode);
+        RestaurantTable restaurantTable = restaurantTableRepository.findByQrCode(qrCode);
         if (Objects.isNull(restaurantTable))
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_QR_CODE);
         Restaurant restaurant = restaurantRepository.findById(restaurantTable.getRestaurant().getId()).get();
@@ -174,7 +174,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     }
 
     private RestaurantTable getTablebyId(int tableId) {
-        RestaurantTable restaurantTable = restaurantTableRepository.findTableById(tableId);
+        RestaurantTable restaurantTable = restaurantTableRepository.findById(tableId);
         if (Objects.isNull(restaurantTable))
             throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_TABLE_ID);
         checkAuthority(restaurantTable.getRestaurant().getId());

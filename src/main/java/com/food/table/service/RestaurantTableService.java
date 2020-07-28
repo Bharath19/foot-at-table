@@ -11,7 +11,7 @@ public interface RestaurantTableService {
 
     RestaurantTableModel getById(int id);
 
-    List<RestaurantTableModel> getAllByRestaurantId(int restaurantId);
+    List<RestaurantTableModel> getAllByRestaurantId(int restaurantId ,String tableName);
 
     List<RestaurantTableModel> getAllTable();
 

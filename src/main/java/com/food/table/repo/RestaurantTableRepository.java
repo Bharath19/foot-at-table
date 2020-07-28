@@ -12,20 +12,16 @@ import java.util.Optional;
 @Repository
 public interface RestaurantTableRepository extends JpaRepository<RestaurantTable, Integer> {
 
-    @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.restaurant_id=:id", nativeQuery = true)
-    List<RestaurantTable> findTablesByRestaurantId(@Param("id") int id);
+    List<RestaurantTable> findByRestaurantIdAndNameContainingIgnoreCase(int id,String name);
 
-    @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.id=:id", nativeQuery = true)
-    RestaurantTable findTableById(@Param("id") int id);
+    RestaurantTable findById(int id);
 
-    @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0", nativeQuery = true)
-    List<RestaurantTable> findAllTables();
 
-    @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.qr_code=:qrCode", nativeQuery = true)
-    RestaurantTable findTableByQRCode(@Param("qrCode") String qrCode);
+    List<RestaurantTable> findAll();
 
-    @Query(value = "SELECT * FROM restaurant_table f where f.delete_flag=0 and f.name=:tableName and f.restaurant_id=:restaurantId", nativeQuery = true)
-    RestaurantTable findTableByNameAndRestaurantId(@Param("tableName") String qrCode, @Param("restaurantId") int restaurantId);
+    RestaurantTable findByQrCode(String qrCode);
+
+    RestaurantTable findByNameAndRestaurantId(String qrCode,int restaurantId);
 
 	Optional<RestaurantTable> findByIdAndRestaurantId(int restaurantTableId, int restaurantId);
 }
