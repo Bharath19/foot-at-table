@@ -10,6 +10,8 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "restaurant_table")
@@ -36,6 +38,11 @@ public class RestaurantTable {
     private int status;
 
     private int deleteFlag;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "table_employee_link", joinColumns = {@JoinColumn(name = "table_id", referencedColumnName = "id")}
+            , inverseJoinColumns = {@JoinColumn(name = "employee_id", referencedColumnName = "id")})
+    Set<RestaurantEmployee> restaurantEmployees;
 
     private String deletedBy;
 

@@ -2,12 +2,15 @@ package com.food.table.serviceimpl;
 
 import com.food.table.constant.FoodStatusEnum;
 import com.food.table.dto.Restaurant;
+import com.food.table.dto.RestaurantEmployee;
 import com.food.table.dto.RestaurantTable;
 import com.food.table.dto.UserAccount;
 import com.food.table.exception.ApplicationErrors;
 import com.food.table.exception.ApplicationException;
 import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
+import com.food.table.model.RestaurantTableRequestModel;
+import com.food.table.repo.RestaurantEmployeeRepository;
 import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.RestaurantTableRepository;
 import com.food.table.service.FoodApiService;
@@ -29,9 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,12 +43,14 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     final RestaurantRepository restaurantRepository;
 
+    final RestaurantEmployeeRepository restaurantEmployeeRepository;
+
     final FoodApiService foodApiService;
 
     final AuthorityUtil authorityUtil;
 
     @Override
-    public RestaurantTableModel insertTable(RestaurantTableModel restaurantTableModel) {
+    public RestaurantTableModel insertTable(RestaurantTableRequestModel restaurantTableModel) {
         checkAuthority(restaurantTableModel.getRestaurantId());
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
@@ -104,7 +107,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
 
     @Override
-    public RestaurantTableModel updateById(int tableId, RestaurantTableModel restaurantTableModel) {
+    public RestaurantTableModel updateById(int tableId, RestaurantTableRequestModel restaurantTableModel) {
         checkAuthority(restaurantTableModel.getRestaurantId());
         Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantTableModel.getRestaurantId());
         if (!restaurant.isPresent())
@@ -158,6 +161,42 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
                   return res.getName();
                 }).collect(Collectors.toList()))
                 .build();
+    }
+
+    @Override
+    public void assignEmployeeForTable(int tableId,int employeeId){
+        RestaurantTable restaurantTable = restaurantTableRepository.findById(tableId);
+        if(Objects.isNull(restaurantTable)){
+            throw new ApplicationException(HttpStatus.NOT_FOUND,ApplicationErrors.INVALID_TABLE_ID);
+        }
+        checkAuthority(restaurantTable.getRestaurant().getId());
+        RestaurantEmployee restaurantEmployee = restaurantEmployeeRepository.findEmployeeById(employeeId);
+        if(Objects.isNull(restaurantEmployee)){
+            throw new ApplicationException(HttpStatus.NOT_FOUND,ApplicationErrors.INVALID_EMPLOYEE_ID);
+        }
+        if(restaurantTable.getRestaurantEmployees().contains(restaurantEmployee)){
+            throw new ApplicationException(HttpStatus.BAD_REQUEST,ApplicationErrors.DUPLICATE_EMPLOYEE_ID);
+        }
+        restaurantTable.getRestaurantEmployees().add(restaurantEmployee);
+        restaurantTableRepository.save(restaurantTable);
+    }
+
+    @Override
+    public void unAssignEmployeeForTable(int tableId,int employeeId){
+        RestaurantTable restaurantTable = restaurantTableRepository.findById(tableId);
+        if(Objects.isNull(restaurantTable)){
+            throw new ApplicationException(HttpStatus.NOT_FOUND,ApplicationErrors.INVALID_TABLE_ID);
+        }
+        checkAuthority(restaurantTable.getRestaurant().getId());
+        RestaurantEmployee restaurantEmployee = restaurantEmployeeRepository.findEmployeeById(employeeId);
+        if(Objects.isNull(restaurantEmployee)){
+            throw new ApplicationException(HttpStatus.NOT_FOUND,ApplicationErrors.INVALID_EMPLOYEE_ID);
+        }
+        if(!(restaurantTable.getRestaurantEmployees().contains(restaurantEmployee))){
+            throw new ApplicationException(HttpStatus.BAD_REQUEST,ApplicationErrors.INVALID_TABLE_EMPLOYEE_ID);
+        }
+        restaurantTable.getRestaurantEmployees().remove(restaurantEmployee);
+        restaurantTableRepository.save(restaurantTable);
     }
 
     private RestaurantTable createQRCode(RestaurantTable restaurantTable, Restaurant restaurant) {

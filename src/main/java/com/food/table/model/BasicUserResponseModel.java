@@ -11,5 +11,7 @@ public class BasicUserResponseModel  implements Serializable{
 	
 	private int id;
 	private String name;
+	private String imageUrl;
+	private long phoneNo;
 
 }

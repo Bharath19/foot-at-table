@@ -2,12 +2,13 @@ package com.food.table.service;
 
 import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
+import com.food.table.model.RestaurantTableRequestModel;
 
 import java.util.List;
 
 public interface RestaurantTableService {
 
-    RestaurantTableModel insertTable(RestaurantTableModel restaurantTableModel);
+    RestaurantTableModel insertTable(RestaurantTableRequestModel restaurantTableModel);
 
     RestaurantTableModel getById(int id);
 
@@ -17,11 +18,15 @@ public interface RestaurantTableService {
 
     boolean deleteById(int id);
 
-    RestaurantTableModel updateById(int id, RestaurantTableModel restaurantTableModel);
+    RestaurantTableModel updateById(int id, RestaurantTableRequestModel restaurantTableModel);
 
     byte[] generateQRCode(int id);
 
     RestaurantTableDetailsModel getTableDetailsByQRCode(String qrCode);
+
+    void assignEmployeeForTable(int tableId,int employeeId);
+
+    void unAssignEmployeeForTable(int tableId,int employeeId);
 
 
 }

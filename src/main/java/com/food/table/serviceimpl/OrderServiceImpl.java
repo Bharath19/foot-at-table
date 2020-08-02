@@ -769,7 +769,7 @@ public class OrderServiceImpl implements OrderService {
 		orderResponseModel.setRestaurant(restaurantBasicGetModel);
 		UserAccount userAccount = order.getUserAccount();
 		orderResponseModel.setUserAccount(
-				BasicUserResponseModel.builder().id(userAccount.getId()).name(userAccount.getName()).build());
+				BasicUserResponseModel.builder().id(userAccount.getId()).name(userAccount.getName()).imageUrl(userAccount.getImageUrl()).phoneNo(userAccount.getPhoneNo()).build());
 		if(Objects.nonNull(order.getRestaurantTable())) {
 			orderResponseModel.setRestaurantTableId(order.getRestaurantTable().getId());
 		}

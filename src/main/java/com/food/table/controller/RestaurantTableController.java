@@ -2,6 +2,7 @@ package com.food.table.controller;
 
 import com.food.table.model.RestaurantTableDetailsModel;
 import com.food.table.model.RestaurantTableModel;
+import com.food.table.model.RestaurantTableRequestModel;
 import com.food.table.service.RestaurantTableService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -28,7 +29,7 @@ public class RestaurantTableController {
     @ApiOperation(value = "Insert new restaurant table", authorizations = {@Authorization(value = "accessToken")})
     @RequestMapping(value = "/table", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
-    public ResponseEntity<RestaurantTableModel> insertRestaurantTable(@RequestBody RestaurantTableModel restaurantTableModel) {
+    public ResponseEntity<RestaurantTableModel> insertRestaurantTable(@RequestBody RestaurantTableRequestModel restaurantTableModel) {
         return ResponseEntity.ok(restaurantTableService.insertTable(restaurantTableModel));
     }
 
@@ -44,6 +45,20 @@ public class RestaurantTableController {
     @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
     public ResponseEntity<List<RestaurantTableModel>> getAllTableByRestaurantId(@NotNull @PathVariable int id , @RequestParam(defaultValue = StringUtils.EMPTY, required = false) String tableName) {
         return ResponseEntity.ok(restaurantTableService.getAllByRestaurantId(id,tableName));
+    }
+
+    @ApiOperation(value = "Assign a table to Employee", authorizations = {@Authorization(value = "accessToken")})
+    @RequestMapping(value = "/table/staff/assign/{tableId}", method = RequestMethod.PUT)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
+    public void assignTableForEmployee(@NotNull @PathVariable int tableId , @RequestParam int employeeId ) {
+        restaurantTableService.assignEmployeeForTable(tableId,employeeId);
+    }
+
+    @ApiOperation(value = "Unassign a table to Employee", authorizations = {@Authorization(value = "accessToken")})
+    @RequestMapping(value = "/table/staff/unassign/{tableId}", method = RequestMethod.PUT)
+    @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
+    public void unAssignTableForEmployee(@NotNull @PathVariable int tableId , @RequestParam int employeeId ) {
+        restaurantTableService.unAssignEmployeeForTable(tableId,employeeId);
     }
 
     @ApiOperation(value = "View a list of all restaurant table", authorizations = {@Authorization(value = "accessToken")})
@@ -62,7 +77,7 @@ public class RestaurantTableController {
     @ApiOperation(value = "Update a restaurant table", authorizations = {@Authorization(value = "accessToken")})
     @RequestMapping(value = "/table/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('RESTAURANT_OWNER','RESTAURANT_MANAGER','ADMIN')")
-    public ResponseEntity<RestaurantTableModel> updateTableById(@NotNull @PathVariable int id, @RequestBody RestaurantTableModel restaurantTableModel) {
+    public ResponseEntity<RestaurantTableModel> updateTableById(@NotNull @PathVariable int id, @RequestBody RestaurantTableRequestModel restaurantTableModel) {
         return ResponseEntity.ok(restaurantTableService.updateById(id, restaurantTableModel));
     }
 

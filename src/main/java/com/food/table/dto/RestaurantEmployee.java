@@ -6,6 +6,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Getter
@@ -40,6 +41,9 @@ public class RestaurantEmployee {
     private int status;
 
     private int deleteFlag;
+
+    @ManyToMany(mappedBy = "restaurantEmployees")
+    private List<RestaurantTable> restaurantTables;
 
 
     @CreationTimestamp
