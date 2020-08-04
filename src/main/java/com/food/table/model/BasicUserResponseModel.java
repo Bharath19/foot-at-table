@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class BasicUserResponseModel  implements Serializable{
+public class BasicUserResponseModel {
 	
 	private int id;
 	private String name;

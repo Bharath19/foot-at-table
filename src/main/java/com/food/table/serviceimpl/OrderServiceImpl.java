@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -768,8 +769,13 @@ public class OrderServiceImpl implements OrderService {
 
 		orderResponseModel.setRestaurant(restaurantBasicGetModel);
 		UserAccount userAccount = order.getUserAccount();
-		orderResponseModel.setUserAccount(
-				BasicUserResponseModel.builder().id(userAccount.getId()).name(userAccount.getName()).imageUrl(userAccount.getImageUrl()).phoneNo(userAccount.getPhoneNo()).build());
+		if(Objects.nonNull(userAccount)) {
+			orderResponseModel.setUserAccount(
+					BasicUserResponseModel.builder().id(userAccount.getId())
+							.name(Objects.nonNull(userAccount.getName())? userAccount.getName():StringUtils.EMPTY)
+							.imageUrl(Objects.nonNull(userAccount.getImageUrl())? userAccount.getImageUrl():StringUtils.EMPTY)
+							.phoneNo(Objects.nonNull(userAccount.getPhoneNo())? userAccount.getPhoneNo():0).build());
+		}
 		if(Objects.nonNull(order.getRestaurantTable())) {
 			orderResponseModel.setRestaurantTableId(order.getRestaurantTable().getId());
 		}
