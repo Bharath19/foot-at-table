@@ -87,13 +87,27 @@ public class OrdersController {
 	}
 	
 	@ApiOperation(value = "Initiate Bil Request for order. Here, order automatically moved to BIL_REQUESTED state", authorizations = {@Authorization(value = "accessToken") })
-	@PutMapping("/initiatePayment/{orderId}")
+	@PutMapping("/billRequest/{orderId}")
 	@ResponseBody
-	public ResponseEntity<Map<String, PaymentDetail>> billRequest(@PathVariable int orderId,  @RequestParam(value = "couponCode", required = false) String couponCode) {
+	public ResponseEntity<Map<String, OrderResponseModel>> billRequest(@PathVariable int orderId,  @RequestParam(value = "couponCode", required = false) String couponCode) {
 		long startTime=System.currentTimeMillis();
 		log.info("Entering initiate bill request starttime : "+startTime);
-		PaymentDetail paymentDeatil = orderService.initiatePayment(orderId, couponCode);
-		Map<String, PaymentDetail> responseObject = Collections.singletonMap("paymentDetails", paymentDeatil);
+		OrderResponseModel orderResponseModel = orderService.initiateBillRequest(orderId, couponCode);
+		Map<String, OrderResponseModel> responseObject = Collections.singletonMap("orderResponseModel", orderResponseModel);
+		ResponseEntity<Map<String, OrderResponseModel>> response = new ResponseEntity<Map<String, OrderResponseModel>>(responseObject, HttpStatus.OK);
+		long endTime=System.currentTimeMillis();
+		log.info("Exiting initiate bill request is success and timetaken : "+(endTime-startTime));
+		return response;
+	}
+	
+	@ApiOperation(value = "Initiate payment Request for order. Return the Payment response model to call payment gateway", authorizations = {@Authorization(value = "accessToken") })
+	@PutMapping("/initiatePayment/{orderId}")
+	@ResponseBody
+	public ResponseEntity<Map<String, PaymentDetail>> initiatePayment(@PathVariable int orderId,  @RequestParam(value = "couponCode", required = false) String couponCode) {
+		long startTime=System.currentTimeMillis();
+		log.info("Entering initiate bill request starttime : "+startTime);
+		PaymentDetail paymentDetail = orderService.initiatePayment(orderId, couponCode);
+		Map<String, PaymentDetail> responseObject = Collections.singletonMap("paymentDetail", paymentDetail);
 		ResponseEntity<Map<String, PaymentDetail>> response = new ResponseEntity<Map<String, PaymentDetail>>(responseObject, HttpStatus.OK);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting initiate bill request is success and timetaken : "+(endTime-startTime));

@@ -47,4 +47,6 @@ public class ApplicationConstants {
 	
 	public static final String ACTIVE = "Active";
 	
+	public static final String CURRENCY = "INR";
+	
 }

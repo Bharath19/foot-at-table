@@ -11,7 +11,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -52,9 +51,13 @@ public class Payment {
 	    
 	    private String txnId;
 	    
-	    private String mihpayId;
+	    private String referenceId;
+	    
+	    private String txMsg;
+	    
+	    private String signature;
 	    
 	    @Enumerated(EnumType.STRING)
-	    private PaymentMode mode;
+	    private PaymentMode paymentMode;
 
 }

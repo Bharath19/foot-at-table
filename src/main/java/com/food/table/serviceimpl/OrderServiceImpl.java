@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.food.table.constant.ApplicationConstants;
@@ -211,7 +210,7 @@ public class OrderServiceImpl implements OrderService {
 		if (order.isClosedState())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);
 		
-		order.setState(OrderStateEnum.BILL_REQUESTED);
+		order.setState(OrderStateEnum.PAYMENT_REQUESTED);
 		double offerAmount = 0;
 		ValidateCouponResponse validateCouponResponse = getOfferAmount(couponCode, order);
 		if(Objects.nonNull(validateCouponResponse)) {
@@ -231,10 +230,40 @@ public class OrderServiceImpl implements OrderService {
 		order.setPaidPrice(paymentPrice);
 
 		UserAccount userAccount = order.getUserAccount();
-		PaymentDetail paymentDetail = PaymentDetail.builder().name(userAccount.getName()).email(userAccount.getEmail())
-				.phone(userAccount.getPhoneNo() == null ? null : userAccount.getPhoneNo()+"").productInfo(order.getId()+"")
-				.amount(order.getPaidPrice()+"").order(order).build();
+		PaymentDetail paymentDetail = PaymentDetail.builder().customerName(userAccount.getName()).customerEmail(userAccount.getEmail())
+				.customerPhone(userAccount.getPhoneNo() == null ? null : userAccount.getPhoneNo()+"").orderId(order.getId()+"")
+				.orderAmount(order.getPaidPrice()+"").order(order).build();
 		return paymentService.proceedPayment(paymentDetail);
+	}
+	
+	public OrderResponseModel initiateBillRequest(int orderId, String couponCode) {
+		Order order =  orderRepository.getOne(orderId); 
+		
+		if (hasPaymentCompleted(order))
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_PAYMENT_COMPLETED);
+		if (order.isClosedState())
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.ALREADY_ORDER_CLOSED);		
+		order.setState(OrderStateEnum.BILL_REQUESTED);
+		double offerAmount = 0;
+		ValidateCouponResponse validateCouponResponse = getOfferAmount(couponCode, order);
+		if(Objects.nonNull(validateCouponResponse)) {
+			offerAmount = validateCouponResponse.getOfferAmount();
+			order.setOffer(validateCouponResponse.getOffer());
+			order.setOfferPrice(offerAmount);
+			order.setOfferCode(validateCouponResponse.getOfferCode());
+		}
+		final double totalCartPrice = getTotalOrderPrice(order.getCarts());
+		final double cgstPrice = calculateGST(totalCartPrice, order.getRestaurant().getCgst());
+		final double sgstPrice = calculateGST(totalCartPrice, order.getRestaurant().getSgst());
+		final double totalPrice = totalCartPrice + cgstPrice + sgstPrice;
+		final double paymentPrice = (totalCartPrice + cgstPrice + sgstPrice) - offerAmount;
+		order.setTotalPrice(totalPrice);
+		order.setCgst(cgstPrice);
+		order.setSgst(sgstPrice);
+		order.setPaidPrice(paymentPrice);
+		order = orderRepository.save(order);
+		
+		return convertToOrderResponse(order);
 	}
 
 	private boolean hasPaymentCompleted(Order order) {

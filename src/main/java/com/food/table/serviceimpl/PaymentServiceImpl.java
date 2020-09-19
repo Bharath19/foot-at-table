@@ -10,7 +10,6 @@ import com.food.table.constant.PaymentStatusEnum;
 import com.food.table.dto.Payment;
 import com.food.table.model.PaymentCallback;
 import com.food.table.model.PaymentDetail;
-import com.food.table.repo.OrderRepository;
 import com.food.table.repo.PaymentRepository;
 import com.food.table.service.OrderService;
 import com.food.table.service.PaymentService;
@@ -36,19 +35,21 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public String payuCallback(PaymentCallback paymentResponse) {
     	PaymentStatusEnum paymentStatusEnum = PaymentStatusEnum.TRANSACTION_FAILED;       
-        Payment payment = paymentRepository.findByTxnId(paymentResponse.getTxnid());
-        if(payment != null) {
+        Payment payment = paymentRepository.findByTxnId(paymentResponse.getOrderId());
+        boolean validateSignature = paymentUtil.validateResponseSignature(paymentResponse, payment.getSignature());
+        if(payment != null && validateSignature) {
             //TODO validate the hash
             PaymentStatus paymentStatus = null;
-            if(paymentResponse.getStatus().equals("failure")){
-                paymentStatus = PaymentStatus.Failed;
-            }else if(paymentResponse.getStatus().equals("success")) {
-                paymentStatus = PaymentStatus.Success;
+            if(paymentResponse.getTxStatus().equals("SUCCESS") || paymentResponse.getTxStatus().equals("FLAGGED") ) {
+                paymentStatus = PaymentStatus.SUCCESS;
                 paymentStatusEnum = PaymentStatusEnum.TRANSACTION_SUCCESSFUL;
+            } else {
+                paymentStatus = PaymentStatus.valueOf(paymentResponse.getTxStatus());
             }
             payment.setPaymentStatus(paymentStatus);
-            payment.setMihpayId(paymentResponse.getMihpayid());
-            payment.setMode(paymentResponse.getMode());
+            payment.setPaymentMode(paymentResponse.getPaymentMode());
+            payment.setTxMsg(paymentResponse.getTxMsg());
+            payment.setReferenceId(paymentResponse.getReferenceId());
             paymentRepository.save(payment);
         }
         orderService.updateOrderStateAfterPayment(payment.getOrder(), paymentStatusEnum);
@@ -57,16 +58,17 @@ public class PaymentServiceImpl implements PaymentService {
 
     private void savePaymentDetail(PaymentDetail paymentDetail) {
         Payment payment = new Payment();
-        payment.setAmount(Double.parseDouble(paymentDetail.getAmount()));
-        payment.setEmail(paymentDetail.getEmail());
-        payment.setName(paymentDetail.getName());
+        payment.setAmount(Double.parseDouble(paymentDetail.getOrderAmount()));
+        payment.setEmail(paymentDetail.getCustomerEmail());
+        payment.setName(paymentDetail.getCustomerName());
         payment.setPaymentDate(new Date());
-        payment.setPaymentStatus(PaymentStatus.Pending);
-        payment.setPhone(paymentDetail.getPhone());
-        payment.setProductInfo(paymentDetail.getProductInfo());
-        payment.setTxnId(paymentDetail.getTxnId());
+        payment.setPaymentStatus(PaymentStatus.PENDING);
+        payment.setPhone(paymentDetail.getCustomerPhone());
+        payment.setProductInfo(paymentDetail.getOrderId());
+        payment.setTxnId(paymentDetail.getOrderId());
         payment.setOrder(paymentDetail.getOrder());
+        payment.setSignature(paymentDetail.getSignature());
         paymentRepository.save(payment);
-    }
+    }    
 
 }

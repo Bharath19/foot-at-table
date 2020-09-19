@@ -1,15 +1,20 @@
 package com.food.table.controller;
 
-import com.food.table.constant.PaymentMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.food.table.model.PaymentCallback;
 import com.food.table.model.PaymentDetail;
 import com.food.table.service.PaymentService;
+
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
@@ -27,15 +32,9 @@ public class PaymentController {
 
 	@ApiOperation(value = "", authorizations = {@Authorization(value = "accessToken")})
 	@RequestMapping(path = "/payment-response", method = RequestMethod.POST)
-	public @ResponseBody String payuCallback(@RequestParam String mihpayid, @RequestParam String status, @RequestParam PaymentMode mode, @RequestParam String txnid, @RequestParam String hash){
+	public @ResponseBody String payuCallback(@RequestBody PaymentCallback paymentCallback){
 		long startTime=System.currentTimeMillis();
-		log.info("Entering payuCallback starttime : "+startTime);
-		PaymentCallback paymentCallback = new PaymentCallback();
-		paymentCallback.setMihpayid(mihpayid);
-		paymentCallback.setTxnid(txnid);
-		paymentCallback.setMode(mode);
-		paymentCallback.setHash(hash);
-		paymentCallback.setStatus(status);
+		log.info("Entering payuCallback starttime : "+startTime);		
 		String response = paymentService.payuCallback(paymentCallback);
 		long endTime=System.currentTimeMillis();
 		log.info("Exiting payuCallback is success and timetaken : "+(endTime-startTime));

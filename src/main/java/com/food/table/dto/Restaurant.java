@@ -53,9 +53,9 @@ public class Restaurant {
 	
 	private int avgPricePerPerson;
 	
-	private double rating;
+	private double rating =0.0;
 	
-	private int ratingCount;
+	private int ratingCount=0;
 	
 	private String imageUrl;
 	

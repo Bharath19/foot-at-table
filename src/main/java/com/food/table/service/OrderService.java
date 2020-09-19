@@ -46,5 +46,7 @@ public interface OrderService {
 	void updateOrderStateAfterPayment(Order order, PaymentStatusEnum paymrntState);
 
 	PaymentDetail initiatePayment(int orderId, String couponCode);
+	
+	OrderResponseModel initiateBillRequest(int orderId, String couponCode) ;
 
 }

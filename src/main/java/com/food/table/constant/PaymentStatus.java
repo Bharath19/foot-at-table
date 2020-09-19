@@ -2,5 +2,5 @@ package com.food.table.constant;
 
 public enum PaymentStatus {
 
-	Pending,Failed,Success
+	SUCCESS,FAILED,PENDING,CANCELLED,FLAGGED
 }

@@ -10,25 +10,27 @@ import lombok.Data;
 @Builder
 public class PaymentDetail {
 	
-	private String email;
+	private String appId;
 	
-    private String name;
+    private String orderId;
     
-    private String phone;
+    private String orderAmount;
     
-    private String productInfo;
+    private String orderCurrency;
     
-    private String amount;
+    private String orderNote;
     
-    private String txnId;
+    private String customerName;
     
-    private String hash;
+    private String customerPhone;
     
-    private String sUrl;
+    private String customerEmail;
     
-    private String fUrl;
+    private String returnUrl;
     
-    private String key;
+    private String notifyUrl;
+    
+    private String signature;
     
     @JsonIgnore
     private Order order;

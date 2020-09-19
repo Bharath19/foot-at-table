@@ -7,13 +7,19 @@ import lombok.Data;
 @Data
 public class PaymentCallback {
 	
-	private String txnid;
+	private String orderId;
 	
-    private String mihpayid;
+    private String orderAmount;    
     
-    private PaymentMode mode;
+    private String referenceId;
     
-    private String status;
+    private String txStatus;
     
-    private String hash;
+    private PaymentMode paymentMode;
+    
+    private String txMsg;
+    
+    private String txTime;
+    
+    private String signature;
 }
