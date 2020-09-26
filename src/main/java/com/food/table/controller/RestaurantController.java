@@ -14,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -167,5 +169,14 @@ public class RestaurantController {
 		log.info("Exiting  get timings for restaurant is success and timetaken : "+(endTime-startTime));
 		return ResponseEntity.ok(restaurantGetModel);
 		
+	}
+	
+	@ApiOperation(value = "Get restaurant details", authorizations = {@Authorization(value = "accessToken")})
+	@GetMapping("/users/{restaurantId}")
+	public ResponseEntity<List<UserProfileResponseModel>> getRestaurantUsers(@PathVariable(required = true) int restaurantId) {
+		log.info("Entering get users for restaurant  : "+restaurantId);
+		List<UserProfileResponseModel> userList = restaurantService.getRestaurantUsers(restaurantId);
+		log.info("Exiting get users for restaurant  is success: "+restaurantId);
+		return ResponseEntity.ok(userList);
 	}
 }

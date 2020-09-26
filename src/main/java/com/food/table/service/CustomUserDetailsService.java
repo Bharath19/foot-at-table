@@ -5,6 +5,7 @@ import com.food.table.dto.UserAccount;
 import com.food.table.model.AuthRequest;
 import com.food.table.model.AuthResponse;
 import com.food.table.model.CustomerAuthRequest;
+import com.food.table.model.CustomerOtpRequest;
 import com.food.table.model.RestaurantEmployeeRequestModel;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -34,6 +35,9 @@ public interface CustomUserDetailsService extends UserDetailsService {
     int getRestaurantIdForUser(String emailId);
 
     AuthResponse performRestaurantLogin (AuthRequest authRequest);
-
+    
+    public void requestOtpToEditPhoneNo(long phoneNo ,Integer userId) ;
+    
+    public void updatePhoneNo(CustomerOtpRequest customerOtpRequest,int userId);
 
 }

@@ -76,7 +76,7 @@ public class RestaurantEmployeeServiceImpl implements RestaurantEmployeeService 
             throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.EMPLOYEE_CREATION_FAILED);
         }
         log.info("Finished insertNewEmployee method successfully for email Id" + restaurantEmployeeRequestModel.getEmailId());
-        return buildResponseModel(savedEmployee);
+        return buildEmployeeResponseModel(savedEmployee);
 
     }
 
@@ -143,7 +143,7 @@ public class RestaurantEmployeeServiceImpl implements RestaurantEmployeeService 
             throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, ApplicationErrors.USER_CREATION_FAILED);
         }
         log.info("Finished updateEmployee method for Id" + id);
-        return buildResponseModel(savedEmployee);
+        return buildEmployeeResponseModel(savedEmployee);
 
     }
 
@@ -218,17 +218,17 @@ public class RestaurantEmployeeServiceImpl implements RestaurantEmployeeService 
         }
         checkAuthority(fetchedRestaurantEmployee.get().getRestaurant().getId());
         log.info("Finished getEmployeeId Method for id: " + id);
-        return buildResponseModel(fetchedRestaurantEmployee.get());
+        return buildEmployeeResponseModel(fetchedRestaurantEmployee.get());
     }
 
     @Override
     public List<RestaurantEmployeeResponseModel> getEmployeesByRestaurantId(int restaurantId) {
         checkAuthority(restaurantId);
         return restaurantEmployeeRepository.findEmployeeByRestaurantId(restaurantId)
-                .stream().map(this::buildResponseModel).collect(Collectors.toList());
+                .stream().map(this::buildEmployeeResponseModel).collect(Collectors.toList());
     }
 
-    private RestaurantEmployeeResponseModel buildResponseModel(RestaurantEmployee restaurantEmployee) {
+    public RestaurantEmployeeResponseModel buildEmployeeResponseModel(RestaurantEmployee restaurantEmployee) {
         UserAccount userAccount = userRepository.findUserByEmailId(restaurantEmployee.getEmail());
         return RestaurantEmployeeResponseModel.builder()
                 .id(restaurantEmployee.getId())

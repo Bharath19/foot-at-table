@@ -50,7 +50,7 @@ public class NotificationServiceImpl implements NotificationService {
 		if(userAccount.isPresent()) {
 		if (notificationModel.getNotificationType().equalsIgnoreCase("sms")) {
 			messageId = smsNotificationService.smsNotification(notificationModel.getNotificationText(),
-					userAccount.get().getPhoneNo().toString());
+					String.valueOf(notificationModel.getPhoneNo()));
 		} else if (notificationModel.getNotificationType().equalsIgnoreCase("push")) {
 			UserDevice userDevice = userDeviceRepository.findByUseraccount(userAccount.get());
 			log.info("Push notification started for deviceId : " + notificationModel.getUserId());			

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ import com.food.table.dto.FoodOptions;
 import com.food.table.dto.Foods;
 import com.food.table.dto.Order;
 import com.food.table.dto.Restaurant;
+import com.food.table.dto.RestaurantEmployee;
 import com.food.table.dto.RestaurantTable;
 import com.food.table.dto.Types;
 import com.food.table.dto.UserAccount;
@@ -68,6 +70,7 @@ import com.food.table.repo.UserRepository;
 import com.food.table.service.OfferService;
 import com.food.table.service.OrderService;
 import com.food.table.service.PaymentService;
+import com.food.table.service.RestaurantEmployeeService;
 import com.food.table.util.SimpleDateUtil;
 import com.food.table.util.UserUtil;
 
@@ -98,6 +101,8 @@ public class OrderServiceImpl implements OrderService {
 	private PaymentService paymentService;
 	@Autowired
 	private OfferService offerservice;
+	@Autowired
+	public RestaurantEmployeeServiceImpl restaurantEmployeeService;
 	
 	private static final Map<OrderStateEnum, CartStateEnum> orderCartStateMap = Map.ofEntries(
 			entry(OrderStateEnum.COMPLETED, CartStateEnum.COMPLETED),
@@ -123,7 +128,7 @@ public class OrderServiceImpl implements OrderService {
 			@CacheEvict(cacheNames = "getOrderByRestaurantTableIdAndType",allEntries = true),
 			@CacheEvict(cacheNames = "getOrderByRestaurantId",allEntries = true)
 	})
-	public Order createOrder(OrderModel orderModel) {
+	public Order createOrder(OrderModel orderModel) {		
 		return orderRepository.save(convertToDto(orderModel));
 	}
 
@@ -297,7 +302,7 @@ public class OrderServiceImpl implements OrderService {
 		Optional<Order> order = orderRepository.findById(orderId);
 		if (!order.isPresent())
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
-		return OrderServiceImpl.convertToOrderResponse(order.get());
+		return convertToOrderResponse(order.get());
 	}
 
 	@Override
@@ -322,7 +327,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
-		orderlist.forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+		orderlist.forEach(order -> orderResponseModelList.add(convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
 
@@ -363,7 +368,7 @@ public class OrderServiceImpl implements OrderService {
 
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
 		orderlist.getContent()
-				.forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+				.forEach(order -> orderResponseModelList.add(convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
 	
@@ -414,7 +419,7 @@ public class OrderServiceImpl implements OrderService {
 		
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
 		if(Objects.nonNull(orderlist))
-			orderlist.getContent().forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+			orderlist.getContent().forEach(order -> orderResponseModelList.add(convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
 
@@ -443,7 +448,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
-		orderlist.getContent().forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+		orderlist.getContent().forEach(order -> orderResponseModelList.add(convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
 
@@ -471,7 +476,7 @@ public class OrderServiceImpl implements OrderService {
 
 		ArrayList<OrderResponseModel> orderResponseModelList = new ArrayList<OrderResponseModel>();
 		orderlist.getContent()
-				.forEach(order -> orderResponseModelList.add(OrderServiceImpl.convertToOrderResponse(order)));
+				.forEach(order -> orderResponseModelList.add(convertToOrderResponse(order)));
 		return orderResponseModelList;
 	}
 
@@ -779,7 +784,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 	}
 
-	private static OrderResponseModel convertToOrderResponse(Order order) {
+	private OrderResponseModel convertToOrderResponse(Order order) {
 		if (order == null)
 			return null;
 
@@ -806,6 +811,10 @@ public class OrderServiceImpl implements OrderService {
 							.phoneNo(Objects.nonNull(userAccount.getPhoneNo())? userAccount.getPhoneNo():0).build());
 		}
 		if(Objects.nonNull(order.getRestaurantTable())) {
+			Set<RestaurantEmployee> employee =order.getRestaurantTable().getRestaurantEmployees();
+			if(employee!=null && !employee.isEmpty()) {				
+				orderResponseModel.setAssignee(restaurantEmployeeService.buildEmployeeResponseModel(employee.stream().findFirst().get()));
+			}
 			orderResponseModel.setRestaurantTableId(order.getRestaurantTable().getId());
 		}
 		orderResponseModel.setOrderTypeName(order.getType().getName());

@@ -195,5 +195,7 @@ public class ApplicationErrors {
 	public static final String DUPLICATE_EMPLOYEE_ID = "Invalid Employee Id.The Employee is already assigned to this table";
 
 	public static final String INVALID_TABLE_EMPLOYEE_ID = "Invalid Employee Id.The Employee is not assigned to this table";
+	
+	public static final String USER_ALREADY_EXIST = "Given Phone no is a user of Country Broot";
 
 }

@@ -3,14 +3,15 @@ package com.food.table.serviceimpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.lucene.util.SloppyMath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import com.food.table.dto.Account;
 import com.food.table.dto.Address;
 import com.food.table.dto.Cuisines;
 import com.food.table.dto.Diets;
+import com.food.table.dto.Order;
 import com.food.table.dto.Payments;
 import com.food.table.dto.Restaurant;
 import com.food.table.dto.SearchType;
@@ -34,6 +36,7 @@ import com.food.table.dto.Services;
 import com.food.table.dto.Tiers;
 import com.food.table.dto.Timings;
 import com.food.table.dto.Types;
+import com.food.table.dto.UserAccount;
 import com.food.table.email.EmailModel;
 import com.food.table.email.EmailService;
 import com.food.table.exception.ApplicationErrors;
@@ -46,10 +49,12 @@ import com.food.table.model.RestaurantGetModel;
 import com.food.table.model.RestaurantModel;
 import com.food.table.model.RestaurantUpdateRequest;
 import com.food.table.model.TimingModel;
+import com.food.table.model.UserProfileResponseModel;
 import com.food.table.repo.AccountRepository;
 import com.food.table.repo.AddressRepository;
 import com.food.table.repo.CuisinesRepository;
 import com.food.table.repo.DietRepository;
+import com.food.table.repo.OrderRepository;
 import com.food.table.repo.PaymentsRepository;
 import com.food.table.repo.RestaurantRepository;
 import com.food.table.repo.SearchTypeRepository;
@@ -102,6 +107,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Autowired
 	private TimingRepository timingRepository;
+	
+	@Autowired
+	private OrderRepository orderRepository;
 
 	@Autowired
 	private EmailService emailService;
@@ -639,6 +647,36 @@ public class RestaurantServiceImpl implements RestaurantService {
 			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
 		}
 		return restaurantGetModel;
+	}
+	
+	@Override
+	public List<UserProfileResponseModel> getRestaurantUsers(int restaurantId) {
+		List<UserProfileResponseModel> userResponse = new ArrayList<>();
+		Optional<Restaurant> restaurant = restaurantepository.findById(restaurantId);
+		if (restaurant.isPresent()) {
+			List<Order> order = orderRepository.findByRestaurantId(restaurantId);
+			List<UserAccount> userAccount = order.stream().map(v -> v.getUserAccount()).collect(Collectors.toList());
+			if (userAccount != null && !userAccount.isEmpty()) {
+				userResponse = parseUserModel(userAccount);
+			}
+		} else {
+			log.error("Invalid restaurant id for get restaurant details" + restaurantId);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
+		}
+		return userResponse;
+	}
+	
+	private List<UserProfileResponseModel> parseUserModel(List<UserAccount> userAccount) {
+		List<UserProfileResponseModel> userResponse = userAccount.stream().map(user -> {
+			UserProfileResponseModel userProfile = new UserProfileResponseModel();
+			userProfile.setName(user.getName());
+			userProfile.setUserId(user.getId());
+			userProfile.setEmail(user.getEmail());
+			userProfile.setImageUrl(user.getImageUrl());
+			userProfile.setPhoneNo(user.getPhoneNo());
+			return userProfile;
+		}).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparingInt(UserProfileResponseModel::getUserId))), ArrayList::new));
+		return userResponse;
 	}
 
 }

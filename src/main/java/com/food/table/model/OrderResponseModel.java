@@ -4,13 +4,12 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-import com.food.table.constant.OrderStateEnum;
-
-import io.swagger.annotations.ApiModelProperty;
-
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
+import com.food.table.constant.OrderStateEnum;
+
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
@@ -31,6 +30,7 @@ public class OrderResponseModel implements Serializable {
 	private double offerPrice;
 	private double cgst;
 	private double sgst;
+	private RestaurantEmployeeResponseModel assignee;
 
 	@Enumerated(EnumType.STRING)
 	private OrderStateEnum state;

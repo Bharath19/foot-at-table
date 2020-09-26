@@ -12,5 +12,7 @@ public class NotificationModel {
 	private String notificationType;
 
 	private Integer userId;
+	
+	private long phoneNo;
 
 }

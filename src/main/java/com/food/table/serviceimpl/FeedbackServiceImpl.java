@@ -21,7 +21,10 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FeedbackServiceImpl implements FeedbackService {
@@ -61,19 +64,19 @@ public class FeedbackServiceImpl implements FeedbackService {
 			restaurantFeedback.setRestaurant(restaurant.get());
 			restaurantRepository.save(restaurant.get());
 		} else {
-			throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
 		}
 		Optional<Order> order = orderRepository.findById(feedbackModel.getOrderId());
 		if (order.isPresent()) {
 			restaurantFeedback.setOrder(order.get());
 		} else {
-			throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_ORDER_ID);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_ORDER_ID);
 		}
 		UserAccount user = userUtil.getCurrentUserId();
 		if (user!=null) {
 			restaurantFeedback.setUser(user);
 		} else {
-			throw new ApplicationException(HttpStatus.NOT_FOUND, ApplicationErrors.INVALID_RESTAURANT_ID);
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
 		}
 		restaurantFeedback.setMessage(feedbackModel.getMessage());
 		restaurantFeedback.setRating(feedbackModel.getRating());
@@ -102,6 +105,36 @@ public class FeedbackServiceImpl implements FeedbackService {
 			check = true;
 		}
 		return check;
+	}
+
+	@Override
+	public List<FeedbackModel> getRestaurantFeedbackByUser(int restaurantId, int userId) {
+		List<FeedbackModel> feedbackModel = new ArrayList<FeedbackModel>();
+		Optional<Restaurant> restaurant = restaurantRepository.findById(restaurantId);
+		if(restaurant.isPresent()) {
+			Optional<UserAccount> userAccount = userRepository.findById(userId);
+			if(userAccount.isPresent()) {
+				List<RestaurantFeedback> restaurantFeedback = feedbackRepository.getRestaurantFeedBack(restaurantId,userId);
+				if(restaurantFeedback!=null && !restaurantFeedback.isEmpty()) {
+					feedbackModel = parseRestaurantFeedback(restaurantFeedback);
+				}
+			} else  {
+				throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
+			}
+		} else {
+			throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_RESTAURANT_ID);
+		}
+		return feedbackModel;
+	}
+	
+	private List<FeedbackModel> parseRestaurantFeedback(List<RestaurantFeedback> restaurantFeedback) {
+		return restaurantFeedback.stream().map(val -> {
+			FeedbackModel feed = new FeedbackModel();
+			feed.setOrderId(val.getOrder().getId());
+			feed.setMessage(val.getMessage());
+			feed.setRating(val.getRating());
+			return feed;
+		}).collect(Collectors.toList());
 	}
 
 }

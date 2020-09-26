@@ -10,6 +10,7 @@ import com.food.table.model.RestaurantModel;
 import com.food.table.model.RestaurantUpdateRequest;
 import com.food.table.model.SearchModel;
 import com.food.table.model.TimingModel;
+import com.food.table.model.UserProfileResponseModel;
 
 @Service
 public interface RestaurantService {
@@ -37,4 +38,6 @@ public interface RestaurantService {
 	public List<TimingModel> getRestaurantTimings(int restaurantId);
 	
 	public RestaurantGetModel getRestaurantById(int restaurantId);
+	
+	public List<UserProfileResponseModel> getRestaurantUsers(int restaurantId);
 }

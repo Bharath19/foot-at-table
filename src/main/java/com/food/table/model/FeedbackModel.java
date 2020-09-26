@@ -3,12 +3,15 @@ package com.food.table.model;
 
 import javax.validation.constraints.NotBlank;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class FeedbackModel {	
 	
-	@NotBlank
 	private int orderId;
 	
 	private String message;

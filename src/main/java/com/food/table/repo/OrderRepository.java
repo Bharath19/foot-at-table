@@ -115,5 +115,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
 	@Query(value = "Select * from orders o where o.restaurant_id = :restaurantId and restaurant_table_id = :restaurantTableId", nativeQuery = true)
 	Page<Order> findByRestaurantIdAndRestaurantTableId(int restaurantId, int restaurantTableId, Pageable pageable);
+	
+	List<Order> findByRestaurantId(int restaurantId);
 
 }

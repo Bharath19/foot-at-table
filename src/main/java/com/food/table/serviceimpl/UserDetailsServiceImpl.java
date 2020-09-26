@@ -259,8 +259,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
     private void generateOtp(long phoneNo ,Integer userId) {
         log.info("Entering generateOtp for phoneNo: " + phoneNo);
         //TODO: Remove this once OTP issue is resolved
-        int otp = 1234;
-       // int otp = RandomUtils.nextInt(1001, 9999);
+        int otp = RandomUtils.nextInt(1001, 9999);
         otpCache = CacheBuilder.newBuilder().
                 expireAfterWrite(5, TimeUnit.MINUTES).build(new CacheLoader<Long, Integer>() {
             public Integer load(Long key) {
@@ -269,7 +268,7 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
         });
         otpCache.put(phoneNo, otp);
         log.info("OTP Stored in Cache for : " + phoneNo);
-        NotificationModel smsNotification = NotificationModel.builder().notificationText("Your otp is " + otp).notificationType("sms").userId(userId).build();
+        NotificationModel smsNotification = NotificationModel.builder().notificationText("Your otp is " + otp).notificationType("sms").userId(userId).phoneNo(phoneNo).build();
         notificationService.publish(smsNotification);
         log.info("OTP generated successfully for: " + phoneNo);
     }
@@ -389,6 +388,32 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
                 .restaurantId(restaurantId)
                 .userRole(userAccount.getRoles().stream().filter(role-> role.getRoleName()!="CUSTOMER").collect(Collectors.toList()).get(0).getRoleName())
                 .user(user).build();
+    }
+    
+    @Override
+    public void requestOtpToEditPhoneNo(long phoneNo ,Integer userId) {
+    	log.info("Entering send otp to edit for phoneNo " + phoneNo);
+    	 UserAccount userAccount = userRepository.findUserByPhoneNo(phoneNo);
+    	 if(userAccount!=null) {
+    		 throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.USER_ALREADY_EXIST);
+    	 }
+    	generateOtp(phoneNo, userId);
+    	log.info("Exiting send otp to edit for phoneNo is success" + phoneNo);
+    }
+    
+    @Override
+    public void updatePhoneNo(CustomerOtpRequest customerOtpRequest,int userId) {
+    	Optional<UserAccount> userAccount = userRepository.findById(userId);
+    	if(!userAccount.isPresent()) {
+    		throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_USER_ID);
+    	}
+    	int otp = getOtpFromCache(customerOtpRequest.getPhoneNo());
+    	if(otp == customerOtpRequest.getOtp()) {
+    		userAccount.get().setPhoneNo(customerOtpRequest.getPhoneNo());
+    		userRepository.save(userAccount.get());
+    	} else {
+    		throw new ApplicationException(HttpStatus.BAD_REQUEST, ApplicationErrors.INVALID_OTP);
+    	}
     }
 
     private int getOtpFromCache(long phoneNo) {
